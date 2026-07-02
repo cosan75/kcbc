@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서논술형 평가 설계·활용 대시보드 v3</title>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F8F8FC;
+    --surface-2: #F0F0F8;
+    --border: rgba(0,0,0,0.09);
+    --border-glow: rgba(99,102,241,0.35);
+    --border-teal: rgba(20,184,166,0.35);
+    --border-amber: rgba(245,158,11,0.35);
+    --text: #1A1A2E;
+    --text-dim: #7B7B9A;
+    --text-muted: #5A5A78;
+    --accent: #6366F1;
+    --accent-teal: #0D9488;
+    --accent-amber: #D97706;
+    --accent-rose: #E11D48;
+    --glow: radial-gradient(ellipse at 50% -10%, rgba(99,102,241,0.07) 0%, transparent 70%);
+    --mono: 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    background-image: var(--glow);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    background: rgba(255,255,255,0.95);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-badge {
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    padding: 3px 8px; border-radius: 4px;
+    font-family: var(--mono);
+  }
+  .logo-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .logo-sub { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+  .header-meta {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .tag {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* ── Nav Tabs ── */
+  .nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 60px; z-index: 90;
+  }
+  .nav-inner {
+    max-width: 1400px; margin: 0 auto; padding: 0 40px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .nav-btn {
+    background: none; border: none; color: var(--text-dim);
+    font-size: 13px; font-weight: 500;
+    padding: 14px 20px; cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent; transition: all .2s;
+    font-family: inherit;
+    position: relative;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active {
+    color: var(--accent); border-bottom-color: var(--accent);
+  }
+  .nav-btn .num {
+    font-size: 10px; color: var(--text-dim);
+    font-family: var(--mono); margin-right: 4px;
+  }
+  .nav-btn.active .num { color: var(--accent); }
+
+  /* ── Layout ── */
+  .main {
+    max-width: 1400px; margin: 0 auto; padding: 32px 40px 60px;
+  }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── Page Title ── */
+  .page-title {
+    margin-bottom: 28px;
+  }
+  .page-title h2 {
+    font-size: 26px; font-weight: 700;
+    line-height: 1.2; margin-bottom: 6px;
+  }
+  .page-title p { color: var(--text-muted); font-size: 14px; }
+  .accent-line {
+    display: inline; background: linear-gradient(90deg, var(--accent), var(--accent-teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  /* ── Bento Grid ── */
+  .bento { display: grid; gap: 16px; }
+  .bento-2 { grid-template-columns: 1fr 1fr; }
+  .bento-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .bento-4 { grid-template-columns: repeat(4, 1fr); }
+  .bento-asym { grid-template-columns: 2fr 1fr; }
+  .bento-asym-r { grid-template-columns: 1fr 2fr; }
+  .bento-357 { grid-template-columns: 3fr 5fr 4fr; }
+
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    transition: border-color .25s;
+  }
+  .tile:hover { border-color: rgba(255,255,255,0.14); }
+  .tile.glow { border-color: var(--border-glow); }
+  .tile.glow-teal { border-color: var(--border-teal); }
+  .tile.glow-amber { border-color: var(--border-amber); }
+  .tile.glow-rose { border-color: rgba(244,63,94,0.4); }
+  .tile.span2 { grid-column: span 2; }
+  .tile.span3 { grid-column: span 3; }
+  .tile.full { grid-column: 1 / -1; }
+
+  /* ── Tile Components ── */
+  .tile-label {
+    font-size: 10px; letter-spacing: .1em; color: var(--text-dim);
+    font-family: var(--mono); text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tile-label::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); display: inline-block;
+    flex-shrink: 0;
+  }
+  .tile-label.teal::before { background: var(--accent-teal); }
+  .tile-label.amber::before { background: var(--accent-amber); }
+  .tile-label.rose::before { background: var(--accent-rose); }
+
+  .tile h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .tile h4 { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+  .tile p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+  .big-num {
+    font-size: 32px; font-weight: 800; line-height: 1;
+    color: var(--accent); font-family: var(--mono);
+    margin-bottom: 6px;
+  }
+  .big-num.teal { color: var(--accent-teal); }
+  .big-num.amber { color: var(--accent-amber); }
+
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 14px 0;
+  }
+
+  /* ── Type Cards ── */
+  .type-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color .2s;
+  }
+  .type-card:hover { border-color: var(--border-glow); }
+  .type-card:last-child { margin-bottom: 0; }
+  .type-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .type-badge {
+    font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+    border-radius: 3px; font-weight: 700; letter-spacing: .05em;
+    flex-shrink: 0;
+  }
+  .badge-s { background: rgba(99,102,241,0.1); color: var(--accent); border: 1px solid rgba(99,102,241,0.3); }
+  .badge-e { background: rgba(20,184,166,0.15); color: var(--accent-teal); border: 1px solid rgba(20,184,166,0.3); }
+  .type-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .type-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .type-examples {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+  }
+  .chip {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* ── Step Flow ── */
+  .step-flow { display: flex; flex-direction: column; gap: 10px; }
+  .step {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+    position: relative;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 12px; font-weight: 800; font-family: var(--mono);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-num.teal { background: var(--accent-teal); color: #fff; }
+  .step-num.amber { background: var(--accent-amber); color: #fff; }
+  .step-num.rose { background: var(--accent-rose); }
+  .step-content { flex: 1; }
+  .step-content strong { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+  .step-content span { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+
+  /* ── Table ── */
+  .data-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  .data-table th {
+    background: var(--surface-2); color: var(--text-dim);
+    font-size: 11px; font-family: var(--mono); letter-spacing: .07em;
+    text-align: left; padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted); vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .data-table td:first-child { color: var(--text); font-weight: 500; }
+
+  /* ── Progress Bar ── */
+  .prog-bar {
+    background: var(--surface-2); border-radius: 4px; height: 6px;
+    margin-top: 8px; overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-teal));
+    transition: width .8s ease;
+  }
+
+  /* ── Workflow ── */
+  .flow-row {
+    display: flex; align-items: stretch; gap: 0;
+    background: var(--surface-2); border-radius: 10px;
+    overflow: hidden; border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .flow-actor {
+    background: rgba(99,102,241,0.1);
+    border-right: 1px solid var(--border-glow);
+    padding: 14px 16px; display: flex; align-items: center;
+    width: 90px; flex-shrink: 0;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    text-align: center; justify-content: center;
+  }
+  .flow-actor.teal {
+    background: rgba(20,184,166,0.1);
+    border-right-color: var(--border-teal);
+    color: var(--accent-teal);
+  }
+  .flow-steps-row {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px; padding: 12px 16px; flex: 1;
+  }
+  .flow-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text);
+  }
+  .flow-item .fs {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 10px;
+    font-size: 12px; line-height: 1.3; text-align: center;
+  }
+  .flow-item .arr {
+    color: var(--text-dim); font-size: 14px; flex-shrink: 0;
+  }
+
+  /* ── AI Loop ── */
+  .ai-loop {
+    display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr;
+    align-items: center; gap: 0;
+  }
+  .ai-node {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    text-align: center;
+  }
+  .ai-node.highlight { border-color: var(--border-glow); }
+  .ai-node .icon { font-size: 24px; margin-bottom: 6px; }
+  .ai-node .title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .ai-node .desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .ai-arrow { text-align: center; color: var(--accent); font-size: 20px; }
+
+  /* ── Rubric Grid ── */
+  .rubric-table {
+    width: 100%; border-collapse: separate; border-spacing: 3px;
+    font-size: 12px;
+  }
+  .rubric-table th {
+    background: var(--accent); color: #fff;
+    padding: 8px 12px; border-radius: 4px; font-size: 11px;
+    letter-spacing: .06em; font-family: var(--mono);
+  }
+  .rubric-table th.teal { background: var(--accent-teal); color: #fff; }
+  .rubric-table th.amber { background: var(--accent-amber); color: #fff; }
+  .rubric-table th.dim { background: var(--surface-2); color: var(--text-dim); }
+  .rubric-table td {
+    background: var(--surface-2); padding: 8px 12px;
+    border-radius: 4px; color: var(--text-muted);
+    vertical-align: top; line-height: 1.55;
+    border: 1px solid var(--border);
+  }
+  .rubric-table td.row-head {
+    background: rgba(99,102,241,0.08); color: var(--text);
+    font-weight: 600; font-size: 12px;
+    border-color: var(--border-glow);
+  }
+
+  /* ── Alert Box ── */
+  .alert {
+    border-radius: 8px; padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .alert.info { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); }
+  .alert.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); }
+  .alert.success { background: rgba(20,184,166,0.08); border: 1px solid rgba(20,184,166,0.25); }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-body strong { display: block; font-size: 13px; margin-bottom: 4px; }
+  .alert-body p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── Pill List ── */
+  .pill-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .pill {
+    font-size: 12px; padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--text-muted);
+    background: var(--surface-2);
+  }
+  .pill.accent { border-color: rgba(99,102,241,0.4); color: var(--accent); background: rgba(99,102,241,0.08); }
+  .pill.teal { border-color: rgba(20,184,166,0.4); color: var(--accent-teal); background: rgba(20,184,166,0.08); }
+  .pill.amber { border-color: rgba(245,158,11,0.4); color: var(--accent-amber); background: rgba(245,158,11,0.08); }
+
+  /* ── Comparison ── */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .compare-col { }
+  .compare-head {
+    font-size: 13px; font-weight: 700; padding: 10px 14px;
+    border-radius: 6px 6px 0 0;
+  }
+  .compare-head.acc { background: rgba(99,102,241,0.1); color: var(--accent); border: 1px solid var(--border-glow); border-bottom: none; }
+  .compare-head.teal { background: rgba(20,184,166,0.12); color: var(--accent-teal); border: 1px solid var(--border-teal); border-bottom: none; }
+  .compare-body {
+    border-radius: 0 0 6px 6px; padding: 12px 14px;
+  }
+  .compare-body.acc { border: 1px solid var(--border-glow); }
+  .compare-body.teal { border: 1px solid var(--border-teal); }
+  .compare-item {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 8px; line-height: 1.55;
+  }
+  .compare-item:last-child { margin-bottom: 0; }
+  .compare-item::before {
+    content: '▸'; color: var(--accent); font-size: 11px;
+    margin-top: 2px; flex-shrink: 0;
+  }
+  .compare-body.teal .compare-item::before { color: var(--accent-teal); }
+
+  /* ── Section Divider ── */
+  .sec-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .bento-3, .bento-4, .bento-357 { grid-template-columns: 1fr 1fr; }
+    .bento-asym, .bento-asym-r { grid-template-columns: 1fr; }
+    .ai-loop { grid-template-columns: 1fr; }
+    .ai-arrow { transform: rotate(90deg); }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .main { padding: 20px 16px 48px; }
+    header { padding: 0 16px; }
+    .nav-inner { padding: 0 16px; }
+    .bento-2, .bento-3, .bento-4 { grid-template-columns: 1fr; }
+    .tile.span2 { grid-column: span 1; }
+    .header-meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-badge">BS · bkit</span>
+      <div>
+        <div class="logo-title">서논술형 평가 설계·활용 대시보드 <span style="font-size:10px;font-family:var(--mono);color:var(--accent-teal);margin-left:4px">v3 · bkit</span></div>
+        <div class="logo-sub">과정중심평가 &amp; AI 디지털 기반 평가 통합 운영</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="tag">교사 연수 자료</span>
+      <span class="tag">2024 개정</span>
+      <span class="tag">홍선주·유은정·김미지 연구 반영</span><span class="tag" style="border-color:rgba(99,102,241,0.4);color:var(--accent)">bkit /문항·/루브릭·/검토 적용</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="showSection('overview')">
+      <span class="num">01</span>서논술형 평가 개요
+    </button>
+    <button class="nav-btn" onclick="showSection('rubric')">
+      <span class="num">02</span>루브릭 설계 5단계
+    </button>
+    <button class="nav-btn" onclick="showSection('ai')">
+      <span class="num">03</span>AI·디지털 기반 평가
+    </button>
+    <button class="nav-btn" onclick="showSection('workflow')">
+      <span class="num">04</span>교사·학생 워크플로우
+    </button>
+    <button class="nav-btn" onclick="showSection('feedback')">
+      <span class="num">05</span>피드백 &amp; 공정성
+    </button>
+    <button class="nav-btn" onclick="showSection('selfpeer')">
+      <span class="num">06</span>자기평가·동료평가
+    </button>
+    <button class="nav-btn" onclick="showSection('itemdev')">
+      <span class="num">07</span>문항 개발 실전
+    </button>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 01 · 서논술형 평가 개요
+  ══════════════════════════════════════════════════ -->
+  <section id="overview" class="section active">
+    <div class="page-title">
+      <h2><span class="accent-line">서논술형 평가</span> 개요 및 유형 분류</h2>
+      <p>과정중심평가의 핵심 도구 — 서술형·논술형 평가의 개념·유형·평가 목적</p>
+    </div>
+
+    <!-- 핵심 지표 -->
+    <div class="bento bento-4" style="margin-bottom:16px">
+      <div class="tile glow">
+        <div class="tile-label">서술형 유형 — 4가지</div>
+        <div class="pill-list" style="margin-top:6px">
+          <span class="pill accent">분량 제한형</span>
+          <span class="pill accent">내용범위 제한형</span>
+          <span class="pill accent">서술양식 제한형</span>
+          <span class="pill accent">자료 제시형</span>
+        </div>
+      </div>
+      <div class="tile glow-teal">
+        <div class="tile-label teal">논술형 핵심 역량 — 3가지</div>
+        <div class="pill-list" style="margin-top:6px">
+          <span class="pill teal">분석적 이해력</span>
+          <span class="pill teal">비판적 사고력</span>
+          <span class="pill teal">창의적 문제해결력</span>
+        </div>
+      </div>
+      <div class="tile glow-amber">
+        <div class="tile-label amber">루브릭 유형 — 2가지</div>
+        <div class="pill-list" style="margin-top:6px">
+          <span class="pill amber">총체적 루브릭</span>
+          <span class="pill amber">분석적 루브릭</span>
+        </div>
+      </div>
+      <div class="tile" style="border-color:rgba(244,63,94,0.35)">
+        <div class="tile-label rose">루브릭 설계 — 5단계</div>
+        <div class="pill-list" style="margin-top:6px">
+          <span class="pill" style="border-color:rgba(244,63,94,0.3);color:var(--accent-rose);background:rgba(244,63,94,0.06)">단원 선정</span>
+          <span class="pill" style="border-color:rgba(244,63,94,0.3);color:var(--accent-rose);background:rgba(244,63,94,0.06)">핵심아이디어</span>
+          <span class="pill" style="border-color:rgba(244,63,94,0.3);color:var(--accent-rose);background:rgba(244,63,94,0.06)">성취기준</span>
+          <span class="pill" style="border-color:rgba(244,63,94,0.3);color:var(--accent-rose);background:rgba(244,63,94,0.06)">성취수준</span>
+          <span class="pill" style="border-color:rgba(244,63,94,0.3);color:var(--accent-rose);background:rgba(244,63,94,0.06)">채점요소</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 서술형 vs 논술형 -->
+    <div class="bento bento-asym" style="margin-bottom:16px">
+      <div class="tile">
+        <div class="tile-label">서술형 평가 — 4가지 유형</div>
+        <div class="type-card">
+          <div class="type-header">
+            <span class="type-badge badge-s">TYPE 1</span>
+            <span class="type-name">분량 제한형</span>
+          </div>
+          <div class="type-desc">답안의 길이·단어 수·문장 수를 제한해 핵심을 간결하게 표현하도록 유도. 학생이 핵심 개념을 선별·압축하는 능력을 평가.</div>
+          <div class="type-examples">
+            <span class="chip">3문장 이내 서술</span>
+            <span class="chip">100자 이내</span>
+            <span class="chip">키워드 포함 2문장</span>
+          </div>
+        </div>
+        <div class="type-card">
+          <div class="type-header">
+            <span class="type-badge badge-s">TYPE 2</span>
+            <span class="type-name">내용 범위 제한형</span>
+          </div>
+          <div class="type-desc">특정 개념·원리·주제의 범위를 지정하여 해당 내용 내에서만 서술. 학습 목표와 직결된 핵심 지식 이해도를 확인.</div>
+          <div class="type-examples">
+            <span class="chip">○○ 원리를 사용하여</span>
+            <span class="chip">교과서 ○단원 내용으로</span>
+          </div>
+        </div>
+        <div class="type-card">
+          <div class="type-header">
+            <span class="type-badge badge-s">TYPE 3</span>
+            <span class="type-name">서술 양식 제한형</span>
+          </div>
+          <div class="type-desc">비교, 원인-결과, 문제-해결, 과정 기술 등 특정 서술 형식이나 구조를 지정. 사고 체계와 글쓰기 구조 능력을 평가.</div>
+          <div class="type-examples">
+            <span class="chip">비교·대조 형식</span>
+            <span class="chip">원인-결과 서술</span>
+            <span class="chip">시간 순서</span>
+          </div>
+        </div>
+        <div class="type-card">
+          <div class="type-header">
+            <span class="type-badge badge-s">TYPE 4</span>
+            <span class="type-name">자료 제시형</span>
+          </div>
+          <div class="type-desc">그래프, 표, 사진, 지문 등 자료를 제공하고 이를 분석·해석하여 서술. 자료 해독력과 비판적 사고력을 함께 평가.</div>
+          <div class="type-examples">
+            <span class="chip">그래프 해석</span>
+            <span class="chip">지문 분석</span>
+            <span class="chip">실험 데이터 설명</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="tile glow" style="margin-bottom:16px">
+          <div class="tile-label">논술형 평가 — 핵심 특성</div>
+          <p style="font-size:13px;line-height:1.7;color:var(--text-muted);margin-bottom:14px">
+            지식에 대한 <strong style="color:var(--text)">심층적 이해와 탐구</strong>, 분석·판단 등의 사고 과정을 학생 자신의 언어로 <strong style="color:var(--text)">논리적으로 서술</strong>하는 고차원 평가 방식
+          </p>
+          <hr class="divider">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="alert info" style="margin-bottom:0">
+              <span class="alert-icon">🔍</span>
+              <div class="alert-body">
+                <strong>분석적 이해력</strong>
+                <p>개념·원리·이론을 구성 요소로 분해하고 상호 관계를 파악하는 능력</p>
+              </div>
+            </div>
+            <div class="alert success" style="margin-bottom:0">
+              <span class="alert-icon">⚖️</span>
+              <div class="alert-body">
+                <strong>비판적 사고력</strong>
+                <p>다양한 관점과 근거를 검토해 타당성을 평가하고 논리적으로 판단하는 능력</p>
+              </div>
+            </div>
+            <div class="alert warn" style="margin-bottom:0">
+              <span class="alert-icon">💡</span>
+              <div class="alert-body">
+                <strong>창의적 문제해결력</strong>
+                <p>새로운 아이디어와 독창적 접근으로 복잡한 문제에 해결책을 제시하는 능력</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tile glow-teal">
+          <div class="tile-label teal">서술형 vs 논술형 비교</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>서술형</th>
+                <th>논술형</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>목적</td><td>지식·개념 이해 확인</td><td>고차사고·논리적 판단</td></tr>
+              <tr><td>답안 길이</td><td>짧음 (제한적)</td><td>상대적으로 긺</td></tr>
+              <tr><td>사고 수준</td><td>이해·적용</td><td>분석·평가·창조</td></tr>
+              <tr><td>채점</td><td>분석적 루브릭 적합</td><td>총체적+분석적 혼용</td></tr>
+              <tr><td>AI 활용</td><td>키워드·구조 자동채점</td><td>논증구조 AI 보조분석</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 과정중심평가와의 연계 -->
+    <div class="tile full glow">
+      <div class="tile-label">과정중심평가와 서논술형 평가의 연계 원리</div>
+      <div class="bento bento-3" style="gap:12px;margin-top:4px">
+        <div>
+          <h4 style="color:var(--accent);margin-bottom:8px">① 수행 과정 중심</h4>
+          <p>최종 결과물뿐 아니라 사고 과정·초안·수정 흔적 등 학습 과정 전체를 평가 대상으로 삼음. 포트폴리오·수정본 비교가 핵심 증거.</p>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-teal);margin-bottom:8px">② 성취기준 기반 설계</h4>
+          <p>교육과정 성취기준을 출발점으로 하여 무엇을 알고, 할 수 있는지 명확하게 정의하고 루브릭에 반영. 역방향 설계(UbD) 원리 적용.</p>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-amber);margin-bottom:8px">③ 성장 지향 피드백</h4>
+          <p>점수 산출보다 학생의 강점·개선 방향을 구체적으로 안내하는 형성평가적 피드백이 핵심. AI가 데이터를 분석하고 교사가 맞춤화.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 02 · 루브릭 설계 5단계
+  ══════════════════════════════════════════════════ -->
+  <section id="rubric" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">루브릭 설계</span> 5단계 프로세스</h2>
+      <p>성취기준·성취수준 기반 루브릭 제작 — 총체적 루브릭 vs 분석적 루브릭</p>
+    </div>
+
+    <div class="bento bento-asym-r" style="margin-bottom:16px">
+      <!-- 5단계 플로우 -->
+      <div class="tile">
+        <div class="tile-label">5단계 루브릭 제작 절차</div>
+        <div class="step-flow">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <strong>단원 선정하기</strong>
+              <span>평가할 단원의 학습 목표와 핵심 내용을 명확히 설정. 단원의 범위와 깊이를 고려해 평가 범위 획정.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num teal">2</div>
+            <div class="step-content">
+              <strong>핵심 아이디어 확인하기</strong>
+              <span>해당 단원의 <em style="color:var(--accent-teal)">핵심 아이디어(Big Idea)</em>를 교육과정 문서에서 확인. 학생이 반드시 이해해야 할 개념의 본질을 추출.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber">3</div>
+            <div class="step-content">
+              <strong>성취기준 확인하기</strong>
+              <span>관련 <em style="color:var(--accent-amber)">성취기준 코드와 내용</em>을 교육과정에서 확인. 동사(행동)와 명사(내용) 분리 → 평가 행동·내용 명확화.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose">4</div>
+            <div class="step-content">
+              <strong>성취수준 확인하기</strong>
+              <span>A~E(또는 상·중·하) <em style="color:var(--accent-rose)">성취수준별 기술어</em>를 교육과정 또는 평가기준에서 확인. 수준별 차별화 요소 파악.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <strong>채점요소 추출하기</strong>
+              <span>성취기준·수준 분석을 토대로 <em style="color:var(--accent)">평가요소(채점기준)</em>와 <em style="color:var(--accent)">수행수준(채점요소)</em>을 구체적으로 기술. 루브릭 셀 작성.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 루브릭 유형 비교 -->
+      <div>
+        <div class="tile glow" style="margin-bottom:16px">
+          <div class="tile-label">루브릭 유형 비교</div>
+          <div class="compare-grid">
+            <div class="compare-col">
+              <div class="compare-head acc">총체적 루브릭 (Holistic)</div>
+              <div class="compare-body acc">
+                <div class="compare-item">전반적인 수행을 단일 점수로 평가</div>
+                <div class="compare-item">빠른 채점, 전체적 인상 반영</div>
+                <div class="compare-item">논술형·서사적 글쓰기에 적합</div>
+                <div class="compare-item">개별 요소 피드백 어려움</div>
+                <div class="compare-item">채점자 간 일관성 확보 어려움</div>
+              </div>
+            </div>
+            <div class="compare-col">
+              <div class="compare-head teal">분석적 루브릭 (Analytic)</div>
+              <div class="compare-body teal">
+                <div class="compare-item">여러 평가요소를 개별 채점 후 합산</div>
+                <div class="compare-item">세부 피드백 제공 용이</div>
+                <div class="compare-item">서술형·설명문에 특히 효과적</div>
+                <div class="compare-item">채점자 신뢰도 확보에 유리</div>
+                <div class="compare-item">AI 자동채점과 연동 적합</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tile glow-teal">
+          <div class="tile-label teal">용어 정리 — 평가요소 vs 수행수준</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>구분</th><th>루브릭 용어</th><th>bkit 용어</th><th>설명</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>평가요소</td>
+                <td>Criteria</td>
+                <td>채점기준</td>
+                <td>무엇을 평가하는가 (행과 열의 헤더)</td>
+              </tr>
+              <tr>
+                <td>수행수준</td>
+                <td>Performance Level</td>
+                <td>채점요소</td>
+                <td>어느 수준으로 수행했는가 (셀 내용)</td>
+              </tr>
+              <tr>
+                <td>성취기준</td>
+                <td>Standard</td>
+                <td>—</td>
+                <td>교육과정이 요구하는 학습 도달점</td>
+              </tr>
+              <tr>
+                <td>성취수준</td>
+                <td>Level Descriptor</td>
+                <td>—</td>
+                <td>A~E 수준별 수행 특성 기술</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 루브릭 샘플 -->
+    <div class="tile full glow-amber" style="margin-bottom:16px">
+      <div class="tile-label amber">분석적 루브릭 예시 — 사회 논술형 평가 (환경 문제)</div>
+      <div style="overflow-x:auto;margin-top:8px">
+        <table class="rubric-table" style="min-width:700px">
+          <thead>
+            <tr>
+              <th class="dim">평가요소 / 수행수준</th>
+              <th>우수 (A · 4점)</th>
+              <th class="teal">보통 (B · 3점)</th>
+              <th class="amber">미흡 (C · 2점)</th>
+              <th class="dim">노력 필요 (D · 1점)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-head">① 개념 이해<br><small style="font-weight:400;color:var(--text-dim)">핵심 개념의 정확한 서술</small></td>
+              <td>핵심 개념을 정확하게 설명하고, 상위 개념과 하위 개념의 관계를 명확히 서술</td>
+              <td>핵심 개념을 대체로 정확하게 서술하나 관계 설명이 다소 미흡</td>
+              <td>개념 서술이 부분적으로 정확하거나 일부 오류 포함</td>
+              <td>핵심 개념 서술이 부정확하거나 관련 없는 내용 포함</td>
+            </tr>
+            <tr>
+              <td class="row-head">② 논리 구조<br><small style="font-weight:400;color:var(--text-dim)">주장-근거-결론 체계</small></td>
+              <td>주장-근거-결론이 명확하고 근거가 구체적·타당하며 논리적 흐름이 일관됨</td>
+              <td>논리 구조가 대체로 갖춰져 있으나 근거의 구체성이 부족</td>
+              <td>주장은 있으나 근거가 불충분하거나 논리적 비약 있음</td>
+              <td>논리적 구조가 없거나 주장과 근거가 일치하지 않음</td>
+            </tr>
+            <tr>
+              <td class="row-head">③ 자료 활용<br><small style="font-weight:400;color:var(--text-dim)">제시 자료 분석·인용</small></td>
+              <td>제시 자료를 정확하게 해석하고 주장의 근거로 효과적으로 활용</td>
+              <td>자료를 활용하되 연결이 다소 피상적이거나 해석에 오류 있음</td>
+              <td>자료를 부분적으로만 활용하거나 해석이 부정확</td>
+              <td>자료를 활용하지 않거나 내용과 무관하게 언급</td>
+            </tr>
+            <tr>
+              <td class="row-head">④ 표현·어휘<br><small style="font-weight:400;color:var(--text-dim)">교과 어휘·문장 완성도</small></td>
+              <td>교과 전문 용어를 정확하게 사용하고 문장 표현이 명료</td>
+              <td>교과 용어 사용이 대체로 적절하나 일부 일상어 혼용</td>
+              <td>교과 용어 사용이 제한적이거나 문장 표현이 불명확</td>
+              <td>교과 용어 미사용, 문장이 불완전하거나 의미 전달 어려움</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 성취기준 연계 -->
+    <div class="bento bento-2">
+      <div class="tile glow">
+        <div class="tile-label">성취기준 → 루브릭 전환 절차</div>
+        <div class="step-flow">
+          <div class="step">
+            <div class="step-num" style="font-size:10px">S1</div>
+            <div class="step-content">
+              <strong>성취기준 동사 분리</strong>
+              <span>성취기준의 행동 동사(분석한다, 비교한다, 설명한다 등)를 추출 → 루브릭 평가요소의 출발점</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num teal" style="font-size:10px">S2</div>
+            <div class="step-content">
+              <strong>수준별 수행 특성 기술</strong>
+              <span>성취수준(A·B·C·D·E) 기술어를 참고해 각 수행수준의 구체적 특성 기술</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">S3</div>
+            <div class="step-content">
+              <strong>채점기준 검토 (교사 협의)</strong>
+              <span>동학년·동교과 교사 협의를 통해 채점기준의 타당도·신뢰도 점검, 모범답안 예시 작성</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose" style="font-size:10px">S4</div>
+            <div class="step-content">
+              <strong>AI 채점기준 입력</strong>
+              <span>bkit AI 채점 시스템에 루브릭 업로드 → 키워드·논증구조 기반 자동채점 학습 데이터로 활용</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tile glow-teal">
+        <div class="tile-label teal">총체적 루브릭 예시 — 국어 논술형</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>수준</th><th>점수</th><th>수행 특성</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>우수 A</td>
+              <td style="color:var(--accent);font-family:var(--mono)">5점</td>
+              <td>주제가 명확하고 논거가 풍부하며 논리 전개가 일관됨. 창의적 시각 포함. 교과 어휘 능숙하게 활용.</td>
+            </tr>
+            <tr>
+              <td>양호 B</td>
+              <td style="color:var(--accent-teal);font-family:var(--mono)">4점</td>
+              <td>주제와 논거가 적절하고 논리 구조가 갖춰짐. 일부 표현이 모호하나 전달에 지장 없음.</td>
+            </tr>
+            <tr>
+              <td>보통 C</td>
+              <td style="color:var(--accent-amber);font-family:var(--mono)">3점</td>
+              <td>주제는 명확하나 논거가 제한적. 논리 전개에 비약이 있거나 일부 내용 반복.</td>
+            </tr>
+            <tr>
+              <td>미흡 D</td>
+              <td style="color:var(--text-dim);font-family:var(--mono)">2점</td>
+              <td>주제 전달이 불명확하고 논거가 부족. 논리적 연결 없이 사실만 나열.</td>
+            </tr>
+            <tr>
+              <td>노력 E</td>
+              <td style="color:var(--text-dim);font-family:var(--mono)">1점</td>
+              <td>주제와 관련 없거나 논술 형식을 갖추지 못함. 단편적 서술에 그침.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 03 · AI·디지털 기반 평가
+  ══════════════════════════════════════════════════ -->
+  <section id="ai" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">AI·디지털 기반 평가</span> 설계 원리</h2>
+      <p>홍선주·유은정·김미지(2024) 디지털 기반 수업혁신 연구 반영 — 공공성·신뢰성 중심 AI 활용</p>
+    </div>
+
+    <!-- 핵심 연구 참조 -->
+    <div class="tile full glow" style="margin-bottom:16px">
+      <div class="tile-label">참조 연구 — 디지털 기반 수업혁신 요소 탐색 (홍선주·유은정·김미지, 2024)</div>
+      <div class="bento bento-3" style="gap:12px;margin-top:8px">
+        <div>
+          <h4 style="color:var(--accent);margin-bottom:8px">학습 과정 분석</h4>
+          <p>AI가 학습 로그·답안 텍스트·수정 이력을 분석해 학생별 이해 수준, 오개념 패턴, 사고 과정을 시각화. 교사의 수업 설계 데이터로 활용.</p>
+          <div class="pill-list">
+            <span class="pill accent">학습 로그 분석</span>
+            <span class="pill accent">오개념 패턴</span>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-teal);margin-bottom:8px">실시간 성취수준 진단</h4>
+          <p>제출된 답안을 루브릭 기반으로 즉시 채점해 학급 전체의 성취수준 분포를 실시간으로 제공. 수업 중 즉각적 교수학습 조정 근거.</p>
+          <div class="pill-list">
+            <span class="pill teal">실시간 채점</span>
+            <span class="pill teal">수준 분포 시각화</span>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-amber);margin-bottom:8px">맞춤형 피드백 제공</h4>
+          <p>AI 분석 결과를 바탕으로 교사가 개별 학생의 강점·약점에 맞는 피드백을 작성·전달. AI는 <em style="color:var(--accent-amber)">보조자</em>, 교사는 <em style="color:var(--accent-amber)">최종 판단자</em>.</p>
+          <div class="pill-list">
+            <span class="pill amber">맞춤형 피드백</span>
+            <span class="pill amber">교사 최종 판단</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 피드백 루프 -->
+    <div class="tile full glow-teal" style="margin-bottom:16px">
+      <div class="tile-label teal">AI-교사 협력 피드백 루프</div>
+      <div class="ai-loop" style="margin-top:14px">
+        <div class="ai-node">
+          <div class="icon">📝</div>
+          <div class="title">학생 답안 제출</div>
+          <div class="desc">PDF 업로드<br>또는 디지털 직접 입력<br>수정본 이력 포함</div>
+        </div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-node highlight">
+          <div class="icon">🤖</div>
+          <div class="title">AI 채점·분석</div>
+          <div class="desc">루브릭 기반 자동채점<br>키워드·논증구조 분석<br>오개념 패턴 감지<br>성취수준 자동 분류</div>
+        </div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-node highlight" style="border-color:var(--border-teal)">
+          <div class="icon">👩‍🏫</div>
+          <div class="title">교사 검토 &amp; 맞춤화</div>
+          <div class="desc">AI 채점 결과 검토<br>맥락적 판단 추가<br>개별 피드백 작성<br>점수 최종 확정</div>
+        </div>
+      </div>
+      <div class="alert info" style="margin-top:14px;margin-bottom:0">
+        <span class="alert-icon">💡</span>
+        <div class="alert-body">
+          <strong>핵심 원칙: AI는 보조 도구, 교사는 최종 판단자</strong>
+          <p>AI가 분석한 학습자 데이터를 바탕으로 <strong>교사가 맞춤형 피드백을 제공</strong>하는 과정이 핵심입니다. AI의 채점 결과는 참고 자료이며, 교사의 교육적 판단과 학생과의 관계적 이해가 결합될 때 진정한 과정중심평가가 완성됩니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 데이터 편향·알고리즘 투명성 -->
+    <div class="bento bento-2">
+      <div class="tile glow-amber">
+        <div class="tile-label amber">데이터 편향 극복 방안</div>
+        <div class="step-flow">
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">B1</div>
+            <div class="step-content">
+              <strong>다양한 학습자 데이터 확보</strong>
+              <span>성별·지역·사회경제적 배경이 다양한 학습자 데이터로 AI 모델 학습. 편향된 훈련 데이터로 인한 채점 불공평 방지.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">B2</div>
+            <div class="step-content">
+              <strong>교사 오버라이드 의무화</strong>
+              <span>AI 채점 결과를 교사가 반드시 검토하고 최종 점수를 직접 확정하는 구조. AI 오류를 사전에 차단.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">B3</div>
+            <div class="step-content">
+              <strong>정기적 편향 감사</strong>
+              <span>학교 단위 또는 교육청 단위로 AI 채점 결과의 집단 간 점수 분포를 정기적으로 검토해 체계적 편향 여부 확인.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tile glow-rose">
+        <div class="tile-label rose">알고리즘 투명성 확보 — 공공성·신뢰성 제고</div>
+        <div class="step-flow">
+          <div class="step">
+            <div class="step-num rose" style="font-size:10px">T1</div>
+            <div class="step-content">
+              <strong>채점 근거 설명 가능성 (XAI)</strong>
+              <span>AI가 어떤 키워드·논리 구조를 기반으로 점수를 부여했는지 학생과 교사에게 설명. 블랙박스 채점 지양.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose" style="font-size:10px">T2</div>
+            <div class="step-content">
+              <strong>루브릭 공개 원칙</strong>
+              <span>평가 전 루브릭(채점기준)을 학생에게 공개해 평가 목표와 기준을 명확히 공유. 평가의 공공성 확보.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose" style="font-size:10px">T3</div>
+            <div class="step-content">
+              <strong>이의제기 프로세스</strong>
+              <span>AI 채점 결과에 대해 학생이 이의를 제기할 수 있는 명확한 절차 마련. 교사의 재채점으로 최종 결정.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose" style="font-size:10px">T4</div>
+            <div class="step-content">
+              <strong>개인정보 보호</strong>
+              <span>학습자 데이터의 수집·저장·활용 범위를 교육 목적으로 제한하고 익명화 처리. 학교 데이터 거버넌스 정책 준수.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 디지털 기반 수업혁신 요소 -->
+    <div class="tile full glow" style="margin-top:16px">
+      <div class="tile-label">디지털 기반 수업혁신 핵심 요소 (홍선주·유은정·김미지, 2024 기반)</div>
+      <div class="bento bento-4" style="gap:12px;margin-top:8px">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">📊</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text)">데이터 기반 의사결정</div>
+          <p>학습 데이터를 근거로 교사의 수업 조정·피드백 결정. 직관에 의존하지 않는 근거 기반 교육.</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-teal);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🔄</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent-teal)">즉각적 피드백 순환</div>
+          <p>수업 중 실시간으로 학생 이해도를 진단하고 즉각적 피드백을 제공해 학습 격차를 빠르게 해소.</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-amber);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🎯</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent-amber)">개인화 학습 경로</div>
+          <p>AI 분석 결과를 바탕으로 학생 개별 수준에 맞는 학습 자료·과제·피드백을 차별화하여 제공.</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🤝</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text)">교사-AI 협력 모델</div>
+          <p>AI의 효율성과 교사의 교육적 판단·공감 능력이 결합된 하이브리드 평가·피드백 체계 구축.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 04 · 교사·학생 워크플로우
+  ══════════════════════════════════════════════════ -->
+  <section id="workflow" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">교사·학생</span> 워크플로우</h2>
+      <p>bkit AI 채점 시스템 기반 — 평가 설계부터 결과 저장까지 단계별 운영 절차</p>
+    </div>
+
+    <!-- 교사 워크플로우 -->
+    <div class="tile full glow" style="margin-bottom:16px">
+      <div class="tile-label">교사 워크플로우</div>
+      <div style="margin-top:8px">
+        <div class="flow-row">
+          <div class="flow-actor">STEP 1<br>설계</div>
+          <div class="flow-steps-row">
+            <div class="flow-item"><div class="fs">📋 평가 설계 설정<br><small style="color:var(--text-dim)">단원·성취기준 입력</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">✏️ 채점기준 입력<br><small style="color:var(--text-dim)">루브릭 평가요소 등록</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">🔍 채점기준 점검<br><small style="color:var(--text-dim)">AI 파일럿 테스트</small></div></div>
+          </div>
+        </div>
+        <div class="flow-row" style="margin-top:8px">
+          <div class="flow-actor">STEP 2<br>운영</div>
+          <div class="flow-steps-row">
+            <div class="flow-item"><div class="fs">📊 AI 채점 결과 확인<br><small style="color:var(--text-dim)">학급 전체 분포 조회</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">🔄 오류 검토·수정<br><small style="color:var(--text-dim)">AI 채점 이상값 검토</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">💬 맞춤형 피드백 작성<br><small style="color:var(--text-dim)">AI 분석 기반 개별화</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">✅ 최종 점수 확정<br><small style="color:var(--text-dim)">교사 최종 승인</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 학생 워크플로우 -->
+    <div class="tile full glow-teal" style="margin-bottom:16px">
+      <div class="tile-label teal">학생 워크플로우</div>
+      <div style="margin-top:8px">
+        <div class="flow-row">
+          <div class="flow-actor teal">STEP 1<br>제출</div>
+          <div class="flow-steps-row">
+            <div class="flow-item"><div class="fs">📁 과제물 관리<br><small style="color:var(--text-dim)">작성·초안 저장</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">📤 PDF 업로드<br><small style="color:var(--text-dim)">답안지 파일 제출</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">✂️ PDF 분할 설정<br><small style="color:var(--text-dim)">문항별 영역 지정</small></div></div>
+          </div>
+        </div>
+        <div class="flow-row" style="margin-top:8px">
+          <div class="flow-actor teal">STEP 2<br>채점</div>
+          <div class="flow-steps-row">
+            <div class="flow-item"><div class="fs">🤖 AI 채점 진행<br><small style="color:var(--text-dim)">자동채점 실행</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">🔁 AI 채점 재실행<br><small style="color:var(--text-dim)">필요시 재채점</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">📈 채점 결과 확인<br><small style="color:var(--text-dim)">항목별 점수 조회</small></div></div>
+            <div class="flow-item"><span class="arr">→</span></div>
+            <div class="flow-item"><div class="fs">💾 점수 설정 및 저장<br><small style="color:var(--text-dim)">최종 기록 저장</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시스템 구조 -->
+    <div class="bento bento-2">
+      <div class="tile glow">
+        <div class="tile-label">bkit AI 채점 시스템 핵심 기능</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>기능</th><th>설명</th><th>담당</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>루브릭 등록</td>
+              <td>평가요소·수준별 채점기준 업로드</td>
+              <td style="color:var(--accent)">교사</td>
+            </tr>
+            <tr>
+              <td>PDF OCR</td>
+              <td>손글씨·인쇄 답안 텍스트 변환</td>
+              <td style="color:var(--accent-teal)">AI</td>
+            </tr>
+            <tr>
+              <td>자동 채점</td>
+              <td>키워드·논증구조 기반 점수 산출</td>
+              <td style="color:var(--accent-teal)">AI</td>
+            </tr>
+            <tr>
+              <td>근거 설명</td>
+              <td>채점 근거 텍스트 하이라이트 제공</td>
+              <td style="color:var(--accent-teal)">AI</td>
+            </tr>
+            <tr>
+              <td>교사 검토</td>
+              <td>AI 점수 수정·최종 승인</td>
+              <td style="color:var(--accent)">교사</td>
+            </tr>
+            <tr>
+              <td>피드백 발송</td>
+              <td>개별 맞춤 피드백 학생 전달</td>
+              <td style="color:var(--accent)">교사</td>
+            </tr>
+            <tr>
+              <td>성취 분석</td>
+              <td>학급·개인 성취수준 대시보드</td>
+              <td style="color:var(--accent-teal)">AI</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tile glow-teal">
+        <div class="tile-label teal">채점 신뢰도 확보 체계</div>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:12px">루브릭 명확성</span>
+            <span style="font-size:11px;font-family:var(--mono);color:var(--accent)">HIGH</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:90%"></div></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:12px">교사 협의 일관성</span>
+            <span style="font-size:11px;font-family:var(--mono);color:var(--accent-teal)">HIGH</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:85%;background:linear-gradient(90deg,var(--accent-teal),var(--accent))"></div></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:12px">AI 채점 정확도</span>
+            <span style="font-size:11px;font-family:var(--mono);color:var(--accent-amber)">MED-HIGH</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:72%;background:linear-gradient(90deg,var(--accent-amber),var(--accent-teal))"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:12px">교사 최종 검토율</span>
+            <span style="font-size:11px;font-family:var(--mono);color:var(--accent)">100%</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+        </div>
+        <hr class="divider">
+        <div class="alert warn" style="margin-bottom:0">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-body">
+            <strong>채점자 간 신뢰도 확보</strong>
+            <p>동학년 교사가 같은 답안을 독립 채점 후 협의해 루브릭을 조정하는 <strong>앵커 채점(Anchor Scoring)</strong> 절차를 권장합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 05 · 피드백 & 공정성
+  ══════════════════════════════════════════════════ -->
+  <section id="feedback" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">피드백</span> 설계 &amp; 공정성·신뢰성</h2>
+      <p>성장 지향 피드백 원칙 — 데이터 편향 극복 — 공공성 확보 전략</p>
+    </div>
+
+    <!-- 피드백 원칙 -->
+    <div class="bento bento-3" style="margin-bottom:16px">
+      <div class="tile glow">
+        <div class="tile-label">효과적 피드백의 3원칙</div>
+        <div style="margin-top:4px">
+          <div class="alert info" style="margin-bottom:10px">
+            <span class="alert-icon">🎯</span>
+            <div class="alert-body">
+              <strong>구체성 — What exactly?</strong>
+              <p>"잘 썼어요"가 아닌 <em>어떤 요소가, 어떤 이유로</em> 우수한지 구체적으로 기술. 루브릭의 어느 항목에 해당하는지 연결.</p>
+            </div>
+          </div>
+          <div class="alert success" style="margin-bottom:10px">
+            <span class="alert-icon">📈</span>
+            <div class="alert-body">
+              <strong>성장 지향성 — Next step?</strong>
+              <p>점수 판정이 아닌 <em>다음 학습 단계</em>를 안내. "C 수준에서 B 수준으로 가려면…"의 형식으로 방향 제시.</p>
+            </div>
+          </div>
+          <div class="alert warn" style="margin-bottom:0">
+            <span class="alert-icon">⏰</span>
+            <div class="alert-body">
+              <strong>적시성 — How soon?</strong>
+              <p>학습 직후 또는 다음 과제 제출 전 피드백 제공. AI를 활용한 즉각 피드백으로 학습 효과 극대화.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tile glow-teal">
+        <div class="tile-label teal">AI 보조 피드백 문장 구조</div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-teal);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent-teal);margin-bottom:8px">STRENGTH · 강점</div>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6">"[학생명]의 답안에서 <strong style="color:var(--text)">[평가요소]</strong>를 <strong style="color:var(--text)">[구체적 행동]</strong>한 점이 우수합니다. 특히 <strong style="color:var(--text)">[근거 인용]</strong>은 [수행수준 A] 기준을 충족합니다."</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-glow);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent);margin-bottom:8px">GROWTH · 성장 포인트</div>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6">"<strong style="color:var(--text)">[평가요소]</strong> 측면에서 <strong style="color:var(--text)">[부족한 부분]</strong>이 아쉽습니다. <strong style="color:var(--text)">[개선 방법]</strong>을 시도해 보세요."</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-amber);border-radius:8px;padding:14px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent-amber);margin-bottom:8px">NEXT STEP · 다음 목표</div>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6">"다음 글쓰기에서는 <strong style="color:var(--text)">[구체적 목표]</strong>에 집중해 보세요. <strong style="color:var(--text)">[참고 자료/전략]</strong>이 도움이 될 것입니다."</p>
+        </div>
+      </div>
+
+      <div class="tile glow-amber">
+        <div class="tile-label amber">성취수준별 맞춤 피드백 전략</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>수준</th><th>피드백 초점</th><th>AI 활용</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--accent)">A (우수)</td>
+              <td>심화 확장 과제 제안, 고차사고 자극</td>
+              <td>유사 논제 추천</td>
+            </tr>
+            <tr>
+              <td style="color:var(--accent-teal)">B (양호)</td>
+              <td>구체성·논리 강화 1~2가지 지점</td>
+              <td>모범 답안 비교</td>
+            </tr>
+            <tr>
+              <td style="color:var(--accent-amber)">C (보통)</td>
+              <td>핵심 개념 재확인, 논리 구조 안내</td>
+              <td>오개념 리포트</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim)">D (미흡)</td>
+              <td>기초 개념 재학습, 예시 제공</td>
+              <td>보충 학습 경로</td>
+            </tr>
+            <tr>
+              <td style="color:var(--accent-rose)">E (노력)</td>
+              <td>면담·소그룹 지도, 정서적 지지</td>
+              <td>단계별 스캐폴딩</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 공공성·신뢰성 체크리스트 -->
+    <div class="tile full glow" style="margin-bottom:16px">
+      <div class="tile-label">공공성·신뢰성 확보 체크리스트 — 학교 단위 운영</div>
+      <div class="bento bento-2" style="gap:12px;margin-top:8px">
+        <div>
+          <h4 style="color:var(--accent);margin-bottom:12px">📋 평가 설계 단계</h4>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 성취기준 기반 루브릭 제작 완료</div>
+          </div>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 루브릭을 학생에게 사전 공개</div>
+          </div>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 동학년 교사 협의를 통한 채점기준 일치도 확인</div>
+          </div>
+          <div class="type-card" style="margin-bottom:0">
+            <div class="type-desc">☐ AI 채점 파일럿 테스트 및 오류 검토</div>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-teal);margin-bottom:12px">🔍 채점·피드백 단계</h4>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 교사가 AI 채점 결과 전수 검토</div>
+          </div>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 집단별(성별·수준별) 점수 분포 편향 확인</div>
+          </div>
+          <div class="type-card" style="margin-bottom:8px">
+            <div class="type-desc">☐ 개별 학생에게 채점 근거 포함 피드백 제공</div>
+          </div>
+          <div class="type-card" style="margin-bottom:0">
+            <div class="type-desc">☐ 학생 이의제기 창구 운영 및 재채점 절차 안내</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 전체 사이클 -->
+    <div class="tile full glow-teal">
+      <div class="tile-label teal">서논술형 평가 전체 운영 사이클 요약</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px;text-align:center">
+        <div style="background:rgba(99,102,241,0.1);border:1px solid var(--border-glow);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">🎯</div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">1. 설계</div>
+          <div style="font-size:11px;color:var(--text-dim)">단원·성취기준<br>루브릭 제작</div>
+        </div>
+        <div style="background:rgba(20,184,166,0.08);border:1px solid var(--border-teal);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">📝</div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent-teal);margin-bottom:4px">2. 과제 수행</div>
+          <div style="font-size:11px;color:var(--text-dim)">학생 답안 작성<br>PDF 제출</div>
+        </div>
+        <div style="background:rgba(99,102,241,0.08);border:1px solid var(--border);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">🤖</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">3. AI 채점</div>
+          <div style="font-size:11px;color:var(--text-dim)">자동채점<br>근거 분석</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid var(--border-amber);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">👩‍🏫</div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent-amber);margin-bottom:4px">4. 교사 검토</div>
+          <div style="font-size:11px;color:var(--text-dim)">AI결과 확인<br>최종 확정</div>
+        </div>
+        <div style="background:rgba(20,184,166,0.08);border:1px solid var(--border-teal);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">💬</div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent-teal);margin-bottom:4px">5. 피드백</div>
+          <div style="font-size:11px;color:var(--text-dim)">맞춤형 피드백<br>성장 안내</div>
+        </div>
+        <div style="background:rgba(99,102,241,0.1);border:1px solid var(--border-glow);border-radius:8px;padding:14px 8px">
+          <div style="font-size:20px;margin-bottom:6px">🔄</div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">6. 개선</div>
+          <div style="font-size:11px;color:var(--text-dim)">루브릭 정교화<br>수업 조정</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 06 · 학생 자기평가·동료평가
+  ══════════════════════════════════════════════════ -->
+  <section id="selfpeer" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">자기평가·동료평가</span> 설계 및 운영</h2>
+      <p>학생 주도 메타인지 성장 — 루브릭 기반 자기평가 시트 · 동료 채점 절차 · 성장 기록 (근거: 한국교육평가학회지 2024, KERIS 서논술형 평가 채점기준)</p>
+    </div>
+
+    <!-- 자기평가의 교육적 효과 -->
+    <div class="bento bento-3" style="margin-bottom:16px">
+      <div class="tile glow">
+        <div class="tile-label">자기평가의 3대 교육적 효과</div>
+        <div style="margin-top:4px">
+          <div class="alert info" style="margin-bottom:10px">
+            <span class="alert-icon">🧠</span>
+            <div class="alert-body">
+              <strong>메타인지 향상</strong>
+              <p>학생이 루브릭 기준으로 자신의 답안을 점검하며 자신이 무엇을 알고 모르는지 인식하는 능력을 강화. 단순 점수 확인보다 학습 효과 2~3배.</p>
+            </div>
+          </div>
+          <div class="alert success" style="margin-bottom:10px">
+            <span class="alert-icon">🎯</span>
+            <div class="alert-body">
+              <strong>평가 목표 내면화</strong>
+              <p>평가 기준을 학생이 직접 적용함으로써 수업 목표와 평가 기준이 일치함을 체감. 다음 수행 과제의 질 향상으로 연결.</p>
+            </div>
+          </div>
+          <div class="alert warn" style="margin-bottom:0">
+            <span class="alert-icon">📈</span>
+            <div class="alert-body">
+              <strong>성장 동기 부여</strong>
+              <p>점수 결과가 아닌 나의 현재 수준과 다음 목표를 스스로 설정하는 경험 제공. 고정 마인드셋 → 성장 마인드셋 전환 촉진.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tile glow-teal">
+        <div class="tile-label teal">루브릭 기반 자기평가 시트 — 학생용 예시</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--accent-teal);margin-bottom:6px">bkit /루브릭 산출물 기반 — 국어-서술형-001 적용 예시</div>
+        <table class="data-table" style="margin-top:4px">
+          <thead>
+            <tr><th>평가요소</th><th>나의 수준 선택</th><th>내 답안에서 근거 찾기</th><th>다음 목표</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>① 원인 파악<br><small style="color:var(--text-dim)">지문 근거로 원인 2가지 제시</small></td>
+              <td>
+                <select style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+                  <option>A 매우잘함</option><option selected>B 잘함</option><option>C 보통</option><option>D 노력필요</option>
+                </select>
+              </td>
+              <td style="font-size:11px;color:var(--text-dim)">예: "원인 2가지 찾았지만 지문 대사 인용 안 함"</td>
+              <td style="font-size:11px;color:var(--accent-teal)">장면·대사 직접 인용 추가</td>
+            </tr>
+            <tr>
+              <td>② 인과 연결<br><small style="color:var(--text-dim)">원인→결과 형식·논리적 연결</small></td>
+              <td>
+                <select style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+                  <option>A 매우잘함</option><option>B 잘함</option><option selected>C 보통</option><option>D 노력필요</option>
+                </select>
+              </td>
+              <td style="font-size:11px;color:var(--text-dim)">예: "'→' 형식 사용했지만 인과 연결에 비약 있음"</td>
+              <td style="font-size:11px;color:var(--accent-teal)">원인과 결과 논리적 흐름 보완</td>
+            </tr>
+            <tr>
+              <td>③ 지문 근거 활용<br><small style="color:var(--text-dim)">장면·대사 인용 및 문맥 연결</small></td>
+              <td>
+                <select style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+                  <option selected>A 매우잘함</option><option>B 잘함</option><option>C 보통</option><option>D 노력필요</option>
+                </select>
+              </td>
+              <td style="font-size:11px;color:var(--text-dim)">예: "3행 대사 직접 인용하고 맥락에 맞게 연결"</td>
+              <td style="font-size:11px;color:var(--accent-teal)">유지 — 다음에도 동일하게</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="alert info" style="margin-top:12px;margin-bottom:0">
+          <span class="alert-icon">💡</span>
+          <div class="alert-body">
+            <strong>운영 팁</strong>
+            <p>자기평가 후 교사 채점 결과와 비교하는 활동을 추가하면 자기평가 정확도와 메타인지 향상 효과가 배가됩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tile glow-amber">
+        <div class="tile-label amber">동료평가 절차 5단계</div>
+        <div class="step-flow" style="margin-top:4px">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <strong>루브릭 이해 확인</strong>
+              <span>평가 전 교사가 루브릭 기준을 학생에게 설명. 예시 답안 1~2개를 함께 채점하며 기준 내면화.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num teal">2</div>
+            <div class="step-content">
+              <strong>익명 답안 배분</strong>
+              <span>이름을 가린 답안을 랜덤 배분(2인 1조 권장). 친밀도에 의한 편향 최소화.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber">3</div>
+            <div class="step-content">
+              <strong>루브릭 기반 채점</strong>
+              <span>각 평가요소별로 수준을 표시하고 근거 문장을 답안에서 직접 인용해 기록.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num rose">4</div>
+            <div class="step-content">
+              <strong>건설적 피드백 작성</strong>
+              <span>강점 1가지 + 개선점 1가지를 구체적으로 작성. "더 잘 쓸 수 있어요" 금지 — 루브릭 언어로 서술.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <strong>교사 검토 및 조정</strong>
+              <span>동료평가 결과를 교사가 검토해 부적절한 채점은 수정. 최종 점수 반영 비율 사전 안내(예: 동료평가 20%).</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 반성적 성장 기록 + 주의사항 -->
+    <div class="bento bento-asym" style="margin-bottom:16px">
+      <div class="tile glow">
+        <div class="tile-label">반성적 성장 기록 템플릿 — 포트폴리오 연계</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px">
+          <div style="background:var(--surface-2);border:1px solid var(--border-glow);border-radius:8px;padding:14px">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--accent);margin-bottom:8px">BEFORE · 수행 전</div>
+            <p style="font-size:12px;color:var(--text-muted);line-height:1.6">이 문제에서 내가 잘 모르는 부분은?<br><br>이번 평가에서 집중할 목표 1가지:</p>
+            <div style="margin-top:8px;border:1px dashed var(--border);border-radius:4px;padding:8px;min-height:40px;font-size:11px;color:var(--text-dim)">학생 작성란</div>
+          </div>
+          <div style="background:var(--surface-2);border:1px solid var(--border-teal);border-radius:8px;padding:14px">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--accent-teal);margin-bottom:8px">DURING · 수행 중</div>
+            <p style="font-size:12px;color:var(--text-muted);line-height:1.6">내 답안에서 루브릭 기준을 충족한 부분:<br><br>아직 부족하다고 느끼는 부분:</p>
+            <div style="margin-top:8px;border:1px dashed var(--border);border-radius:4px;padding:8px;min-height:40px;font-size:11px;color:var(--text-dim)">학생 작성란</div>
+          </div>
+          <div style="background:var(--surface-2);border:1px solid var(--border-amber);border-radius:8px;padding:14px">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--accent-amber);margin-bottom:8px">AFTER · 수행 후</div>
+            <p style="font-size:12px;color:var(--text-muted);line-height:1.6">이번에 성장한 점 1가지:<br><br>다음 평가에서 개선할 점:</p>
+            <div style="margin-top:8px;border:1px dashed var(--border);border-radius:4px;padding:8px;min-height:40px;font-size:11px;color:var(--text-dim)">학생 작성란</div>
+          </div>
+        </div>
+      </div>
+      <div class="tile glow-rose">
+        <div class="tile-label rose">동료평가 운영 시 주의사항</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          <div class="alert warn" style="margin-bottom:0">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-body">
+              <strong>친밀도 편향 경계</strong>
+              <p>친한 친구 답안을 높이 채점하거나 낮추는 경향. 익명화 + 교사 모니터링 필수.</p>
+            </div>
+          </div>
+          <div class="alert warn" style="margin-bottom:0">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-body">
+              <strong>관대화 오류</strong>
+              <p>모든 학생을 높게 채점하는 경향. 루브릭 구체성 강화 + 근거 인용 의무화로 방지.</p>
+            </div>
+          </div>
+          <div class="alert info" style="margin-bottom:0">
+            <span class="alert-icon">✅</span>
+            <div class="alert-body">
+              <strong>점수 반영 비율 권고</strong>
+              <p>동료평가를 성적에 직접 반영할 경우 20% 이하 권고. 교사 최종 검토 후 반영.</p>
+            </div>
+          </div>
+          <div class="alert success" style="margin-bottom:0">
+            <span class="alert-icon">📋</span>
+            <div class="alert-body">
+              <strong>포트폴리오 연계</strong>
+              <p>자기평가 시트 + 동료 피드백 + 수정본을 함께 보관하면 성장 과정 증거 자료가 됩니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 자기평가 vs 동료평가 비교 -->
+    <div class="tile full glow-teal">
+      <div class="tile-label teal">자기평가 vs 동료평가 — 활용 전략 비교</div>
+      <table class="data-table" style="margin-top:8px">
+        <thead>
+          <tr><th>구분</th><th>자기평가</th><th>동료평가</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>주요 목적</td><td>메타인지 강화, 자기 조절 학습</td><td>다양한 관점 습득, 비판적 사고 훈련</td></tr>
+          <tr><td>루브릭 활용</td><td>스스로 기준 적용 → 수준 선택</td><td>타인 답안에 기준 적용 → 근거 서술</td></tr>
+          <tr><td>시행 시점</td><td>제출 직전 또는 직후</td><td>초안 제출 후, 최종 제출 전</td></tr>
+          <tr><td>성적 반영</td><td>참여 점수 (완성도 평가)</td><td>최대 20% 반영 권고</td></tr>
+          <tr><td>교사 역할</td><td>시트 설계·결과 비교 피드백</td><td>익명화·모니터링·이상값 조정</td></tr>
+          <tr><td>AI 연계</td><td>AI 채점 결과와 자기평가 비교 분석</td><td>동료 채점 패턴 AI 분석 → 편향 감지</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SECTION 07 · 문항 개발 실전 가이드
+       (bkit /문항 · /루브릭 · /검토 산출물 반영)
+  ══════════════════════════════════════════════════ -->
+  <section id="itemdev" class="section">
+    <div class="page-title">
+      <h2><span class="accent-line">문항 개발</span> 실전 가이드</h2>
+      <p>bkit /문항 · /루브릭 · /검토 산출물 기반 — Bloom 매핑 · 문항 오류 체크 · 검증 완료 예시 문항 (근거: 세종시교육청 문항 개발, KICE stas.moe.go.kr, KCI 2025)</p>
+    </div>
+
+    <!-- bkit 공지 -->
+    <div class="alert info" style="margin-bottom:16px">
+      <span class="alert-icon">🤖</span>
+      <div class="alert-body">
+        <strong>bkit 스킬 활용 안내</strong>
+        <p>이 섹션의 예시 문항·루브릭은 <strong>bkit /문항 → /루브릭 → /검토</strong> 순서로 생성·검증한 산출물입니다. Claude AI 단독 생성 아님. AI 역할 원칙 준수: AI 생성 문항은 교사 검토 전 학생 배포 불가.</p>
+      </div>
+    </div>
+
+    <!-- Bloom 매핑 -->
+    <div class="tile full glow" style="margin-bottom:16px">
+      <div class="tile-label">Bloom 인지 수준별 문항 동사 매핑 — bkit 평가 유형 연계</div>
+      <div style="overflow-x:auto;margin-top:8px">
+        <table class="rubric-table" style="min-width:820px">
+          <thead>
+            <tr>
+              <th class="dim">인지 수준</th>
+              <th>bkit 평가 유형</th>
+              <th class="teal">서술형 적용 동사·예시</th>
+              <th class="amber">논술형 적용 동사·예시</th>
+              <th class="dim">난이도</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-head">① 기억</td>
+              <td>분량제한형</td>
+              <td>정의하다 · 나열하다<br><small>광합성의 정의를 2문장 이내로 서술하시오.</small></td>
+              <td style="color:var(--text-dim)">— 논술형 부적합</td>
+              <td style="font-family:var(--mono);color:var(--text-dim)">하</td>
+            </tr>
+            <tr>
+              <td class="row-head">② 이해</td>
+              <td>내용범위제한형</td>
+              <td>설명하다 · 비교하다<br><small>공급·수요 관계를 예를 들어 설명하시오.</small></td>
+              <td>비교·대조 논술<br><small>두 개념 차이를 비교 설명하는 논설문을 쓰시오.</small></td>
+              <td style="font-family:var(--mono);color:var(--accent-teal)">중하</td>
+            </tr>
+            <tr>
+              <td class="row-head">③ 적용</td>
+              <td>서술양식제한형</td>
+              <td>적용하다 · 사용하다<br><small>뉴턴 법칙을 사례에 적용하여 서술하시오.</small></td>
+              <td>원리 적용 논술<br><small>학습 원리로 실생활 문제 해결 방안을 논술하시오.</small></td>
+              <td style="font-family:var(--mono);color:var(--accent-amber)">중</td>
+            </tr>
+            <tr>
+              <td class="row-head">④ 분석 ★</td>
+              <td>자료제시형<br><small style="color:var(--accent-teal)">[bkit 국어-서술형-001]</small></td>
+              <td>분석하다 · 원인 파악하다<br><small style="color:var(--accent-teal)">지문에서 갈등 원인 2가지를 원인→결과 형식으로 서술하시오.</small></td>
+              <td>분석적이해력 논술<br><small>두 입장의 논거를 분석하고 타당성을 평가하시오.</small></td>
+              <td style="font-family:var(--mono);color:var(--accent)">중상</td>
+            </tr>
+            <tr>
+              <td class="row-head">⑤ 평가 ★</td>
+              <td>자료제시형<br><small style="color:var(--accent)">[bkit 사회-논술형-001]</small></td>
+              <td>평가하다 · 판단하다<br><small>해결책의 장단점을 평가하여 서술하시오.</small></td>
+              <td style="color:var(--accent)">비판적사고력 논술<br><small style="color:var(--accent)">자료 분석 후 정책 한계 2가지 + 개선 방안을 논술하시오.</small></td>
+              <td style="font-family:var(--mono);color:var(--accent-rose)">상</td>
+            </tr>
+            <tr>
+              <td class="row-head">⑥ 창조</td>
+              <td>논술형 — 창의적문제해결력</td>
+              <td>설계하다 · 제안하다<br><small>새로운 해결 방안을 설계하고 근거를 서술하시오.</small></td>
+              <td>창의적문제해결력 논술<br><small>독창적 관점으로 문제를 재정의하고 해결책을 논술하시오.</small></td>
+              <td style="font-family:var(--mono);color:var(--accent-rose)">최상</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- bkit 검증 완료 예시 문항 2개 -->
+    <div class="bento bento-2" style="margin-bottom:16px">
+
+      <!-- 사회 논술형 001 -->
+      <div class="tile glow">
+        <div class="tile-label">bkit 검증 완료 — 사회-논술형-001</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <span class="pill accent">논술형</span>
+          <span class="pill teal">비판적사고력</span>
+          <span class="pill amber">자료제시형</span>
+          <span class="pill" style="color:var(--accent-rose);border-color:rgba(225,29,72,0.4);background:rgba(225,29,72,0.06)">난이도: 상</span>
+          <span class="pill">성취기준: [9사(일사)03-04]</span>
+        </div>
+        <div style="background:rgba(99,102,241,0.06);border:1px solid var(--border-glow);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent);margin-bottom:8px">📋 평가 문항</div>
+          <p style="font-size:13px;color:var(--text);line-height:1.7">
+            아래 <strong>[자료 A]</strong>는 플라스틱 사용량 증가 추이 그래프이고, <strong>[자료 B]</strong>는 정부의 일회용품 규제 정책 개요이다. 두 자료를 분석하여 현행 정책의 <strong>한계를 2가지</strong> 제시하고, 각각에 대한 <strong>개선 방안을 근거와 함께 논술</strong>하시오.
+          </p>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">
+            <span class="chip">조건 1: 자료 A·B 각각 1회 이상 직접 인용</span>
+            <span class="chip">조건 2: 개인적·사회적 차원 모두 포함</span>
+            <span class="chip">분량: 300~400자</span>
+            <span class="chip">소요: 15~20분</span>
+          </div>
+        </div>
+        <table class="rubric-table" style="font-size:11px">
+          <thead>
+            <tr>
+              <th class="dim" style="font-size:10px">평가요소</th>
+              <th style="font-size:10px">A (4점)</th>
+              <th class="teal" style="font-size:10px">B (3점)</th>
+              <th class="amber" style="font-size:10px">C (2점)</th>
+              <th class="dim" style="font-size:10px">D (1점)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-head">자료 분석·인용</td>
+              <td>A·B 모두 정확 인용, 한계와 직접 연결</td>
+              <td>A·B 인용하나 연결 다소 피상적</td>
+              <td>1개 자료만 인용</td>
+              <td>인용 없음</td>
+            </tr>
+            <tr>
+              <td class="row-head">논리 구조</td>
+              <td>한계 2가지·방안 2가지 모두 논리적 전개</td>
+              <td>구조 갖추나 방안 근거 미흡</td>
+              <td>한계 또는 방안 1가지만</td>
+              <td>논리 구조 없음</td>
+            </tr>
+            <tr>
+              <td class="row-head">개인·사회 포함</td>
+              <td>두 차원 명확히 구분 서술</td>
+              <td>두 차원 있으나 구분 불명확</td>
+              <td>1개 차원만 서술</td>
+              <td>차원 구분 없음</td>
+            </tr>
+            <tr>
+              <td class="row-head">표현·어휘</td>
+              <td>교과 용어 정확, 문장 명료</td>
+              <td>용어 대체로 적절, 일부 일상어 혼용</td>
+              <td>용어 제한적, 문장 불명확</td>
+              <td>교과 용어 미사용</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="alert warn" style="margin-top:10px;margin-bottom:0">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-body">
+            <strong>[확인 필요] 교사 적용 전 필수</strong>
+            <p>실제 수업용 [자료 A·B]를 교사가 직접 선정. 특정 계층·지역 편향 통계 사용 주의.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 국어 서술형 001 -->
+      <div class="tile glow-teal">
+        <div class="tile-label teal">bkit 검증 완료 — 국어-서술형-001</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <span class="pill teal">서술형</span>
+          <span class="pill accent">서술양식제한형</span>
+          <span class="pill amber">분석적이해력</span>
+          <span class="pill">난이도: 중</span>
+          <span class="pill">성취기준: [10국02-03]</span>
+        </div>
+        <div style="background:rgba(20,184,166,0.06);border:1px solid var(--border-teal);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent-teal);margin-bottom:8px">📋 평가 문항</div>
+          <p style="font-size:13px;color:var(--text);line-height:1.7">
+            다음 지문에서 주인공의 갈등이 심화되는 <strong>원인 2가지</strong>를 찾아 각각의 결과와 연결하여 <strong>'원인 → 결과' 형식</strong>으로 서술하시오.
+          </p>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">
+            <span class="chip">조건 1: 지문의 장면·대사를 근거로 활용</span>
+            <span class="chip">조건 2: 원인-결과 형식 명확히 구분</span>
+            <span class="chip">분량: 총 4문장 이내</span>
+            <span class="chip">소요: 10~12분</span>
+          </div>
+        </div>
+        <table class="rubric-table" style="font-size:11px">
+          <thead>
+            <tr>
+              <th class="dim" style="font-size:10px">평가요소</th>
+              <th style="font-size:10px">A (4점)</th>
+              <th class="teal" style="font-size:10px">B (3점)</th>
+              <th class="amber" style="font-size:10px">C (2점)</th>
+              <th class="dim" style="font-size:10px">D (1점)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-head">원인 파악</td>
+              <td>지문 근거로 원인 2가지 정확 제시</td>
+              <td>원인 2가지 있으나 근거 미흡</td>
+              <td>원인 1가지만 제시</td>
+              <td>원인 파악 못함</td>
+            </tr>
+            <tr>
+              <td class="row-head">인과 연결</td>
+              <td>원인→결과 논리적 연결, 형식 준수</td>
+              <td>연결 있으나 논리적 비약</td>
+              <td>형식 불완전, 결과 미흡</td>
+              <td>인과 연결 없음</td>
+            </tr>
+            <tr>
+              <td class="row-head">지문 근거 활용</td>
+              <td>장면·대사 정확 인용, 문맥 적절</td>
+              <td>인용하나 문맥 연결 어색</td>
+              <td>인용 없이 일반 서술</td>
+              <td>지문 무관 서술</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:12px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent-teal);margin-bottom:8px">총체적 루브릭 요약</div>
+          <table class="data-table" style="font-size:11px">
+            <tbody>
+              <tr><td style="color:var(--accent);font-family:var(--mono)">A</td><td>지문 근거로 원인 2가지를 정확히 찾아 원인→결과 형식으로 논리적으로 서술</td></tr>
+              <tr><td style="color:var(--accent-teal);font-family:var(--mono)">B</td><td>원인-결과 구조 갖추나 근거 구체성 또는 논리적 연결 부분 미흡</td></tr>
+              <tr><td style="color:var(--accent-amber);font-family:var(--mono)">C</td><td>원인 또는 결과 서술 불완전, 지문 근거 활용 제한적</td></tr>
+              <tr><td style="color:var(--text-dim);font-family:var(--mono)">D</td><td>원인-결과 형식 미충족, 지문과 무관한 내용 서술</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 문항 오류 4유형 + 체크리스트 -->
+    <div class="bento bento-asym-r" style="margin-bottom:16px">
+      <div class="tile glow-amber">
+        <div class="tile-label amber">문항 오류 4유형 — bkit /검토 체크리스트 기반</div>
+        <div class="step-flow" style="margin-top:4px">
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">E1</div>
+            <div class="step-content">
+              <strong>모호한 지시어</strong>
+              <span><em style="color:var(--accent-rose)">❌</em> "이에 대해 서술하시오" → <em style="color:var(--accent-teal)">✅</em> "○○의 원인 2가지를 '원인→결과' 형식으로 서술하시오" — 무엇을·얼마나·어떤 형식으로 명확히.</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">E2</div>
+            <div class="step-content">
+              <strong>복수 정답 무제한 허용</strong>
+              <span>채점기준에 없는 답안 범위 사전 미설정 → 교사 협의로 모범 답안 범위 확정 후 부분 인정 기준 명시. [bkit /검토 ⚠️ 항목]</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">E3</div>
+            <div class="step-content">
+              <strong>과도한 분량 요구</strong>
+              <span>서술형 100~200자, 논술형 300~500자 권고. 수업 시간·AI 채점 효율 모두 고려. [bkit /문항 분량 제한 기준]</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num amber" style="font-size:10px">E4</div>
+            <div class="step-content">
+              <strong>편향된 소재·자료</strong>
+              <span>특정 성별·지역에 유리한 소재 금지. bkit /검토 "AI 편향 위험" 항목으로 매 문항 점검 의무화.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tile glow">
+        <div class="tile-label">문항 개발 최종 체크리스트 — bkit /검토 연동</div>
+        <div class="bento bento-2" style="gap:10px;margin-top:8px">
+          <div>
+            <h4 style="color:var(--accent);margin-bottom:10px">✏️ 문항 설계</h4>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 성취기준 동사 ↔ Bloom 수준 일치</div></div>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 지시어 구체적·명확 (무엇·얼마나·형식)</div></div>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 분량 제한이 수업 시간에 현실적</div></div>
+            <div class="type-card" style="margin-bottom:0"><div class="type-desc">☐ 소재·자료가 모든 학생에게 공평</div></div>
+          </div>
+          <div>
+            <h4 style="color:var(--accent-teal);margin-bottom:10px">🤖 bkit /검토</h4>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 성취기준 연계 적절성 ✅</div></div>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 루브릭 ↔ 문항 정합성 ✅</div></div>
+            <div class="type-card" style="margin-bottom:6px"><div class="type-desc">☐ 모범 답안 타당성 ✅</div></div>
+            <div class="type-card" style="margin-bottom:0"><div class="type-desc">☐ AI 편향 위험 없음 ✅ / [확인 필요] 처리</div></div>
+          </div>
+        </div>
+        <div class="alert info" style="margin-top:12px;margin-bottom:0">
+          <span class="alert-icon">📁</span>
+          <div class="alert-body">
+            <strong>bkit 파일명 규칙</strong>
+            <p><code style="font-family:var(--mono);font-size:11px">[교과]_[학년]_[유형]_[이니셜]_v1.md</code><br>예) <code style="font-family:var(--mono);font-size:11px">사회_3학년_자료제시형_KSS_v1.md</code><br>완성 문항은 구글드라이브 산출물 폴더에 업로드.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 서울시교육청 AI 채점 연계 -->
+    <div class="tile full glow-teal">
+      <div class="tile-label teal">서울시교육청 AI 서논술형 평가지원시스템 — bkit 연계 로드맵 (2025~2027)</div>
+      <div class="bento bento-3" style="gap:12px;margin-top:8px">
+        <div style="background:var(--surface-2);border:1px solid var(--border-glow);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🏛️</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent)">2025 — 개발 착수</div>
+          <p>AI 민간기업(네이버 기술협력) 계약 체결. 자동채점 모델 개발 + 학습 데이터 수집. bkit 루브릭 포맷을 공공 시스템 연동 기준으로 활용 검토.</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-teal);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🔬</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent-teal)">2026 — 시범 적용</div>
+          <p>시범학교 적용. AI 채점 근접일치도 95~98% 목표. bkit /문항 산출물의 루브릭 JSON을 공공 시스템 업로드 표준으로 정의 예정.</p>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border-amber);border-radius:8px;padding:16px">
+          <div style="font-size:20px;margin-bottom:8px">🚀</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--accent-amber)">2027~ — 전면 확대</div>
+          <p>서울 전체 학교 단계적 배포. 2022 개정 성취기준 DB 연동. bkit 팀 문항 은행이 공공 평가 자료 DB로 기여 가능.</p>
+        </div>
+      </div>
+      <div class="alert warn" style="margin-top:12px;margin-bottom:0">
+        <span class="alert-icon">📎</span>
+        <div class="alert-body">
+          <strong>참고 자료</strong>
+          <p>서울시교육청 보도자료 (2025.08) · 교육정보미디어연구 "AI 자동채점 기반 평가자 협의 모델" (KCI 2025) · KICE 학생평가지원포탈 stas.moe.go.kr · 세종시교육청 서논술형 문항 개발 자료</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+</main>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

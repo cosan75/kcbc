@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KCBC 수업설계 대시보드</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --ink: #1a1d29;
+    --ink-soft: #4b5163;
+    --muted: #8c93a8;
+    --line: #e6e8f0;
+    --brand: #3a57e8;
+    --brand-soft: #eef1ff;
+    --accent: #ff7a59;
+    --green: #2ea66c;
+    --amber: #c98a16;
+    --violet: #7048e8;
+    --teal: #0e8f8a;
+    --rose: #d6336c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* Header */
+  header.hero {
+    background: linear-gradient(135deg, #3a57e8 0%, #7048e8 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 36px 36px 32px;
+    box-shadow: 0 10px 30px rgba(58,87,232,0.18);
+  }
+  header.hero .eyebrow {
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    opacity: 0.85; margin-bottom: 10px;
+  }
+  header.hero h1 { font-size: 30px; margin: 0 0 8px; font-weight: 800; letter-spacing: -0.01em; }
+  header.hero p { margin: 0; font-size: 15px; opacity: 0.92; max-width: 760px; }
+  header.hero .meta {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px;
+  }
+  header.hero .meta span {
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 6px 12px; border-radius: 999px; font-size: 12px;
+  }
+
+  /* Section */
+  section { margin-top: 36px; }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-head h2 {
+    font-size: 18px; margin: 0; letter-spacing: -0.005em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-head h2::before {
+    content: ""; width: 6px; height: 18px; border-radius: 3px; background: var(--brand);
+  }
+  .section-head .hint { color: var(--muted); font-size: 12px; }
+
+  /* KPI strip */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 18px 16px;
+  }
+  .kpi .label { color: var(--muted); font-size: 12px; }
+  .kpi .value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+  .kpi .unit { color: var(--ink-soft); font-size: 13px; margin-left: 4px; font-weight: 500; }
+  .kpi.brand .value { color: var(--brand); }
+  .kpi.green .value { color: var(--green); }
+  .kpi.amber .value { color: var(--amber); }
+  .kpi.rose  .value { color: var(--rose); }
+
+  /* 5 요소 카드 */
+  .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .pillar {
+    background: var(--surface); border: 1px solid var(--line);
+    border-top: 3px solid var(--brand);
+    border-radius: 12px; padding: 16px;
+  }
+  .pillar:nth-child(2) { border-top-color: var(--accent); }
+  .pillar:nth-child(3) { border-top-color: var(--violet); }
+  .pillar:nth-child(4) { border-top-color: var(--teal); }
+  .pillar:nth-child(5) { border-top-color: var(--green); }
+  .pillar h3 { margin: 0 0 6px; font-size: 14px; color: var(--ink); }
+  .pillar p { margin: 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; }
+
+  /* 7단계 흐름 */
+  .flow {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px;
+    overflow-x: auto;
+  }
+  .flow ol {
+    display: flex; gap: 10px; padding: 0; margin: 0; list-style: none; min-width: 760px;
+  }
+  .flow li {
+    flex: 1; background: var(--brand-soft); border-radius: 10px;
+    padding: 14px 12px; position: relative;
+    border: 1px solid #dde3ff;
+  }
+  .flow li::after {
+    content: "›"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    color: var(--brand); font-size: 18px; font-weight: 700;
+  }
+  .flow li:last-child::after { display: none; }
+  .flow li .num {
+    display: inline-block; background: var(--brand); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%; text-align: center;
+    line-height: 22px; font-size: 12px; font-weight: 700;
+  }
+  .flow li .name { display: block; font-weight: 700; margin-top: 8px; font-size: 13.5px; }
+  .flow li .en { display: block; color: var(--ink-soft); font-size: 11.5px; margin-top: 2px; }
+  .flow li.star { background: #fff7e6; border-color: #ffd591; }
+  .flow li.star .num { background: var(--amber); }
+  .flow li.star .name::after { content: " ★"; color: var(--amber); }
+
+  /* 명제적 vs 절차적 */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .compare .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px;
+  }
+  .compare .card.left  { border-top: 3px solid var(--violet); }
+  .compare .card.right { border-top: 3px solid var(--teal); }
+  .compare .card h3 {
+    margin: 0 0 4px; font-size: 16px;
+  }
+  .compare .card .sub { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .compare .card .row {
+    display: grid; grid-template-columns: 92px 1fr; gap: 10px;
+    padding: 8px 0; border-top: 1px dashed var(--line);
+    font-size: 13px;
+  }
+  .compare .card .row:first-of-type { border-top: 0; }
+  .compare .card .row .k { color: var(--muted); font-size: 12px; }
+  .compare .card .gen {
+    margin-top: 14px; background: #f9faff; border: 1px solid #e0e6ff;
+    border-left: 3px solid var(--brand);
+    padding: 12px 14px; border-radius: 8px; font-size: 13px; color: var(--ink);
+  }
+  .compare .card .gen .tag {
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--brand); font-weight: 700; display: block; margin-bottom: 4px;
+  }
+
+  /* 평가 문항 카드 */
+  .q-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .qcard {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .qcard:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+  .qcard header { display: flex; justify-content: space-between; align-items: center; }
+  .qcard .num {
+    background: var(--brand); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+  }
+  .qcard .type {
+    font-size: 11px; letter-spacing: 0.08em; color: var(--ink-soft);
+    background: var(--brand-soft); padding: 3px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .qcard h3 { margin: 0; font-size: 15.5px; }
+  .qcard .topic { color: var(--ink-soft); font-size: 12.5px; margin: 0; }
+  .qcard .material {
+    background: #fafbff; border: 1px dashed var(--line);
+    border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--ink-soft);
+  }
+  .qcard .material strong { color: var(--ink); font-weight: 600; }
+  .qcard footer {
+    margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line);
+    display: flex; gap: 14px; font-size: 12px; color: var(--ink-soft);
+  }
+  .qcard footer .score { color: var(--rose); font-weight: 700; }
+
+  /* 체크리스트 */
+  .check {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px;
+  }
+  .check label {
+    display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink-soft);
+    padding: 6px 0;
+  }
+  .check input[type="checkbox"] { margin-top: 3px; accent-color: var(--brand); }
+
+  /* Footer */
+  .foot {
+    margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid5 { grid-template-columns: repeat(2, 1fr); }
+    .compare { grid-template-columns: 1fr; }
+    .q-grid { grid-template-columns: 1fr; }
+    .check { grid-template-columns: 1fr; }
+    header.hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="eyebrow">KCBC · Korean Concept-Based Curriculum</div>
+      <h1>개념 기반 수업설계 대시보드</h1>
+      <p>
+        2022 개정 교육과정의 <strong>깊이 있는 학습</strong>을 실현하기 위한
+        KCBC 수업설계 틀과 7단계 탐구 과정, 그리고 사회과 서·논술형 평가 문항을
+        한 화면에서 점검합니다.
+      </p>
+      <div class="meta">
+        <span>📁 kcbc/CLAUDE.md</span>
+        <span>📝 kcbc/스킬.md</span>
+        <span>📅 업데이트 2026-06-09</span>
+      </div>
+    </header>
+
+    <!-- KPI -->
+    <section>
+      <div class="kpis">
+        <div class="kpi brand">
+          <div class="label">설계 구성 요소</div>
+          <div class="value">5<span class="unit">요소</span></div>
+        </div>
+        <div class="kpi amber">
+          <div class="label">탐구학습 모형</div>
+          <div class="value">7<span class="unit">단계</span></div>
+        </div>
+        <div class="kpi green">
+          <div class="label">수업설계 예시</div>
+          <div class="value">2<span class="unit">유형 (명제/절차)</span></div>
+        </div>
+        <div class="kpi rose">
+          <div class="label">서·논술형 문항</div>
+          <div class="value">5<span class="unit">문항</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 요소 -->
+    <section>
+      <div class="section-head">
+        <h2>① 수업설계의 틀 — 5대 구성 요소</h2>
+        <span class="hint">CLAUDE.md §2</span>
+      </div>
+      <div class="grid5">
+        <div class="pillar">
+          <h3>학생상</h3>
+          <p>수업을 통해 길러내고자 하는 학습자의 모습 — 단원이 끝났을 때 무엇을 할 수 있고 어떤 사람으로 성장하는가.</p>
+        </div>
+        <div class="pillar">
+          <h3>핵심가치</h3>
+          <p>단원을 관통하는 가치와 태도. 학생의 삶에 어떤 가치를 남기는가.</p>
+        </div>
+        <div class="pillar">
+          <h3>핵심개념</h3>
+          <p>시간·공간을 초월해 전이되는 추상적 렌즈 — Macro 렌즈 + Micro 단원 개념.</p>
+        </div>
+        <div class="pillar">
+          <h3>핵심기능</h3>
+          <p>개념을 다루기 위해 동원되는 사고·수행 기능. 학생이 익혀야 할 절차.</p>
+        </div>
+        <div class="pillar">
+          <h3>교수 설계·평가</h3>
+          <p>일반화 도출을 위한 학습경험과 수행평가. 활동·자료·질문·평가의 통합 설계.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 단계 -->
+    <section>
+      <div class="section-head">
+        <h2>② 수업설계 과정 — 개념기반 탐구 7단계</h2>
+        <span class="hint">CLAUDE.md §3 · 순환·반복 가능</span>
+      </div>
+      <div class="flow">
+        <ol>
+          <li><span class="num">1</span><span class="name">관계 맺기</span><span class="en">Engage</span></li>
+          <li><span class="num">2</span><span class="name">집중하기</span><span class="en">Focus</span></li>
+          <li><span class="num">3</span><span class="name">조사하기</span><span class="en">Investigate</span></li>
+          <li><span class="num">4</span><span class="name">조직·정리</span><span class="en">Organize</span></li>
+          <li class="star"><span class="num">5</span><span class="name">일반화하기</span><span class="en">Generalize · KCBC 핵심</span></li>
+          <li><span class="num">6</span><span class="name">전이하기</span><span class="en">Transfer</span></li>
+          <li><span class="num">7</span><span class="name">성찰하기</span><span class="en">Reflect</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 명제적 vs 절차적 -->
+    <section>
+      <div class="section-head">
+        <h2>③ 두 가지 수업설계 — 명제적 지식 vs 절차적 지식</h2>
+        <span class="hint">CLAUDE.md §5–6</span>
+      </div>
+      <div class="compare">
+        <!-- 명제적 -->
+        <div class="card left">
+          <h3>사회 — 우리나라의 지리 환경</h3>
+          <div class="sub">명제적 지식 (Propositional) · "무엇이 왜 그러한가"</div>
+          <div class="row"><div class="k">학생상</div><div>지리 환경과 인간 생활의 관계를 개념적으로 설명하는 시민적 사고자</div></div>
+          <div class="row"><div class="k">핵심가치</div><div>상호의존성, 지역 다양성 존중, 지속가능성에 대한 책임감</div></div>
+          <div class="row"><div class="k">렌즈 개념</div><div>상호작용 (Interaction)</div></div>
+          <div class="row"><div class="k">단원 개념</div><div>지형 · 기후 · 자원 · 인간생활 · 지역성</div></div>
+          <div class="row"><div class="k">핵심기능</div><div>지도·통계 해석 / 비교·분류 / 일반화 진술 / 전이 적용</div></div>
+          <div class="row"><div class="k">수행 과제</div><div>"우리 지역 환경이 만든 생활 모습" 1쪽 논평</div></div>
+          <div class="gen">
+            <span class="tag">GENERALIZATION</span>
+            지리적 환경은 인간의 생활 양식과 경제활동을 형성한다.
+          </div>
+        </div>
+        <!-- 절차적 -->
+        <div class="card right">
+          <h3>수학 — 분수의 덧셈과 뺄셈</h3>
+          <div class="sub">절차적 지식 (Procedural) · "어떻게 하는가"</div>
+          <div class="row"><div class="k">학생상</div><div>절차 의미를 이해하며 수행하고 새로운 상황에 전이하는 수학적 사고자</div></div>
+          <div class="row"><div class="k">핵심가치</div><div>원리의 이해, 자기조절적 수행, 오류를 통한 학습</div></div>
+          <div class="row"><div class="k">렌즈 개념</div><div>동치 (Equivalence) · 단위 (Unit)</div></div>
+          <div class="row"><div class="k">단원 개념</div><div>통분 · 약분 · 분모·분자 · 연산의 일관성</div></div>
+          <div class="row"><div class="k">핵심기능</div><div>단위 만들기 / 연산 수행 / 어림 점검 / 다중 표상</div></div>
+          <div class="row"><div class="k">수행 과제</div><div>모형·식·말 세 표상으로 1/2 + 2/3 설명</div></div>
+          <div class="gen">
+            <span class="tag">GENERALIZATION</span>
+            분수의 덧셈과 뺄셈은 단위(분모)를 같게 만든 후 단위의 개수(분자)를 더하거나 빼는 절차이다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 평가 문항 5개 -->
+    <section>
+      <div class="section-head">
+        <h2>④ 사회과 서·논술형 평가 문항</h2>
+        <span class="hint">스킬.md · 자료 제시형 5문항</span>
+      </div>
+      <div class="q-grid">
+
+        <article class="qcard">
+          <header>
+            <span class="num">문항 1</span>
+            <span class="type">서술형</span>
+          </header>
+          <h3>우리 지역의 자연환경</h3>
+          <p class="topic">지리 — 산골 마을 vs 강가 마을</p>
+          <div class="material">자료: <strong>우리 마을 안내 책자</strong> (산비탈 다랭이 논 / 강가 평야 사진)</div>
+          <footer>
+            <span class="score">총 8점</span>
+            <span>하위 문항 2개 (6 / 2)</span>
+          </footer>
+        </article>
+
+        <article class="qcard">
+          <header>
+            <span class="num">문항 2</span>
+            <span class="type">서술형</span>
+          </header>
+          <h3>옛날과 오늘날의 가족생활</h3>
+          <p class="topic">역사 — 가족 형태와 생활 모습의 변화</p>
+          <div class="material">자료: <strong>할머니의 옛날이야기</strong> + 오늘날 우리 가족 사진</div>
+          <footer>
+            <span class="score">총 8점</span>
+            <span>하위 문항 2개 (6 / 2)</span>
+          </footer>
+        </article>
+
+        <article class="qcard">
+          <header>
+            <span class="num">문항 3</span>
+            <span class="type">논술형</span>
+          </header>
+          <h3>합리적인 소비 선택</h3>
+          <p class="topic">경제 — 운동화 A·B·C 비교 선택</p>
+          <div class="material">자료: <strong>하늘마트 주말 광고지</strong> (가격·디자인·내구성·원산지)</div>
+          <footer>
+            <span class="score">총 10점</span>
+            <span>하위 문항 3개 (3 / 5 / 2)</span>
+          </footer>
+        </article>
+
+        <article class="qcard">
+          <header>
+            <span class="num">문항 4</span>
+            <span class="type">서술형</span>
+          </header>
+          <h3>민주적 의사결정</h3>
+          <p class="topic">정치 — 학급 회의록 분석</p>
+          <div class="material">자료: <strong>4학년 2반 학급 회의록</strong> (텃밭에 무엇을 심을까)</div>
+          <footer>
+            <span class="score">총 8점</span>
+            <span>하위 문항 2개 (6 / 2)</span>
+          </footer>
+        </article>
+
+        <article class="qcard">
+          <header>
+            <span class="num">문항 5</span>
+            <span class="type">논술형</span>
+          </header>
+          <h3>지구촌 환경 문제</h3>
+          <p class="topic">지속가능 발전 — 기후 변화와 빙하</p>
+          <div class="material">자료: <strong>어린이 환경 신문</strong> (북극 빙하 면적 그래프·북극곰)</div>
+          <footer>
+            <span class="score">총 10점</span>
+            <span>하위 문항 3개 (3 / 3 / 4)</span>
+          </footer>
+        </article>
+
+        <article class="qcard" style="background: var(--brand-soft); border-color: #dde3ff;">
+          <header>
+            <span class="num" style="background: var(--ink);">루브릭</span>
+            <span class="type" style="background: #fff;">공통 양식</span>
+          </header>
+          <h3>채점 단계 — 상 · 중 · 하 · 미응답</h3>
+          <p class="topic">자료 해석 + 개수 충족 + 사회 개념 연결</p>
+          <div class="material" style="background: #fff;">
+            <strong>상</strong> 만점 · <strong>중</strong> 부분점수 · <strong>하</strong> 최소점수 · <strong>미응답</strong> 0점
+          </div>
+          <footer>
+            <span>전이 과제 + 개념 이해 측정</span>
+          </footer>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 체크리스트 -->
+    <section>
+      <div class="section-head">
+        <h2>⑤ KCBC 설계 자체 점검 체크리스트</h2>
+        <span class="hint">CLAUDE.md §7</span>
+      </div>
+      <div class="check">
+        <label><input type="checkbox" /> 학생상이 단원의 장기적 성장상으로 기술되었는가?</label>
+        <label><input type="checkbox" /> 핵심개념이 렌즈 + 단원 개념으로 위계화되었는가?</label>
+        <label><input type="checkbox" /> 활동이 사실 → 개념 → 일반화의 귀납적 흐름인가?</label>
+        <label><input type="checkbox" /> 일반화 진술문이 한 문장으로 명료한가?</label>
+        <label><input type="checkbox" /> 안내 질문이 사실/개념/논쟁 세 층위로 균형 잡혀 있는가?</label>
+        <label><input type="checkbox" /> 평가가 전이 상황을 포함하고 루브릭이 개념적 이해를 측정하는가?</label>
+        <label><input type="checkbox" /> 명제적/절차적 지식에 따라 설계 강조점을 차별화했는가?</label>
+        <label><input type="checkbox" /> 자료 제시형 문항이 사실 → 비교·분석 → 이유·제안 위계인가?</label>
+      </div>
+    </section>
+
+    <div class="foot">
+      KCBC Dashboard · 생성: 2026-06-09 · 출처: kcbc/CLAUDE.md, kcbc/스킬.md
+    </div>
+  </div>
+</body>
+</html>

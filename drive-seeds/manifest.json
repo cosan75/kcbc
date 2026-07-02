@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "createdAt": "2026-06-09T08:41:34.318Z",
+  "description": "KCBC 표준 평가 문항 5문항 (사회과 서·논술형, 자료 제시형)",
+  "questions": [
+    {
+      "id": "std_q1_geo",
+      "no": 1,
+      "domain": "지리",
+      "type": "서술형",
+      "title": "우리 지역의 자연환경",
+      "totalScore": 8,
+      "filename": "평가문항_1_지리.json"
+    },
+    {
+      "id": "std_q2_history",
+      "no": 2,
+      "domain": "역사",
+      "type": "서술형",
+      "title": "옛날과 오늘날의 가족생활",
+      "totalScore": 8,
+      "filename": "평가문항_2_역사.json"
+    },
+    {
+      "id": "std_q3_economy",
+      "no": 3,
+      "domain": "경제",
+      "type": "논술형",
+      "title": "합리적인 소비 선택",
+      "totalScore": 10,
+      "filename": "평가문항_3_경제.json"
+    },
+    {
+      "id": "std_q4_politics",
+      "no": 4,
+      "domain": "정치",
+      "type": "서술형",
+      "title": "민주적 의사결정",
+      "totalScore": 8,
+      "filename": "평가문항_4_정치.json"
+    },
+    {
+      "id": "std_q5_sustain",
+      "no": 5,
+      "domain": "지속가능 발전",
+      "type": "논술형",
+      "title": "지구촌 환경 문제 — 기후 변화",
+      "totalScore": 10,
+      "filename": "평가문항_5_지속가능 발전.json"
+    }
+  ]
+}

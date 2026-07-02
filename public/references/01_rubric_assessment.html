@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>총괄·형성평가 루브릭 평가 도구</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f6;color:#1a1a1a;padding:24px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:24px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e0e0e0;margin-bottom:24px}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;transition:all .15s;font-family:inherit}
+.tab.on{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.panel{display:none}.panel.on{display:block}
+.sl{font-size:11px;font-weight:600;color:#888;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.7rem}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:1.5rem}
+.scard{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.scard:hover{border-color:#ccc}
+.scard.on{border:2px solid #534AB7;background:#EEEDFE}
+.sn{font-size:13px;font-weight:500}.sm{font-size:11px;color:#888;margin-top:2px}
+.sbar{height:3px;border-radius:2px;margin-top:6px;background:#eee}
+.sfill{height:100%;border-radius:2px}
+/* Holistic */
+.hl-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.hl-item{border:1px solid #e8e8e8;border-radius:8px;padding:12px 16px;cursor:pointer;transition:all .15s;background:#fff}
+.hl-item:hover{border-color:#ccc}
+.hl-item.sel{border-width:2px}
+.hl-header{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.hl-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px}
+.b4{background:#085041;color:#9FE1CB}.b3{background:#0C447C;color:#B5D4F4}
+.b2{background:#633806;color:#FAC775}.b1{background:#791F1F;color:#F7C1C1}
+.s4{border-color:#0F6E56!important;background:rgba(15,110,86,.05)!important}
+.s3{border-color:#185FA5!important;background:rgba(24,95,165,.05)!important}
+.s2{border-color:#BA7517!important;background:rgba(186,117,23,.05)!important}
+.s1{border-color:#A32D2D!important;background:rgba(163,45,45,.05)!important}
+.hl-title{font-size:13px;font-weight:500;color:#1a1a1a}
+.hl-desc{font-size:12px;color:#666;line-height:1.5}
+/* Analytic */
+.score-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.score-card{background:#f5f5f3;border-radius:8px;padding:12px}
+.score-label{font-size:12px;color:#666;margin-bottom:4px}
+.score-val{font-size:22px;font-weight:500}
+.score-sub{font-size:12px;color:#888;margin-top:2px}
+.rubric-wrap{background:#fff;border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:1rem}
+.rubric-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.rubric-table th{background:#f5f5f3;font-size:12px;font-weight:600;color:#666;padding:8px 10px;text-align:left;border-bottom:1px solid #e8e8e8}
+.rubric-table td{padding:8px 10px;font-size:13px;border-bottom:1px solid #eee;vertical-align:top}
+.rubric-table tr:last-child td{border-bottom:none}
+.crit-name{font-weight:500;color:#1a1a1a;font-size:13px}
+.crit-wt{font-size:11px;color:#888}
+.lv-btn{display:block;width:100%;padding:5px 8px;font-size:12px;border:1px solid #e8e8e8;border-radius:5px;cursor:pointer;background:transparent;color:#666;margin-bottom:4px;text-align:left;transition:all .12s;font-family:inherit}
+.lv-btn:last-child{margin-bottom:0}
+.lv-btn:hover{background:#f5f5f3}
+.lv-btn.sel-4{background:#085041;color:#9FE1CB;border-color:#0F6E56}
+.lv-btn.sel-3{background:#0C447C;color:#B5D4F4;border-color:#185FA5}
+.lv-btn.sel-2{background:#633806;color:#FAC775;border-color:#BA7517}
+.lv-btn.sel-1{background:#791F1F;color:#F7C1C1;border-color:#A32D2D}
+/* AI output */
+.gen-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.gen-label{font-size:13px;font-weight:500}
+.gen-btn{display:flex;align-items:center;gap:5px;padding:7px 16px;font-size:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:transparent;font-family:inherit;transition:all .15s}
+.gen-btn:hover{background:#f5f5f3}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.fb-box{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1rem;min-height:80px;margin-bottom:1rem}
+.fb-hint{font-size:13px;color:#888}
+.fb-text{font-size:13px;color:#1a1a1a;line-height:1.75;white-space:pre-wrap}
+.fb-hd{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding-bottom:.6rem;border-bottom:1px solid #eee}
+.fb-avatar{width:28px;height:28px;border-radius:50%;background:#EEEDFE;color:#3C3489;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.fb-sname{font-size:13px;font-weight:500}
+.fb-meta{font-size:11px;color:#888}
+.spinner{display:inline-block;width:12px;height:12px;border:1.5px solid #ddd;border-top-color:#333;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.5rem}
+.dash-card{background:#f5f5f3;border-radius:8px;padding:14px}
+.dash-label{font-size:12px;color:#666;margin-bottom:4px}
+.dash-val{font-size:20px;font-weight:500}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prog-label{font-size:12px;color:#666;width:70px;flex-shrink:0}
+.prog-track{flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s}
+.prog-pct{font-size:12px;color:#888;width:34px;text-align:right}
+.stu-table{width:100%;border-collapse:collapse;font-size:13px}
+.stu-table th{background:#f5f5f3;font-size:12px;font-weight:600;color:#666;padding:7px 10px;text-align:left;border-bottom:1px solid #eee}
+.stu-table td{padding:7px 10px;border-bottom:1px solid #eee}
+.stu-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
+.bh{background:#085041;color:#9FE1CB}.bm{background:#0C447C;color:#B5D4F4}
+.bl{background:#633806;color:#FAC775}.bp{background:#791F1F;color:#F7C1C1}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.mini-btn{padding:3px 8px;font-size:11px;border:1px solid #e8e8e8;border-radius:4px;cursor:pointer;background:transparent;color:#666;font-family:inherit;transition:all .12s}
+.mini-btn:hover{background:#f5f5f3}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>총괄·형성평가 루브릭 평가 도구</h1>
+<p class="subtitle">학생별 성취도 실시간 관찰 · AI 맞춤 피드백 · 실시간 대시보드</p>
+<div class="tabs">
+  <button class="tab on" onclick="sw('hol')">총체적 루브릭</button>
+  <button class="tab" onclick="sw('ana')">분석적 루브릭</button>
+  <button class="tab" onclick="sw('dash')">실시간 대시보드</button>
+</div>
+
+<div class="panel on" id="p-hol">
+  <div class="sl">학생 선택</div>
+  <div class="student-grid" id="hol-sg"></div>
+  <div class="sl">총체적 루브릭 — 전반적 수행 수준</div>
+  <div class="hl-grid">
+    <div class="hl-item" id="hl-4" onclick="selHL(4)"><div class="hl-header"><span class="hl-badge b4">4단계 — 우수</span></div><div class="hl-title">탁월한 이해와 적용</div><div class="hl-desc">핵심 개념을 완전히 이해하고 새로운 상황에 창의적으로 적용. 동료 학습에도 기여 가능한 수준.</div></div>
+    <div class="hl-item" id="hl-3" onclick="selHL(3)"><div class="hl-header"><span class="hl-badge b3">3단계 — 양호</span></div><div class="hl-title">충분한 이해와 부분적 적용</div><div class="hl-desc">핵심 개념 대부분 이해, 일반적 상황 적용 가능. 약간의 안내로 심화 학습 가능한 수준.</div></div>
+    <div class="hl-item" id="hl-2" onclick="selHL(2)"><div class="hl-header"><span class="hl-badge b2">2단계 — 보통</span></div><div class="hl-title">기초적 이해, 적용 미흡</div><div class="hl-desc">핵심 개념 일부만 이해, 적용 오류 빈번. 교사의 적극적 지원과 추가 학습 필요.</div></div>
+    <div class="hl-item" id="hl-1" onclick="selHL(1)"><div class="hl-header"><span class="hl-badge b1">1단계 — 미흡</span></div><div class="hl-title">이해 및 적용 현저히 부족</div><div class="hl-desc">핵심 개념 이해 매우 낮음. 개별화 집중 지원과 선수 학습 점검이 시급함.</div></div>
+  </div>
+  <div class="gen-row"><div class="gen-label">AI 형성 피드백</div><button class="gen-btn" id="hol-btn" onclick="genHol()" disabled><i class="ti ti-sparkles"></i> 피드백 생성</button></div>
+  <div class="fb-box" id="hol-out"><div class="fb-hint">학생과 수행 수준을 선택하면 AI 피드백이 생성됩니다.</div></div>
+</div>
+
+<div class="panel" id="p-ana">
+  <div class="sl">학생 선택</div>
+  <div class="student-grid" id="ana-sg"></div>
+  <div class="score-row">
+    <div class="score-card"><div class="score-label">현재 총점</div><div class="score-val" id="ana-total">—</div><div class="score-sub">/ 100점</div></div>
+    <div class="score-card"><div class="score-label">달성 수준</div><div class="score-val" id="ana-level">—</div><div class="score-sub" id="ana-sub">기준 선택 전</div></div>
+  </div>
+  <div class="sl">분석적 루브릭 — 영역별 평가</div>
+  <div class="rubric-wrap"><table class="rubric-table"><thead><tr><th style="width:22%">평가 영역</th><th style="width:19.5%">4 — 우수</th><th style="width:19.5%">3 — 양호</th><th style="width:19.5%">2 — 보통</th><th style="width:19.5%">1 — 미흡</th></tr></thead><tbody id="rubric-body"></tbody></table></div>
+  <div class="gen-row"><div class="gen-label">AI 영역별 맞춤 피드백</div><button class="gen-btn" id="ana-btn" onclick="genAna()" disabled><i class="ti ti-sparkles"></i> 피드백 생성</button></div>
+  <div class="fb-box" id="ana-out"><div class="fb-hint">모든 영역을 평가하면 AI 피드백이 생성됩니다.</div></div>
+</div>
+
+<div class="panel" id="p-dash">
+  <div class="dash-grid" id="dash-stats"></div>
+  <div class="sl">수준별 학생 분포</div>
+  <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:14px;margin-bottom:1.5rem" id="dist-bars"></div>
+  <div class="sl">학생별 성취 현황</div>
+  <div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:1rem"><table class="stu-table"><thead><tr><th>학생</th><th>총체적</th><th>분석적</th><th>평가 상태</th><th>액션</th></tr></thead><tbody id="dash-tbl"></tbody></table></div>
+</div>
+</div>
+
+<script>
+const STUDENTS=[{id:1,name:'김민준'},{id:2,name:'이서연'},{id:3,name:'박지호'},{id:4,name:'최예원'},{id:5,name:'정도윤'},{id:6,name:'강수아'},{id:7,name:'윤하린'},{id:8,name:'임재원'}];
+const CRITERIA=[{id:'understand',name:'개념 이해',weight:30,levels:[{l:4,text:'핵심 개념 완전 이해·설명'},{l:3,text:'주요 개념 이해, 일부 오개념'},{l:2,text:'표면적 이해, 오류 빈번'},{l:1,text:'기초 이해 부족'}]},{id:'apply',name:'적용 능력',weight:25,levels:[{l:4,text:'새 상황에 창의적 적용'},{l:3,text:'유사 상황 적용 가능'},{l:2,text:'안내 있어야 적용'},{l:1,text:'적용 거의 불가'}]},{id:'express',name:'표현·소통',weight:25,levels:[{l:4,text:'논리적·창의적 표현'},{l:3,text:'명확한 표현, 소통 원활'},{l:2,text:'기본 표현, 부분 불명확'},{l:1,text:'표현 미흡, 전달 곤란'}]},{id:'participate',name:'참여·협력',weight:20,levels:[{l:4,text:'적극 기여, 동료 도움'},{l:3,text:'성실 참여, 협력 양호'},{l:2,text:'수동적 참여, 협력 부족'},{l:1,text:'참여 매우 저조'}]}];
+const LN={4:'우수',3:'양호',2:'보통',1:'미흡'};
+const LC={4:'#0F6E56',3:'#185FA5',2:'#BA7517',1:'#A32D2D'};
+let holSel=null,holLvs={},anaSel=null,anaScores={};
+
+function gsc(s){return s>=80?'#0F6E56':s>=70?'#185FA5':s>=55?'#BA7517':'#A32D2D'}
+function getAnaTotal(sid){const s=anaScores[sid]||{};let t=0;CRITERIA.forEach(c=>{const l=s[c.id]||0;t+=(l/4)*c.weight});return Math.round(t)}
+function getAnaLevel(t){if(t>=85)return{l:'우수',cls:'bh'};if(t>=70)return{l:'양호',cls:'bm'};if(t>=50)return{l:'보통',cls:'bl'};if(t>0)return{l:'미흡',cls:'bp'};return{l:'—',cls:''}}
+function sw(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');const idx={hol:0,ana:1,dash:2}[id];document.querySelectorAll('.tab')[idx].classList.add('on');if(id==='dash')renderDash()}
+
+function renderSG(cid,selId,cb){
+  const el=document.getElementById(cid);el.innerHTML='';
+  STUDENTS.forEach(s=>{
+    const t=getAnaTotal(s.id);const c=document.createElement('div');
+    c.className='scard'+(selId===s.id?' on':'');
+    c.innerHTML=`<div class="sn">${s.name}</div><div class="sm">${t>0?t+'점':'미평가'}</div><div class="sbar"><div class="sfill" style="width:${t}%;background:${gsc(t)}"></div></div>`;
+    c.onclick=()=>cb(s.id);el.appendChild(c);
+  });
+}
+
+function selHL(l){if(!holSel)return;holLvs[holSel]=l;[1,2,3,4].forEach(n=>{const el=document.getElementById('hl-'+n);el.className='hl-item'+(l===n?' s'+n:'')});document.getElementById('hol-btn').disabled=false}
+
+function renderRubric(){
+  const tbody=document.getElementById('rubric-body');tbody.innerHTML='';
+  CRITERIA.forEach(c=>{
+    const tr=document.createElement('tr');const s=anaScores[anaSel]||{};const sel=s[c.id]||0;
+    tr.innerHTML=`<td><div class="crit-name">${c.name}</div><div class="crit-wt">가중치 ${c.weight}%</div></td>${[4,3,2,1].map(l=>{const lv=c.levels.find(x=>x.l===l);return`<td><button class="lv-btn ${sel===l?'sel-'+l:''}" onclick="setScore('${c.id}',${l})">${lv.text}</button></td>`}).join('')}`;
+    tbody.appendChild(tr);
+  });
+}
+function setScore(cid,l){if(!anaSel)return;if(!anaScores[anaSel])anaScores[anaSel]={};anaScores[anaSel][cid]=l;renderRubric();updateAnaSummary();renderSG('ana-sg',anaSel,id=>{anaSel=id;renderSG('ana-sg',anaSel,arguments.callee);renderRubric();updateAnaSummary()})}
+function updateAnaSummary(){if(!anaSel)return;const t=getAnaTotal(anaSel);const li=getAnaLevel(t);document.getElementById('ana-total').textContent=t>0?t:'—';document.getElementById('ana-level').textContent=li.l;const f=Object.keys(anaScores[anaSel]||{}).length;document.getElementById('ana-sub').textContent=`${f}/${CRITERIA.length}개 영역 평가됨`;document.getElementById('ana-btn').disabled=f!==CRITERIA.length}
+
+async function callAI(sys,usr,outId,btnId){
+  const out=document.getElementById(outId),btn=document.getElementById(btnId);
+  btn.disabled=true;out.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span style="font-size:13px;color:#888">AI 생성 중...</span></div>';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:usr}]})});
+    const data=await res.json();const text=data.content?.find(c=>c.type==='text')?.text||'생성 실패';
+    out.innerHTML=`<div class="fb-text">${text}</div>`;
+  }catch(e){out.innerHTML='<div class="fb-hint" style="color:#c0392b">오류가 발생했습니다.</div>'}
+  btn.disabled=false;
+}
+
+function genHol(){
+  const s=STUDENTS.find(x=>x.id===holSel);const l=holLvs[holSel];if(!s||!l)return;
+  callAI('당신은 초등학교 교사를 위한 교육 평가 전문가입니다. 총체적 루브릭 평가 결과를 바탕으로 형성평가 관점의 맞춤 피드백을 한국어로 작성하세요. 세 부분으로 구성합니다: 1) 잘한 점, 2) 성장을 위한 구체적 제안, 3) 다음 학습 목표. 교사가 학생에게 직접 전달할 수 있는 온화하고 동기 부여적인 톤으로 3~5문장으로 작성하세요. 마크다운 없이 순수 텍스트만 반환하세요.',
+    `학생: ${s.name}\n총체적 평가 수준: ${['','미흡','보통','양호','우수'][l]}(${l}단계)\n\n이 학생에게 적합한 형성평가 피드백을 작성해주세요.`,'hol-out','hol-btn');
+}
+function genAna(){
+  const s=STUDENTS.find(x=>x.id===anaSel);const sc=anaScores[anaSel]||{};if(!s)return;
+  const lines=CRITERIA.map(c=>`${c.name}: ${sc[c.id]||1}단계 (가중치 ${c.weight}%)`).join('\n');
+  callAI('당신은 초등학교 교사를 위한 교육 평가 전문가입니다. 분석적 루브릭 결과를 바탕으로 영역별 맞춤 피드백을 한국어로 작성하세요. 1) 가장 강한 영역 칭찬, 2) 개선 필요 영역에 대한 구체적 제안 2가지, 3) 종합 격려 메시지. 5~7문장으로 작성하세요. 마크다운 없이 순수 텍스트만 반환하세요.',
+    `학생: ${s.name}\n총점: ${getAnaTotal(anaSel)}점\n\n영역별:\n${lines}\n\n분석적 피드백을 작성해주세요.`,'ana-out','ana-btn');
+}
+
+function renderDash(){
+  const evaled=STUDENTS.filter(s=>{const sc=anaScores[s.id]||{};return Object.keys(sc).length===CRITERIA.length});
+  const totals=evaled.map(s=>getAnaTotal(s.id));
+  const avg=totals.length?Math.round(totals.reduce((a,b)=>a+b)/totals.length):0;
+  const holEvaled=STUDENTS.filter(s=>holLvs[s.id]).length;
+  document.getElementById('dash-stats').innerHTML=`<div class="dash-card"><div class="dash-label">전체 학생</div><div class="dash-val">${STUDENTS.length}명</div></div><div class="dash-card"><div class="dash-label">분석적 완료</div><div class="dash-val">${evaled.length}명</div></div><div class="dash-card"><div class="dash-label">총체적 완료</div><div class="dash-val">${holEvaled}명</div></div><div class="dash-card"><div class="dash-label">반 평균</div><div class="dash-val">${avg>0?avg+'점':'—'}</div></div>`;
+  const levels=[{l:'우수(85+)',c:'#0F6E56',n:totals.filter(t=>t>=85).length},{l:'양호(70-84)',c:'#185FA5',n:totals.filter(t=>t>=70&&t<85).length},{l:'보통(50-69)',c:'#BA7517',n:totals.filter(t=>t>=50&&t<70).length},{l:'미흡(~49)',c:'#A32D2D',n:totals.filter(t=>t>0&&t<50).length}];
+  const mx=Math.max(...levels.map(l=>l.n),1);
+  document.getElementById('dist-bars').innerHTML=levels.map(l=>`<div class="prog-row"><div class="prog-label">${l.l}</div><div class="prog-track"><div class="prog-fill" style="width:${Math.round(l.n/mx*100)}%;background:${l.c}"></div></div><div class="prog-pct">${l.n}명</div></div>`).join('');
+  const tbody=document.getElementById('dash-tbl');tbody.innerHTML='';
+  STUDENTS.forEach(s=>{
+    const t=getAnaTotal(s.id);const aF=Object.keys(anaScores[s.id]||{}).length===CRITERIA.length;const hL=holLvs[s.id];
+    const li=getAnaLevel(t);
+    const hBadge=hL?`<span class="badge ${['','bp','bl','bm','bh'][hL]}">${['','미흡','보통','양호','우수'][hL]}</span>`:'<span style="color:#888;font-size:12px">—</span>';
+    const aBadge=aF?`<span class="badge ${li.cls}">${t}점</span>`:'<span style="color:#888;font-size:12px">—</span>';
+    const st=(aF&&hL)?'<span class="dot" style="background:#0F6E56"></span>완료':(aF||hL)?'<span class="dot" style="background:#185FA5"></span>일부':'<span class="dot" style="background:#ccc"></span>미평가';
+    const tr=document.createElement('tr');tr.innerHTML=`<td style="font-weight:500">${s.name}</td><td>${hBadge}</td><td>${aBadge}</td><td style="font-size:12px;color:#666">${st}</td><td><button class="mini-btn" onclick="jumpTo('hol',${s.id})">총체적</button> <button class="mini-btn" onclick="jumpTo('ana',${s.id})">분석적</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function jumpTo(tab,sid){
+  if(tab==='hol'){holSel=sid;sw('hol');renderSG('hol-sg',holSel,id=>{holSel=id;renderSG('hol-sg',holSel,arguments.callee);updateHolUI()});updateHolUI()}
+  else{anaSel=sid;sw('ana');renderSG('ana-sg',anaSel,id=>{anaSel=id;renderSG('ana-sg',anaSel,arguments.callee);renderRubric();updateAnaSummary()});renderRubric();updateAnaSummary()}
+}
+function updateHolUI(){const l=holLvs[holSel];[1,2,3,4].forEach(n=>{document.getElementById('hl-'+n).className='hl-item'+(l===n?' s'+n:'')});document.getElementById('hol-btn').disabled=!(holSel&&l)}
+
+const holCb=id=>{holSel=id;renderSG('hol-sg',holSel,holCb);updateHolUI()};
+const anaCb=id=>{anaSel=id;renderSG('ana-sg',anaSel,anaCb);renderRubric();updateAnaSummary()};
+renderSG('hol-sg',null,holCb);renderSG('ana-sg',null,anaCb);renderRubric();
+</script>
+</body>
+</html>
