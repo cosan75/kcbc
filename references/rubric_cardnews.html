@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>총괄·형성평가 루브릭 카드 뉴스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFFFFF;
+  --text:#1A1A1A;
+  --text-secondary:#666666;
+  --accent:#1B4332;
+  --accent-light:#E9F5EC;
+  --accent-mid:#2D6A4F;
+  --rule:1px solid #1A1A1A;
+  --rule-light:1px solid #E0E0E0;
+  --serif:'Noto Serif KR',Georgia,serif;
+  --sans:'Noto Sans KR',sans-serif;
+}
+body{background:#F4F1ED;font-family:var(--sans);padding:40px 20px;min-height:100vh}
+.page-wrap{max-width:900px;margin:0 auto}
+.page-title{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--text-secondary);text-transform:uppercase;text-align:center;margin-bottom:8px;font-weight:400}
+.page-divider{border:none;border-top:1px solid #1A1A1A;margin-bottom:48px}
+
+/* CARD BASE */
+.card{background:var(--bg);margin-bottom:24px;overflow:hidden;position:relative}
+
+/* CARD 1 — 표지 */
+.card-cover{display:grid;grid-template-columns:1fr 1fr;min-height:480px}
+.cover-left{background:var(--accent);padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between}
+.cover-num{font-family:var(--sans);font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:auto}
+.cover-title{font-family:var(--serif);font-size:42px;font-weight:400;color:#fff;line-height:1.25;margin-bottom:24px;letter-spacing:-.01em}
+.cover-sub{font-family:var(--sans);font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;font-weight:400}
+.cover-right{padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between;border-left:var(--rule-light)}
+.cover-kw-label{font-size:11px;letter-spacing:.14em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:20px;font-weight:500}
+.cover-kw-list{display:flex;flex-direction:column;gap:10px;margin-bottom:auto}
+.kw-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:var(--rule-light)}
+.kw-item:last-child{border-bottom:none}
+.kw-num{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--accent);width:36px;flex-shrink:0}
+.kw-text{font-size:14px;font-weight:500;color:var(--text);line-height:1.4}
+.cover-footer{font-size:11px;color:var(--text-secondary);letter-spacing:.06em}
+
+/* CARD 2 — 평가의 새로운 의미 */
+.card-std{padding:0}
+.card-hd{padding:40px 48px 32px;border-bottom:var(--rule)}
+.card-hd-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.card-num-badge{font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.card-headline{font-family:var(--serif);font-size:36px;font-weight:400;color:var(--text);line-height:1.2;letter-spacing:-.01em}
+.card-headline span{color:var(--accent);font-style:italic}
+.card-tag{background:var(--accent);color:#fff;font-size:11px;letter-spacing:.1em;padding:6px 14px;font-weight:600;white-space:nowrap;align-self:flex-start;margin-top:6px}
+.card-body{padding:36px 48px}
+.shift-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;margin-bottom:32px}
+.shift-col{padding:24px 28px}
+.shift-col.from{background:#F7F7F7;border:var(--rule-light)}
+.shift-col.to{background:var(--accent-light);border:1px solid #A8D5B5}
+.shift-divider{display:flex;align-items:center;justify-content:center;padding:0 16px;font-size:24px;color:var(--accent)}
+.shift-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:14px;font-weight:600}
+.shift-items{display:flex;flex-direction:column;gap:8px}
+.shift-item{font-size:14px;color:var(--text);line-height:1.5;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.shift-item:last-child{border-bottom:none}
+.shift-item.to-item{color:var(--accent);font-weight:600}
+.principle-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.principle-item{background:var(--bg);border:var(--rule-light);padding:16px 20px}
+.principle-item::before{content:'';display:block;width:24px;height:2px;background:var(--accent);margin-bottom:10px}
+.principle-text{font-size:13px;color:var(--text);line-height:1.55}
+
+/* CARD 3 — 총체적 루브릭 */
+.rubric-full{background:var(--bg)}
+.rubric-intro{display:grid;grid-template-columns:5fr 7fr;border-bottom:var(--rule)}
+.rubric-intro-left{background:var(--accent);padding:40px 40px 40px 48px}
+.rubric-intro-right{padding:40px 48px}
+.ri-label{font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:14px;font-weight:500}
+.ri-title{font-family:var(--serif);font-size:30px;color:#fff;font-weight:400;line-height:1.3;margin-bottom:16px}
+.ri-def{font-size:13px;color:rgba(255,255,255,.75);line-height:1.65}
+.ri-body-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:18px;font-weight:600}
+.level-cards{display:flex;flex-direction:column;gap:8px}
+.lcard{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #E8E8E8}
+.lcard:last-child{border-bottom:none}
+.lcard-num{font-family:var(--serif);font-size:22px;font-weight:600;width:28px;flex-shrink:0;line-height:1}
+.lcard-body{flex:1}
+.lcard-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.lcard-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.l4-color{color:#0F6E56}.l3-color{color:#185FA5}.l2-color{color:#BA7517}.l1-color{color:#A32D2D}
+
+/* CARD 4 — 분석적 루브릭 */
+.analytic-grid{padding:40px 48px}
+.ag-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;margin-bottom:32px;padding-bottom:28px;border-bottom:var(--rule)}
+.ag-title-block{flex:1}
+.ag-num{font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.ag-title{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.2;margin-bottom:12px}
+.ag-desc{font-size:14px;color:var(--text-secondary);line-height:1.65;max-width:380px}
+.ag-tag-block{text-align:right}
+.ag-tag{display:inline-block;background:var(--accent-light);color:var(--accent);font-size:11px;letter-spacing:.1em;padding:6px 14px;font-weight:600}
+.rubric-table{width:100%;border-collapse:collapse;font-size:13px}
+.rubric-table th{padding:11px 14px;text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border-bottom:var(--rule);border-right:var(--rule-light)}
+.rubric-table th:last-child{border-right:none}
+.rubric-table th.crit-th{color:var(--text-secondary);width:140px}
+.rubric-table th.lv-th{color:#fff;text-align:center}
+.th-4{background:#085041}.th-3{background:#0C447C}.th-2{background:#633806}.th-1{background:#791F1F}
+.rubric-table td{padding:12px 14px;border-bottom:var(--rule-light);border-right:var(--rule-light);vertical-align:top;line-height:1.45}
+.rubric-table td:last-child{border-right:none}
+.rubric-table tr:last-child td{border-bottom:none}
+.crit-cell{font-weight:600;color:var(--text)}
+.crit-wt{font-size:11px;color:var(--text-secondary);font-weight:400;margin-top:2px}
+.lv4-cell{color:#085041;font-weight:500}.lv3-cell{color:#0C447C;font-weight:500}
+.lv2-cell{color:#633806}.lv1-cell{color:#791F1F}
+
+/* CARD 5 — 3단계 평가 흐름 */
+.flow-card{padding:0}
+.flow-header{padding:36px 48px 28px;border-bottom:var(--rule);display:flex;align-items:flex-end;justify-content:space-between}
+.flow-title-block .fn{font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.flow-title-block .ft{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.2}
+.flow-badge{background:var(--accent);color:#fff;font-size:11px;letter-spacing:.1em;padding:7px 16px;font-weight:600}
+.flow-stages{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:var(--rule)}
+.fstage{padding:32px 32px 28px;border-right:var(--rule-light);position:relative}
+.fstage:last-child{border-right:none}
+.fstage-num{font-family:var(--serif);font-size:48px;font-weight:600;color:#F0EDE8;line-height:1;margin-bottom:16px}
+.fstage-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:8px;font-weight:600}
+.fstage-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3}
+.fstage-desc{font-size:13px;color:var(--text-secondary);line-height:1.55}
+.fstage-accent{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent)}
+.slip-section{padding:28px 48px}
+.slip-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:18px}
+.slip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#E0E0E0;border:var(--rule-light)}
+.slip-item{background:#fff;padding:14px 16px}
+.si-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.si-sub{font-size:12px;color:var(--text-secondary)}
+
+/* CARD 6 — 딜레마와 해결 */
+.dilemma-card{display:grid;grid-template-columns:1fr 1fr}
+.dc-left{background:var(--accent);padding:40px 40px 40px 48px;display:flex;flex-direction:column}
+.dc-left-label{font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:12px;font-weight:500}
+.dc-left-title{font-family:var(--serif);font-size:28px;color:#fff;font-weight:400;line-height:1.3;margin-bottom:24px}
+.dc-pain-list{display:flex;flex-direction:column;gap:8px;flex:1}
+.dc-pain{font-size:13px;color:rgba(255,255,255,.8);padding:10px 14px;border:1px solid rgba(255,255,255,.18);line-height:1.5;display:flex;align-items:flex-start;gap:8px}
+.dc-pain::before{content:'↗';color:rgba(255,255,255,.4);flex-shrink:0;font-size:12px;margin-top:1px}
+.dc-right{padding:40px 40px 40px 48px;border-left:var(--rule-light)}
+.dc-right-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:16px}
+.dc-solution-list{display:flex;flex-direction:column;gap:6px}
+.dc-sol{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #EEEEEE}
+.dc-sol:last-child{border-bottom:none}
+.dc-sol-num{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--accent);width:22px;flex-shrink:0}
+.dc-sol-body{flex:1}
+.dc-sol-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.dc-sol-desc{font-size:12px;color:var(--text-secondary);line-height:1.45}
+
+/* CARD 7 — 학습 결과 누적 */
+.result-card{padding:0}
+.result-header{padding:36px 48px 28px;border-bottom:var(--rule);display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.rh-label{font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.rh-title{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.2;margin-bottom:10px}
+.rh-desc{font-size:14px;color:var(--text-secondary);line-height:1.65}
+.rh-right{display:flex;flex-direction:column;justify-content:center;gap:8px}
+.stat-pill{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border:var(--rule-light)}
+.sp-label{font-size:12px;color:var(--text-secondary)}
+.sp-val{font-size:13px;font-weight:700;color:var(--accent)}
+.result-body{display:grid;grid-template-columns:1fr 1fr;border-top:none}
+.rb-col{padding:28px 48px;border-right:var(--rule-light)}
+.rb-col:last-child{border-right:none}
+.rb-col-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-secondary);font-weight:600;margin-bottom:18px}
+.ev-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #F0F0F0}
+.ev-row:last-child{border-bottom:none}
+.ev-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px}
+.ev-text{font-size:13px;color:var(--text);line-height:1.45}
+.ev-badge{font-size:11px;padding:2px 7px;background:var(--accent-light);color:var(--accent);font-weight:600;margin-left:auto;white-space:nowrap;flex-shrink:0}
+.tl-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0F0F0}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tl-body{flex:1}
+.tl-date{font-size:11px;color:var(--text-secondary);margin-bottom:1px}
+.tl-text{font-size:13px;color:var(--text);line-height:1.4;font-weight:500}
+
+/* CARD 8 — 교육 패러다임 */
+.paradigm-card{display:grid;grid-template-columns:1fr 1fr 1fr}
+.pc-col{padding:36px 32px;border-right:var(--rule-light)}
+.pc-col:last-child{border-right:none}
+.pc-col:nth-child(2){background:var(--accent)}
+.pc-num{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin-bottom:12px}
+.pc-col:nth-child(2) .pc-num{color:rgba(255,255,255,.5)}
+.pc-col:not(:nth-child(2)) .pc-num{color:var(--accent)}
+.pc-arrow{font-family:var(--serif);font-size:26px;font-weight:400;line-height:1.2;margin-bottom:14px}
+.pc-col:nth-child(2) .pc-arrow{color:#fff}
+.pc-col:not(:nth-child(2)) .pc-arrow{color:var(--text)}
+.pc-from{font-size:13px;margin-bottom:6px}
+.pc-col:nth-child(2) .pc-from{color:rgba(255,255,255,.55);text-decoration:line-through}
+.pc-col:not(:nth-child(2)) .pc-from{color:var(--text-secondary);text-decoration:line-through}
+.pc-to{font-size:14px;font-weight:700;margin-bottom:16px}
+.pc-col:nth-child(2) .pc-to{color:#fff}
+.pc-col:not(:nth-child(2)) .pc-to{color:var(--accent)}
+.pc-principles{display:flex;flex-direction:column;gap:6px}
+.pc-p{font-size:12px;line-height:1.5;padding:7px 0;border-bottom:1px solid}
+.pc-col:nth-child(2) .pc-p{color:rgba(255,255,255,.75);border-bottom-color:rgba(255,255,255,.15)}
+.pc-col:not(:nth-child(2)) .pc-p{color:var(--text-secondary);border-bottom-color:#EEEEEE}
+.pc-p:last-child{border-bottom:none}
+
+/* CARD 9 — 마무리 */
+.finale-card{display:grid;grid-template-columns:7fr 5fr;min-height:360px}
+.finale-left{padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between}
+.fl-top-label{font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:16px}
+.fl-quote{font-family:var(--serif);font-size:26px;color:var(--text);line-height:1.45;font-weight:400;font-style:italic;margin-bottom:auto;padding-bottom:24px}
+.fl-quote span{color:var(--accent)}
+.fl-source{font-size:12px;color:var(--text-secondary);letter-spacing:.04em}
+.finale-right{background:var(--accent);padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.fr-label{font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.5);text-transform:uppercase;font-weight:500;margin-bottom:20px}
+.fr-list{display:flex;flex-direction:column;gap:12px;flex:1}
+.fr-item{font-size:13px;color:rgba(255,255,255,.85);padding:10px 0;border-bottom:1px solid rgba(255,255,255,.15);line-height:1.5}
+.fr-item:last-child{border-bottom:none}
+.fr-item strong{color:#fff;display:block;margin-bottom:2px}
+.fr-footer{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.06em}
+
+@media(max-width:700px){
+  .card-cover,.rubric-intro,.dilemma-card,.finale-card,.paradigm-card,.result-header,.result-body,.flow-stages{grid-template-columns:1fr}
+  .card-hd-inner{flex-direction:column}
+  .ag-intro{flex-direction:column}
+  .shift-grid{grid-template-columns:1fr;gap:0}
+  .shift-divider{padding:12px 0;transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<p class="page-title">총괄·형성평가 루브릭 개발 — 카드 뉴스</p>
+<hr class="page-divider">
+
+<!-- CARD 1: 표지 -->
+<div class="card card-cover">
+  <div class="cover-left">
+    <div class="cover-num">Card 01 / 09 &nbsp;·&nbsp; 루브릭 평가 시리즈</div>
+    <div>
+      <div class="cover-title">점수를 넘어<br>성장을 기록하는<br>루브릭 평가</div>
+      <div class="cover-sub">총괄평가와 형성평가의 두 축으로 설계된<br>과정중심 수행평가 완전 가이드</div>
+    </div>
+    <div class="cover-footer">광석초등학교 · 2025 과정중심 수행평가</div>
+  </div>
+  <div class="cover-right">
+    <div>
+      <div class="cover-kw-label">이 시리즈에서 다루는 것</div>
+      <div class="cover-kw-list">
+        <div class="kw-item"><div class="kw-num">01</div><div class="kw-text">평가의 새로운 의미<br><span style="font-size:12px;color:#888">점수 → 성장</span></div></div>
+        <div class="kw-item"><div class="kw-num">02</div><div class="kw-text">총체적·분석적 루브릭<br><span style="font-size:12px;color:#888">기준 설계와 수준 기술</span></div></div>
+        <div class="kw-item"><div class="kw-num">03</div><div class="kw-text">3단계 피드백 흐름<br><span style="font-size:12px;color:#888">AI → 자기수정 → 교사</span></div></div>
+        <div class="kw-item"><div class="kw-num">04</div><div class="kw-text">학습 결과 누적 관리<br><span style="font-size:12px;color:#888">이수 증거 · 포트폴리오</span></div></div>
+        <div class="kw-item"><div class="kw-num">05</div><div class="kw-text">교육 패러다임 전환<br><span style="font-size:12px;color:#888">지식 전달 → 개념 전이</span></div></div>
+      </div>
+    </div>
+    <div class="cover-footer">2022 개정교육과정 연계</div>
+  </div>
+</div>
+
+<!-- CARD 2: 평가의 새로운 의미 -->
+<div class="card card-std">
+  <div class="card-hd">
+    <div class="card-hd-inner">
+      <div>
+        <div class="card-num-badge">Card 02 &nbsp;·&nbsp; 평가 패러다임</div>
+        <div class="card-headline">평가의 <span>새로운 의미</span></div>
+      </div>
+      <div class="card-tag">점수 → 성장</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="shift-grid">
+      <div class="shift-col from">
+        <div class="shift-label">전통 관점</div>
+        <div class="shift-items">
+          <div class="shift-item">결과 중심 측정</div>
+          <div class="shift-item">일회성 시험</div>
+          <div class="shift-item">서열·등급 확인</div>
+          <div class="shift-item">교사 주도 판단</div>
+        </div>
+      </div>
+      <div class="shift-divider">→</div>
+      <div class="shift-col to">
+        <div class="shift-label">새로운 관점</div>
+        <div class="shift-items">
+          <div class="shift-item to-item">과정 중심 기록</div>
+          <div class="shift-item to-item">지속적 형성평가</div>
+          <div class="shift-item to-item">성장 가능성 발견</div>
+          <div class="shift-item to-item">자기·동료 평가</div>
+        </div>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="principle-item"><div class="principle-text">형성평가는 교수학습 개선의 엔진이다</div></div>
+      <div class="principle-item"><div class="principle-text">루브릭은 기준이 아니라 성장의 지도다</div></div>
+      <div class="principle-item"><div class="principle-text">피드백은 점수가 아닌 다음 행동을 안내한다</div></div>
+      <div class="principle-item"><div class="principle-text">AI 진단은 교사의 관찰을 확장한다</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 3: 총체적 루브릭 -->
+<div class="card rubric-full">
+  <div class="rubric-intro">
+    <div class="rubric-intro-left">
+      <div class="ri-label">Card 03 &nbsp;·&nbsp; 총괄평가</div>
+      <div class="ri-title">총체적 루브릭</div>
+      <div class="ri-def">전반적인 수행 수준을 하나의 척도로 통합 판단합니다. 총괄평가에서 전체 성취 수준을 빠르게 파악할 때 유용합니다.</div>
+    </div>
+    <div class="rubric-intro-right">
+      <div class="ri-body-label">4단계 수준 기술</div>
+      <div class="level-cards">
+        <div class="lcard">
+          <div class="lcard-num l4-color">4</div>
+          <div class="lcard-body"><div class="lcard-name l4-color">우수 — 탁월한 이해와 적용</div><div class="lcard-desc">핵심 개념 완전 이해, 새로운 상황에 창의적 적용. 동료 학습에 기여 가능.</div></div>
+        </div>
+        <div class="lcard">
+          <div class="lcard-num l3-color">3</div>
+          <div class="lcard-body"><div class="lcard-name l3-color">양호 — 충분한 이해와 부분 적용</div><div class="lcard-desc">핵심 개념 대부분 이해, 일반적 상황 적용. 약간의 안내로 심화 학습 가능.</div></div>
+        </div>
+        <div class="lcard">
+          <div class="lcard-num l2-color">2</div>
+          <div class="lcard-body"><div class="lcard-name l2-color">보통 — 기초적 이해, 적용 미흡</div><div class="lcard-desc">일부 개념만 이해, 적용 오류 빈번. 교사의 적극적 지원 필요.</div></div>
+        </div>
+        <div class="lcard">
+          <div class="lcard-num l1-color">1</div>
+          <div class="lcard-body"><div class="lcard-name l1-color">미흡 — 이해·적용 현저히 부족</div><div class="lcard-desc">핵심 개념 이해 매우 낮음. 개별화 집중 지원과 선수 학습 점검 시급.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 4: 분석적 루브릭 -->
+<div class="card card-std">
+  <div class="analytic-grid">
+    <div class="ag-intro">
+      <div class="ag-title-block">
+        <div class="ag-num">Card 04 &nbsp;·&nbsp; 형성평가</div>
+        <div class="ag-title">분석적 루브릭</div>
+        <div class="ag-desc">영역별로 세밀하게 나누어 평가. 학생 개인의 강·약점을 진단하고 구체적인 피드백을 제공하는 데 최적입니다.</div>
+      </div>
+      <div class="ag-tag-block"><div class="ag-tag">동일 성취기준 · 영역별 진단</div></div>
+    </div>
+    <table class="rubric-table">
+      <thead>
+        <tr>
+          <th class="crit-th">평가 영역</th>
+          <th class="lv-th th-4">4 — 우수</th>
+          <th class="lv-th th-3">3 — 양호</th>
+          <th class="lv-th th-2">2 — 보통</th>
+          <th class="lv-th th-1">1 — 미흡</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="crit-cell">개념 이해</div><div class="crit-wt">가중치 30%</div></td>
+          <td class="lv4-cell">핵심 개념 완전 이해·설명 가능</td>
+          <td class="lv3-cell">주요 개념 이해, 일부 오개념</td>
+          <td class="lv2-cell">표면적 이해, 오류 빈번</td>
+          <td class="lv1-cell">기초 이해 부족</td>
+        </tr>
+        <tr>
+          <td><div class="crit-cell">적용 능력</div><div class="crit-wt">가중치 25%</div></td>
+          <td class="lv4-cell">새 상황에 창의적 적용</td>
+          <td class="lv3-cell">유사 상황 적용 가능</td>
+          <td class="lv2-cell">안내 있어야 적용</td>
+          <td class="lv1-cell">적용 거의 불가</td>
+        </tr>
+        <tr>
+          <td><div class="crit-cell">표현·소통</div><div class="crit-wt">가중치 25%</div></td>
+          <td class="lv4-cell">논리적·창의적 표현</td>
+          <td class="lv3-cell">명확한 표현, 소통 원활</td>
+          <td class="lv2-cell">기본 표현, 부분 불명확</td>
+          <td class="lv1-cell">표현 미흡, 전달 곤란</td>
+        </tr>
+        <tr>
+          <td><div class="crit-cell">참여·협력</div><div class="crit-wt">가중치 20%</div></td>
+          <td class="lv4-cell">적극 기여, 동료 도움</td>
+          <td class="lv3-cell">성실 참여, 협력 양호</td>
+          <td class="lv2-cell">수동적 참여, 협력 부족</td>
+          <td class="lv1-cell">참여 매우 저조</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CARD 5: 3단계 피드백 흐름 -->
+<div class="card flow-card">
+  <div class="flow-header">
+    <div class="flow-title-block">
+      <div class="fn">Card 05 &nbsp;·&nbsp; 피드백 설계</div>
+      <div class="ft">3단계 과정중심 피드백 흐름</div>
+    </div>
+    <div class="flow-badge">평가 기준 → AI → 교사</div>
+  </div>
+  <div class="flow-stages">
+    <div class="fstage">
+      <div class="fstage-accent"></div>
+      <div class="fstage-num">01</div>
+      <div class="fstage-label">Stage 1 &nbsp;·&nbsp; 기준 설정</div>
+      <div class="fstage-title">명확한 평가 기준 설정 + 1차 과제 제출</div>
+      <div class="fstage-desc">성취기준 연결 루브릭 사전 공유. 학생이 기대 수준을 명확히 인지한 채로 출발.</div>
+    </div>
+    <div class="fstage">
+      <div class="fstage-accent"></div>
+      <div class="fstage-num">02</div>
+      <div class="fstage-label">Stage 2 &nbsp;·&nbsp; AI 개입</div>
+      <div class="fstage-title">AI 즉각 1차 피드백 + 학생 자기주도 수정</div>
+      <div class="fstage-desc">점수 없는 전진 피드백. 학생이 AI 안내를 받고 스스로 결과물 수정. 실수 패턴 감지 후 교사 알림.</div>
+    </div>
+    <div class="fstage">
+      <div class="fstage-accent"></div>
+      <div class="fstage-num">03</div>
+      <div class="fstage-label">Stage 3 &nbsp;·&nbsp; 교사 개입</div>
+      <div class="fstage-title">교사의 심층 2차 피드백</div>
+      <div class="fstage-desc">AI가 처리할 수 없는 관계·맥락·감정을 교사가 직접 탐색. 성장 증거 확인과 다음 목표 설정.</div>
+    </div>
+  </div>
+  <div class="slip-section">
+    <div class="slip-label">수업 중 실시간 감지 — 6가지 실수 패턴</div>
+    <div class="slip-grid">
+      <div class="slip-item"><div class="si-title">배회·소극적 참여</div><div class="si-sub">모둠 활동 중 이탈</div></div>
+      <div class="slip-item"><div class="si-title">오개념 보유</div><div class="si-sub">잘못된 이해로 진행</div></div>
+      <div class="slip-item"><div class="si-title">멈춰있는 학생</div><div class="si-sub">개별 과제 중 정체</div></div>
+      <div class="slip-item"><div class="si-title">연속 오답</div><div class="si-sub">같은 유형 반복 실수</div></div>
+      <div class="slip-item"><div class="si-title">성급한 포기</div><div class="si-sub">시도 없이 중단</div></div>
+      <div class="slip-item"><div class="si-title">소극적 존재감</div><div class="si-sub">모둠에서 비참여</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 6: 딜레마와 해결 -->
+<div class="card dilemma-card">
+  <div class="dc-left">
+    <div class="dc-left-label">Card 06 &nbsp;·&nbsp; 딜레마 해소</div>
+    <div class="dc-left-title">과정중심 수행평가의 딜레마</div>
+    <div class="dc-pain-list">
+      <div class="dc-pain">개별 맞춤 피드백은 시간이 너무 걸린다</div>
+      <div class="dc-pain">일괄 피드백은 학생 성장에 실질적 도움이 적다</div>
+      <div class="dc-pain">30명 학생 모두에게 질 높은 피드백은 불가능</div>
+      <div class="dc-pain">교사 번아웃 → 피드백 형식화 위험</div>
+    </div>
+  </div>
+  <div class="dc-right">
+    <div class="dc-right-label">AI로 딜레마 해소하는 5단계</div>
+    <div class="dc-solution-list">
+      <div class="dc-sol"><div class="dc-sol-num">1</div><div class="dc-sol-body"><div class="dc-sol-title">AI 1차 초안 생성</div><div class="dc-sol-desc">루브릭 데이터 입력 → AI 즉시 생성, 교사는 검토·수정만</div></div></div>
+      <div class="dc-sol"><div class="dc-sol-num">2</div><div class="dc-sol-body"><div class="dc-sol-title">피드백 문장 은행 활용</div><div class="dc-sol-desc">상황별 고품질 문장 저장·재사용으로 일관성 유지</div></div></div>
+      <div class="dc-sol"><div class="dc-sol-num">3</div><div class="dc-sol-body"><div class="dc-sol-title">전진 피드백 프레임</div><div class="dc-sol-desc">"잘한 점 + 다음 행동 1가지"로 짧고 강력하게</div></div></div>
+      <div class="dc-sol"><div class="dc-sol-num">4</div><div class="dc-sol-body"><div class="dc-sol-title">질문형 피드백 전환</div><div class="dc-sol-desc">답 대신 학생 스스로 사고하게 하는 질문 1개</div></div></div>
+      <div class="dc-sol"><div class="dc-sol-num">5</div><div class="dc-sol-body"><div class="dc-sol-title">자기·동료 평가 연계</div><div class="dc-sol-desc">학생 자기평가 → 동료 피드백 → 교사 최종 코멘트</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 7: 학습 결과 누적 -->
+<div class="card result-card">
+  <div class="result-header">
+    <div>
+      <div class="rh-label">Card 07 &nbsp;·&nbsp; 누적 관리</div>
+      <div class="rh-title">학습 결과 확인과<br>누적 관리</div>
+      <div class="rh-desc">이수 확인의 명확한 근거 자료와 성장 과정 포트폴리오로 학생 성장의 전 과정을 기록합니다.</div>
+    </div>
+    <div class="rh-right">
+      <div class="stat-pill"><span class="sp-label">누적 증거 유형</span><span class="sp-val">5종</span></div>
+      <div class="stat-pill"><span class="sp-label">포트폴리오 단계</span><span class="sp-val">4단계</span></div>
+      <div class="stat-pill"><span class="sp-label">이수 판정 기준</span><span class="sp-val">성취기준 도달</span></div>
+    </div>
+  </div>
+  <div class="result-body">
+    <div class="rb-col">
+      <div class="rb-col-label">이수 확인 증거 자료</div>
+      <div class="ev-row"><div class="ev-dot"></div><div class="ev-text">AI 1차 피드백 기록</div><div class="ev-badge">자동 생성</div></div>
+      <div class="ev-row"><div class="ev-dot"></div><div class="ev-text">1차 수정 제출본</div><div class="ev-badge">학생 제출</div></div>
+      <div class="ev-row"><div class="ev-dot"></div><div class="ev-text">교사 관찰 기록</div><div class="ev-badge">교사 기록</div></div>
+      <div class="ev-row"><div class="ev-dot"></div><div class="ev-text">동료평가 결과</div><div class="ev-badge">동료 평가</div></div>
+      <div class="ev-row"><div class="ev-dot"></div><div class="ev-text">교사 2차 심층 피드백</div><div class="ev-badge">교사 코칭</div></div>
+    </div>
+    <div class="rb-col">
+      <div class="rb-col-label">성장 과정 포트폴리오</div>
+      <div class="tl-item"><div class="tl-dot" style="background:#534AB7"></div><div class="tl-body"><div class="tl-date">1단계</div><div class="tl-text">출발점 진단 · AI 분석 · 오개념 확인</div></div></div>
+      <div class="tl-item"><div class="tl-dot" style="background:#0F6E56"></div><div class="tl-body"><div class="tl-date">2단계</div><div class="tl-text">AI 피드백 반영 · 자기주도 수정 완료</div></div></div>
+      <div class="tl-item"><div class="tl-dot" style="background:#185FA5"></div><div class="tl-body"><div class="tl-date">3단계</div><div class="tl-text">중간 성장 확인 · 교사 심층 면담</div></div></div>
+      <div class="tl-item"><div class="tl-dot" style="background:#BA7517"></div><div class="tl-body"><div class="tl-date">4단계</div><div class="tl-text">최종 이수 판정 · 포트폴리오 완성</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 8: 교육 패러다임 -->
+<div class="card">
+  <div style="padding:32px 48px 24px;border-bottom:var(--rule)">
+    <div style="font-size:11px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-bottom:8px">Card 08 &nbsp;·&nbsp; 교육 철학</div>
+    <div style="font-family:var(--serif);font-size:28px;font-weight:400;color:var(--text)">교육 패러다임 전환의 세 축</div>
+  </div>
+  <div class="paradigm-card">
+    <div class="pc-col">
+      <div class="pc-num">축 01 &nbsp;·&nbsp; 평가</div>
+      <div class="pc-arrow">평가의<br>새로운 의미</div>
+      <div class="pc-from">점수</div>
+      <div class="pc-to">성장 ↗</div>
+      <div class="pc-principles">
+        <div class="pc-p">형성평가는 교수학습 개선의 엔진</div>
+        <div class="pc-p">루브릭은 성장의 지도</div>
+        <div class="pc-p">피드백은 다음 행동을 안내</div>
+        <div class="pc-p">AI는 교사 관찰을 확장</div>
+      </div>
+    </div>
+    <div class="pc-col">
+      <div class="pc-num">축 02 &nbsp;·&nbsp; 교사</div>
+      <div class="pc-arrow">교사의<br>역할 변화</div>
+      <div class="pc-from">지식 전달자</div>
+      <div class="pc-to">성장 촉진자 ↗</div>
+      <div class="pc-principles">
+        <div class="pc-p">질문이 사고 깊이를 결정</div>
+        <div class="pc-p">개별 개입은 관계에서 시작</div>
+        <div class="pc-p">AI는 교사 판단을 보조</div>
+        <div class="pc-p">촉진자는 때로 침묵으로 가르침</div>
+      </div>
+    </div>
+    <div class="pc-col">
+      <div class="pc-num">축 03 &nbsp;·&nbsp; 목적</div>
+      <div class="pc-arrow">교육의<br>종착역</div>
+      <div class="pc-from">지식 축적</div>
+      <div class="pc-to">소통·개념 전이 ↗</div>
+      <div class="pc-principles">
+        <div class="pc-p">개념 전이가 진짜 학습</div>
+        <div class="pc-p">소통은 이해의 표현</div>
+        <div class="pc-p">GRASPS가 전이를 측정</div>
+        <div class="pc-p">교실 밖에서도 작동하는 배움</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 9: 마무리 -->
+<div class="card finale-card">
+  <div class="finale-left">
+    <div>
+      <div class="fl-top-label">Card 09 &nbsp;·&nbsp; 핵심 메시지</div>
+      <div class="fl-quote">"교육의 목표는 학생이 교실을 떠난 뒤에도 스스로 사고하고, 연결하고, <span>소통할 수 있는 사람</span>으로 성장하는 것이다."</div>
+    </div>
+    <div class="fl-source">2022 개정교육과정 · 역량 중심 교육 철학</div>
+  </div>
+  <div class="finale-right">
+    <div class="fr-label">이 시리즈의 핵심 정리</div>
+    <div class="fr-list">
+      <div class="fr-item"><strong>루브릭 = 성장의 지도</strong>기준이 아닌 방향을 제시합니다</div>
+      <div class="fr-item"><strong>AI + 교사 = 완전한 피드백</strong>속도와 깊이의 역할 분담</div>
+      <div class="fr-item"><strong>증거 = 이수의 근거</strong>점수가 아닌 과정이 판정합니다</div>
+      <div class="fr-item"><strong>전이 = 교육의 완성</strong>배운 것이 삶에서 작동할 때</div>
+    </div>
+    <div class="fr-footer">광석초등학교 &nbsp;·&nbsp; 과정중심 수행평가 시리즈</div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

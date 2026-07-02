@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>질문 초점 제공 실습 워크시트 | 2026 초등 선도교원 연수</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+  :root {
+    --blue:    #2563EB;
+    --teal:    #0D9488;
+    --green:   #16A34A;
+    --amber:   #D97706;
+    --orange:  #EA580C;
+    --purple:  #7C3AED;
+    --ink:     #1E293B;
+    --muted:   #64748B;
+    --rule:    #CBD5E1;
+    --bg:      #F8FAFC;
+    --white:   #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* ─── PRINT LAYOUT ─── */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 16px auto;
+    background: var(--white);
+    padding: 14mm 14mm 12mm;
+    box-shadow: 0 4px 24px #0002;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    border-top: 4px solid var(--blue);
+    border-bottom: 1.5px solid var(--rule);
+    padding: 10px 0 8px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .header-left .eyebrow {
+    font-size: 10px;
+    color: var(--blue);
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .header-left h1 span { color: var(--blue); }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .meta-tag {
+    font-size: 10px;
+    background: #EFF6FF;
+    color: var(--blue);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-weight: 700;
+  }
+  .name-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .name-field {
+    font-size: 11px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 2px;
+    min-width: 100px;
+  }
+  .name-field span { display: inline-block; min-width: 80px; }
+
+  /* ─── INTRO BOX ─── */
+  .intro {
+    background: #EFF6FF;
+    border-left: 4px solid var(--blue);
+    border-radius: 0 8px 8px 0;
+    padding: 9px 14px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #1D4ED8;
+  }
+  .intro strong { font-weight: 900; }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 10px;
+    margin-top: 16px;
+  }
+  .section-title .badge {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .section-title .badge.teal   { background: var(--teal); }
+  .section-title .badge.green  { background: var(--green); }
+  .section-title .badge.amber  { background: var(--amber); }
+  .section-title .badge.orange { background: var(--orange); }
+  .section-title .badge.purple { background: var(--purple); }
+
+  /* ─── CRITERIA GRID ─── */
+  .criteria-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .crit-card {
+    border-radius: 8px;
+    padding: 10px 11px;
+    border: 1.5px solid currentColor;
+    position: relative;
+  }
+  .crit-card.blue   { color: var(--blue);   background: #EFF6FF; }
+  .crit-card.teal   { color: var(--teal);   background: #F0FDFA; }
+  .crit-card.green  { color: var(--green);  background: #F0FDF4; }
+  .crit-card.amber  { color: var(--amber);  background: #FFFBEB; }
+  .crit-card.orange { color: var(--orange); background: #FFF7ED; }
+  .crit-card.purple { color: var(--purple); background: #F5F3FF; }
+
+  .crit-card .icon { font-size: 18px; margin-bottom: 4px; }
+  .crit-card .name {
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .crit-card .sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 400;
+  }
+  .crit-card .question {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+    background: rgba(255,255,255,0.7);
+    border-radius: 5px;
+    padding: 5px 7px;
+  }
+
+  /* ─── CHECK TABLE ─── */
+  .check-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+    font-size: 12px;
+  }
+  .check-table th {
+    background: var(--ink);
+    color: #fff;
+    padding: 7px 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .check-table th:first-child { text-align: left; border-radius: 6px 0 0 0; }
+  .check-table th:last-child  { border-radius: 0 6px 0 0; }
+  .check-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .check-table tr:last-child td { border-bottom: none; }
+  .check-table tr:nth-child(even) td { background: #F8FAFC; }
+  .crit-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+  .crit-label.blue   { background: #DBEAFE; color: var(--blue); }
+  .crit-label.teal   { background: #CCFBF1; color: var(--teal); }
+  .crit-label.green  { background: #DCFCE7; color: var(--green); }
+  .crit-label.amber  { background: #FEF3C7; color: var(--amber); }
+  .crit-label.orange { background: #FFEDD5; color: var(--orange); }
+  .crit-label.purple { background: #EDE9FE; color: var(--purple); }
+
+  .chk { text-align: center; font-size: 14px; }
+  .write-line {
+    border-bottom: 1px dashed var(--rule);
+    min-height: 18px;
+    margin-top: 3px;
+  }
+
+  /* ─── DESIGN ZONE ─── */
+  .design-zone {
+    border: 1.5px dashed var(--rule);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 14px;
+    background: #FAFAFA;
+  }
+  .design-zone .zone-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .step-row {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 6px 10px;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-label { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+  .step-desc  { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .write-box {
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: var(--white);
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: #94A3B8;
+  }
+  .write-box.tall { min-height: 52px; }
+  .write-box.short { min-height: 24px; }
+
+  /* ─── QUALITY RUBRIC ─── */
+  .rubric-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+  .rubric-table th {
+    background: var(--ink);
+    color: #fff;
+    padding: 6px 8px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .rubric-table th:first-child { text-align: left; }
+  .rubric-table td {
+    padding: 7px 9px;
+    border: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .rubric-table tr:first-child th:first-child { border-radius: 6px 0 0 0; }
+  .rubric-table tr:first-child th:last-child  { border-radius: 0 6px 0 0; }
+  .lv-best   { background: #DCFCE7; font-weight: 700; color: var(--green); text-align: center; }
+  .lv-good   { background: #DBEAFE; font-weight: 700; color: var(--blue);  text-align: center; }
+  .lv-try    { background: #FEF3C7; font-weight: 700; color: var(--amber); text-align: center; }
+
+  /* ─── EXAMPLE BOX ─── */
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .ex-card {
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+  .ex-card.good  { background: #DCFCE7; border: 1.5px solid #86EFAC; }
+  .ex-card.bad   { background: #FEE2E2; border: 1.5px solid #FCA5A5; }
+  .ex-card .ex-head {
+    font-weight: 900;
+    font-size: 11px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .ex-card .ex-q {
+    background: rgba(255,255,255,0.7);
+    border-radius: 5px;
+    padding: 5px 8px;
+    margin-bottom: 4px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .ex-card .ex-why {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .badge-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .bc { font-size: 9px; padding: 1px 6px; border-radius: 99px; font-weight: 700; }
+  .bc.yes { background: #86EFAC; color: #14532D; }
+  .bc.no  { background: #FCA5A5; color: #7F1D1D; }
+
+  /* ─── REFLECTION ─── */
+  .reflection-box {
+    background: #F5F3FF;
+    border: 1.5px solid #C4B5FD;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .reflection-box .rfl-head {
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--purple);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rfl-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 10px;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  .rfl-q { font-size: 11px; font-weight: 700; padding-top: 2px; }
+  .rfl-line {
+    border-bottom: 1px dashed #C4B5FD;
+    min-height: 20px;
+    margin-bottom: 3px;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 7px;
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left  { font-size: 9px; color: var(--muted); line-height: 1.6; }
+  .footer-right { font-size: 9px; color: var(--muted); text-align: right; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    border-top: 1.5px dashed var(--rule);
+    margin: 14px 0;
+  }
+
+  /* ─── PRINT ─── */
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; padding: 12mm 13mm 10mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">2026 학생 질문 중심 수업·평가 초등 선도교원 연수</div>
+      <h1><span>질문 초점 제공</span> 실습 워크시트</h1>
+    </div>
+    <div class="header-right">
+      <div class="meta-tag">『질문하는 학교』 선도학교 연구지원센터(2024)</div>
+      <div class="name-row">
+        <div class="name-field">학교&nbsp;<span></span></div>
+        <div class="name-field">학년·반&nbsp;<span></span></div>
+        <div class="name-field">이름&nbsp;<span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <strong>질문 초점(Question Focus)</strong>이란 학생이 스스로 질문을 만들어나갈 출발점을 교사가 설계·제공하는 것입니다.
+    좋은 질문 초점은 <strong>탐구의 나침반 · 메타인지 촉진 · 성취기준과 학습 목표의 연결</strong>이라는 세 가지 역할을 동시에 수행합니다.
+    아래 6가지 선정 기준을 익히고, 직접 질문 초점을 설계해보세요.
+  </div>
+
+  <!-- PART 1: 6가지 기준 카드 -->
+  <div class="section-title">
+    <span class="badge">PART 1</span>
+    질문 초점 선정의 6가지 기준 이해하기
+  </div>
+
+  <div class="criteria-grid">
+    <div class="crit-card blue">
+      <div class="icon">💬</div>
+      <div class="name">토론 가능성</div>
+      <div class="sub">Debatability</div>
+      <div class="question">"자신의 생각을 논리적으로 증명해야 하는 질문인가?"</div>
+    </div>
+    <div class="crit-card teal">
+      <div class="icon">🔄</div>
+      <div class="name">전이 가능성</div>
+      <div class="sub">Transferability</div>
+      <div class="question">"실생활이나 다른 상황에도 적용할 수 있는가?"</div>
+    </div>
+    <div class="crit-card green">
+      <div class="icon">⏳</div>
+      <div class="name">계속성</div>
+      <div class="sub">Continuity</div>
+      <div class="question">"단발성 답변이 아닌 지속적으로 탐구할 가치가 있는가?"</div>
+    </div>
+    <div class="crit-card amber">
+      <div class="icon">🌿</div>
+      <div class="name">확장성</div>
+      <div class="sub">Expandability</div>
+      <div class="question">"꼬리에 꼬리를 무는 후속 질문을 만들어내는가?"</div>
+    </div>
+    <div class="crit-card orange">
+      <div class="icon">🔓</div>
+      <div class="name">개방성</div>
+      <div class="sub">Openness</div>
+      <div class="question">"정답이 하나가 아닌 다양한 관점의 해석이 가능한가?"</div>
+    </div>
+    <div class="crit-card purple">
+      <div class="icon">🧠</div>
+      <div class="name">고차원적 사고</div>
+      <div class="sub">Higher-order Thinking</div>
+      <div class="question">"분석, 추론, 종합, 평가 능력을 자극하는가?"</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PART 2: 기준별 자기점검 -->
+  <div class="section-title">
+    <span class="badge teal">PART 2</span>
+    나의 질문 초점 자기점검표
+  </div>
+
+  <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">
+    ① 수업에서 사용하려는 질문 초점을 아래에 적고, ② 각 기준에 해당하는지 체크하세요.
+  </div>
+
+  <div class="write-box" style="margin-bottom:10px; font-size:12px; color:#94A3B8; font-weight:500;">
+    ✏️ 내 질문 초점: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </div>
+
+  <table class="check-table">
+    <thead>
+      <tr>
+        <th style="width:22%">기준</th>
+        <th style="width:36%">확인 질문</th>
+        <th style="width:8%" class="chk">충족</th>
+        <th style="width:8%" class="chk">보완</th>
+        <th style="width:26%">보완 방법 메모</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="crit-label blue">💬 토론 가능성</span></td>
+        <td>학생들이 서로 다른 입장을 가지고 논증할 수 있는가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+      <tr>
+        <td><span class="crit-label teal">🔄 전이 가능성</span></td>
+        <td>이 질문으로 얻은 통찰을 다른 맥락에 적용할 수 있는가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+      <tr>
+        <td><span class="crit-label green">⏳ 계속성</span></td>
+        <td>한 차시가 아닌 단원 전반에 걸쳐 탐구할 수 있는가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+      <tr>
+        <td><span class="crit-label amber">🌿 확장성</span></td>
+        <td>이 질문이 새로운 질문들을 연속적으로 만들어내는가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+      <tr>
+        <td><span class="crit-label orange">🔓 개방성</span></td>
+        <td>정해진 하나의 정답이 없고 다양한 해석이 가능한가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+      <tr>
+        <td><span class="crit-label purple">🧠 고차원적 사고</span></td>
+        <td>Bloom 상위 수준(분석·종합·평가)을 요구하는가?</td>
+        <td class="chk">☐</td>
+        <td class="chk">☐</td>
+        <td><div class="write-line"></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <!-- PART 3: 질문 초점 설계 실습 -->
+  <div class="section-title">
+    <span class="badge green">PART 3</span>
+    질문 초점 설계 실습 (단계별 작성)
+  </div>
+
+  <div class="design-zone">
+    <div class="zone-label">Step-by-Step 설계 흐름</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+
+      <div>
+        <div class="step-row">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-label">단원·성취기준 확인</div>
+            <div class="step-desc">어떤 성취기준을 중심으로 설계할 것인가?</div>
+            <div class="write-box short"></div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-label">핵심 개념·아이디어 추출</div>
+            <div class="step-desc">내용체계에서 학생이 이해해야 할 핵심어는?</div>
+            <div class="write-box short"></div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-label">1차 질문 초점 초안 작성</div>
+            <div class="step-desc">6기준을 고려하지 않고 일단 자유롭게 써보기</div>
+            <div class="write-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="step-row">
+          <div class="step-num">4</div>
+          <div>
+            <div class="step-label">기준 대조 → 수정</div>
+            <div class="step-desc">PART 2 체크 결과를 반영하여 수정하기</div>
+            <div class="write-box"></div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">5</div>
+          <div>
+            <div class="step-label">최종 질문 초점 확정</div>
+            <div class="step-desc">수업 시작 시 학생들에게 제시할 최종 문장</div>
+            <div class="write-box tall" style="border:2px solid var(--blue); background:#EFF6FF;"></div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">6</div>
+          <div>
+            <div class="step-label">예상 학생 질문 3가지</div>
+            <div class="step-desc">학생들이 이 초점에서 만들어낼 것 같은 질문</div>
+            <div class="write-box tall"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PART 4: 좋은 예/나쁜 예 분석 -->
+  <div class="section-title">
+    <span class="badge amber">PART 4</span>
+    질문 초점 사례 분석 — 무엇이 다른가?
+  </div>
+
+  <div class="example-grid">
+    <div class="ex-card bad">
+      <div class="ex-head">❌ 개선이 필요한 질문 초점</div>
+      <div class="ex-q">"물은 어떤 상태로 변하나요?"</div>
+      <div class="badge-count">
+        <span class="bc no">토론가능성 ✕</span>
+        <span class="bc no">개방성 ✕</span>
+        <span class="bc no">고차원적 사고 ✕</span>
+      </div>
+      <div class="ex-why" style="margin-top:5px;">→ 단답형·사실 확인 수준. 학생이 탐구할 여지가 없고, 교과서 찾으면 끝남.</div>
+    </div>
+    <div class="ex-card good">
+      <div class="ex-head">✅ 좋은 질문 초점</div>
+      <div class="ex-q">"물의 상태 변화는 우리 삶에서 어떤 문제를 해결하고, 또 어떤 문제를 만들어낼까?"</div>
+      <div class="badge-count">
+        <span class="bc yes">토론가능성 ✓</span>
+        <span class="bc yes">전이가능성 ✓</span>
+        <span class="bc yes">개방성 ✓</span>
+        <span class="bc yes">고차원적 사고 ✓</span>
+      </div>
+      <div class="ex-why" style="margin-top:5px;">→ 삶의 맥락·다양한 관점·후속 탐구 유도. 학생마다 다른 방향으로 질문 확장 가능.</div>
+    </div>
+    <div class="ex-card bad">
+      <div class="ex-head">❌ 개선이 필요한 질문 초점</div>
+      <div class="ex-q">"조선은 언제 건국되었나요?"</div>
+      <div class="badge-count">
+        <span class="bc no">계속성 ✕</span>
+        <span class="bc no">확장성 ✕</span>
+        <span class="bc no">개방성 ✕</span>
+      </div>
+      <div class="ex-why" style="margin-top:5px;">→ 정답이 하나. 탐구가 아닌 암기 질문. 후속 질문으로 이어지지 않음.</div>
+    </div>
+    <div class="ex-card good">
+      <div class="ex-head">✅ 좋은 질문 초점</div>
+      <div class="ex-q">"조선이 500년 이상 지속될 수 있었던 가장 중요한 이유는 무엇이며, 그것이 오늘날에도 유효한가?"</div>
+      <div class="badge-count">
+        <span class="bc yes">토론가능성 ✓</span>
+        <span class="bc yes">전이가능성 ✓</span>
+        <span class="bc yes">확장성 ✓</span>
+        <span class="bc yes">고차원적 사고 ✓</span>
+      </div>
+      <div class="ex-why" style="margin-top:5px;">→ 현재와의 연결, 다양한 근거 경쟁, 후속 토론 자연스럽게 유도.</div>
+    </div>
+  </div>
+
+  <div style="font-size:11px; font-weight:700; color:var(--ink); margin-bottom:6px;">✍️ 위 사례를 참고하여, 내가 분석한 차이점을 정리해보세요.</div>
+  <div class="write-box tall" style="margin-bottom:14px;"></div>
+
+  <hr class="divider">
+
+  <!-- PART 5: 질 평가 루브릭 -->
+  <div class="section-title">
+    <span class="badge orange">PART 5</span>
+    질문 초점 질(Quality) 평가 루브릭
+  </div>
+
+  <table class="rubric-table">
+    <thead>
+      <tr>
+        <th style="width:18%">평가 기준</th>
+        <th style="width:27%" class="lv-best">우수 (3점)</th>
+        <th style="width:27%" class="lv-good">보통 (2점)</th>
+        <th style="width:28%" class="lv-try">노력 필요 (1점)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;">개방성·토론가능성</td>
+        <td>다양한 관점과 근거가 공존하며 학생 간 의견 충돌 가능</td>
+        <td>2~3가지 해석 가능하나 수렴 경향 있음</td>
+        <td>정답이 하나이거나 사실 확인 수준</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;">전이·성취기준 연결</td>
+        <td>성취기준과 직결되며 타 교과·삶의 맥락으로 전이 명확</td>
+        <td>성취기준 연결은 되나 전이가 제한적</td>
+        <td>성취기준과 관련이 불분명함</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;">계속성·확장성</td>
+        <td>단원 전체를 관통하며 3개 이상의 후속 질문 자연 생성</td>
+        <td>2~3차시 지속 가능, 후속 질문 1~2개</td>
+        <td>한 차시 안에서 종결됨</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;">고차원적 사고 유발</td>
+        <td>분석·종합·평가 수준의 사고가 필수적으로 요구됨</td>
+        <td>적용 수준의 사고 유발, 고차적 사고는 부분적</td>
+        <td>기억·이해 수준 이하의 단순 사고</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="display:flex; gap:14px; font-size:11px; align-items:center; margin-bottom:14px;">
+    <div><b>내 질문 초점 자기 채점:</b>&nbsp;&nbsp;개방성 <u>&nbsp;&nbsp;&nbsp;</u>/3&nbsp; + &nbsp;전이 <u>&nbsp;&nbsp;&nbsp;</u>/3&nbsp; + &nbsp;계속성 <u>&nbsp;&nbsp;&nbsp;</u>/3&nbsp; + &nbsp;고차사고 <u>&nbsp;&nbsp;&nbsp;</u>/3&nbsp; = <b><u>&nbsp;&nbsp;&nbsp;&nbsp;</u>/12</b></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PART 6: 성찰 -->
+  <div class="reflection-box">
+    <div class="rfl-head">🪞 PART 6 — 오늘 실습 성찰</div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q1.</div>
+      <div>
+        <div style="font-size:11px; margin-bottom:4px;">질문 초점 설계 과정에서 가장 어려웠던 기준은 무엇인가요? 왜 그랬나요?</div>
+        <div class="rfl-line"></div>
+        <div class="rfl-line"></div>
+      </div>
+    </div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q2.</div>
+      <div>
+        <div style="font-size:11px; margin-bottom:4px;">좋은 질문 초점이 학생의 질문 생성(QFT)과 어떻게 연결된다고 생각하나요?</div>
+        <div class="rfl-line"></div>
+        <div class="rfl-line"></div>
+      </div>
+    </div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q3.</div>
+      <div>
+        <div style="font-size:11px; margin-bottom:4px;">다음 수업에서 실제로 적용해볼 질문 초점 아이디어를 한 줄로 써보세요.</div>
+        <div class="rfl-line"></div>
+        <div class="rfl-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      출처: 『질문하는 학교』 선도학교 연구지원센터(2024). 한눈에 보는 질문하는 학교.<br>
+      참고: 서수현·정혜승·옥현진·노들(2024). 학생 질문 능력의 자기진단 평가도구 개발 및 타당화. 『교과교육학연구』 28(6).<br>
+      관련 정책: 교육부(2024). 자율적 수업혁신 지원 방안 — 질문하는 학교 선도학교 운영.
+    </div>
+    <div class="footer-right">
+      2026 초등 선도교원 연수<br>
+      워크시트 © 광석초등학교 디지털윤리교육연구회
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

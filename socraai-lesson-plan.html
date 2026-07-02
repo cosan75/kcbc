@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI와 함께하는 비판적 미디어 탐구 — 수업 지도안</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #1a4f72;
+    --primary-light: #2e86c1;
+    --accent: #e67e22;
+    --accent-light: #f5cba7;
+    --success: #1e8449;
+    --success-light: #a9dfbf;
+    --purple: #7d3c98;
+    --purple-light: #d2b4de;
+    --red: #c0392b;
+    --red-light: #f5b7b1;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-muted: #7f8c8d;
+    --border: #dce5ec;
+    --sidebar-w: 270px;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .sidebar-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .sidebar-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #fff;
+  }
+  .sidebar-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+  .sidebar-progress {
+    margin-top: 14px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 5px;
+  }
+  .progress-track {
+    background: rgba(255,255,255,0.15);
+    border-radius: 999px;
+    height: 5px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a8d8a8, #66bb6a);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .sidebar-section {
+    padding: 14px 16px 6px;
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    padding: 0 4px;
+    margin-bottom: 6px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    margin-bottom: 2px;
+    transition: all .15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-btn.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; }
+  .nav-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .nav-btn.active .nav-num { background: var(--accent); }
+  .nav-text { flex: 1; line-height: 1.3; }
+  .nav-sub { font-size: 10px; color: rgba(255,255,255,0.45); display: block; }
+  .nav-done {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #66bb6a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nav-done.show { display: flex; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-footer button {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: 6px;
+  }
+  .sidebar-footer button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .sidebar-footer .print-btn { background: var(--accent); color: #fff; font-weight: 700; }
+  .sidebar-footer .print-btn:hover { background: #cf6d17; }
+
+  /* ── MAIN ── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 32px 36px;
+    max-width: calc(100vw - var(--sidebar-w));
+    overflow-x: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .breadcrumb span { color: var(--primary); font-weight: 600; }
+
+  /* ── SECTION PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── OVERVIEW ── */
+  .overview-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 14px;
+    padding: 32px;
+    color: #fff;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .overview-header::after {
+    content: '🔍';
+    position: absolute;
+    right: 32px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 80px;
+    opacity: 0.12;
+  }
+  .overview-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .overview-header p { font-size: 13px; opacity: .8; }
+  .overview-meta {
+    display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;
+  }
+  .meta-chip {
+    background: rgba(255,255,255,0.18);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .concept-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .pill-blue  { background: #d6eaf8; color: #1a5276; }
+  .pill-purple{ background: #e8daef; color: #6c3483; }
+  .pill-green { background: #d5f5e3; color: #1e8449; }
+  .pill-orange{ background: #fdebd0; color: #935116; }
+
+  .lesson-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .lesson-mini {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .15s;
+    border-left: 4px solid transparent;
+  }
+  .lesson-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+  .lesson-mini-num { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+  .lesson-mini-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .lesson-mini-concept { font-size: 11px; color: var(--text-muted); }
+
+  /* ── LESSON PAGE ── */
+  .lesson-header {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 20px;
+  }
+  .lesson-num-badge {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--primary);
+    color: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+  .lesson-num-badge span { font-size: 20px; }
+  .lesson-header-info { flex: 1; }
+  .lesson-header-info h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .lesson-header-info p { font-size: 13px; color: var(--text-muted); }
+  .lesson-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .lchip {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .complete-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+    border: none;
+  }
+  .complete-btn.done { background: #d5f5e3; color: #1e8449; }
+  .complete-btn.undone { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+  .complete-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { background: var(--bg); color: var(--text); }
+  .tab-btn.active { background: var(--primary); color: #fff; font-weight: 700; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── INFO CARDS ── */
+  .info-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .info-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .info-card-title::before {
+    content: '';
+    width: 3px; height: 14px;
+    border-radius: 2px;
+    background: var(--primary);
+    display: inline-block;
+  }
+  .generalization-box {
+    background: #eaf2fb;
+    border-left: 4px solid var(--primary-light);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 18px;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--primary);
+    line-height: 1.7;
+  }
+
+  /* ── INQUIRY QUESTIONS ── */
+  .q-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .q-badge.factual    { background: #d6eaf8; color: #1a5276; }
+  .q-badge.conceptual { background: #e8daef; color: #6c3483; }
+  .q-badge.debatable  { background: #fde8d8; color: #935116; }
+  .q-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .q-card.factual    { border-left: 4px solid #2e86c1; }
+  .q-card.conceptual { border-left: 4px solid #8e44ad; }
+  .q-card.debatable  { border-left: 4px solid #e67e22; }
+  .q-card ul { margin: 8px 0 0 16px; }
+  .q-card li { font-size: 13px; margin-bottom: 4px; color: var(--text); }
+
+  /* ── FLOW STEPS ── */
+  .flow-step {
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 8px;
+    transition: transform .15s;
+  }
+  .flow-step:hover { transform: translateX(4px); }
+  .step-label {
+    width: 110px; min-width: 110px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    font-size: 11px; font-weight: 700;
+    line-height: 1.3; gap: 4px;
+  }
+  .step-icon { font-size: 18px; }
+  .step-content {
+    flex: 1;
+    padding: 14px 18px;
+    border-left: 1px solid var(--border);
+  }
+  .step-content h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .step-content p  { font-size: 13px; color: #555; }
+  .step-s1 .step-label { background: #e8f8f5; color: #1a8a6d; }
+  .step-s2 .step-label { background: #eaf2fb; color: #1a5276; }
+  .step-s3 .step-label { background: #f4ecf7; color: #6c3483; }
+  .step-s4 .step-label { background: #fff3cd; color: #856404; }
+  .step-s5 .step-label { background: #fde8d8; color: #935116; }
+  .step-s6 .step-label { background: #fce4ec; color: #880e4f; }
+  .step-s7 .step-label { background: #e3f2fd; color: #0d47a1; }
+
+  /* ── TRANSFER ── */
+  .transfer-card {
+    background: linear-gradient(135deg, #fef9f0, #fdebd0);
+    border: 1px solid #f0d0a0;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .transfer-card h3 { font-size: 15px; font-weight: 700; color: #935116; margin-bottom: 10px; }
+  .transfer-card p  { font-size: 13px; color: #6d4c1b; line-height: 1.7; }
+  .transfer-card ul { margin: 10px 0 0 18px; }
+  .transfer-card li { font-size: 13px; color: #6d4c1b; margin-bottom: 6px; }
+
+  /* ── RUBRIC ── */
+  .rubric-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .rubric-table th, .rubric-table td {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .rubric-table thead th { background: var(--primary); color: #fff; font-weight: 700; text-align: center; }
+  .rubric-table thead th:first-child { background: #15405c; }
+  .rubric-table tbody tr:nth-child(even) td { background: #f8fafb; }
+  .rubric-table tbody td:first-child { font-weight: 700; background: #eaf2fb; color: var(--primary); width: 120px; }
+
+  /* ── REFLECTION NOTES ── */
+  .reflect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .reflect-box {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+  .reflect-box h4 { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+  .reflect-ta {
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text);
+    transition: border-color .15s;
+  }
+  .reflect-ta:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(46,134,193,.1); }
+  .reflect-ta::placeholder { color: var(--text-muted); font-style: italic; font-size: 11px; }
+
+  /* ── SAVE TOAST ── */
+  .save-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--success);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 12px; font-weight: 700;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .save-toast.show { opacity: 1; }
+
+  /* ── TWO COL ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── PRINT ── */
+  @media print {
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 20px; max-width: 100%; }
+    .no-print, .tabs { display: none; }
+    .tab-content { display: block !important; margin-bottom: 24px; }
+    .page.active { display: block; }
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="save-toast" id="saveToast">✅ 저장됨</div>
+
+<!-- ===== SIDEBAR ===== -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-tag">개념기반 탐구학습</div>
+    <div class="sidebar-title">AI와 함께하는<br>비판적 미디어 탐구</div>
+    <div class="sidebar-sub">초등 5~6학년 · 7차시</div>
+    <div class="sidebar-progress">
+      <div class="progress-meta">
+        <span>진행률</span>
+        <span id="progress-text">0 / 7 완료</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">메뉴</div>
+    <button class="nav-btn active" id="nav-overview" onclick="showPage('overview',this)">
+      <span class="nav-num">◎</span>
+      <span class="nav-text">단원 개요<br><span class="nav-sub">Unit Overview</span></span>
+    </button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">차시별 지도안</div>
+    <div id="lesson-nav"></div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="print-btn no-print" onclick="window.print()">🖨 인쇄하기</button>
+    <button class="no-print" onclick="clearAllData()">데이터 초기화</button>
+    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;text-align:center">디지털윤리교육연구회 · 오산초 · 2026</div>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main id="main">
+
+  <div class="top-bar">
+    <div class="breadcrumb" id="breadcrumb">단원 개요</div>
+  </div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <div class="page active" id="page-overview">
+    <div class="overview-header">
+      <h1>AI와 함께하는 비판적 미디어 탐구</h1>
+      <p>생성형 AI 기반의 질문 수업 모델 개발을 통한 미디어 비판적 이해 역량 강화</p>
+      <div class="overview-meta">
+        <span class="meta-chip">🎓 초등 5~6학년</span>
+        <span class="meta-chip">📚 7차시</span>
+        <span class="meta-chip">🤖 생성형 AI 활용</span>
+        <span class="meta-chip">🔍 개념기반 탐구학습</span>
+        <span class="meta-chip">🗣 소크라테스식 문답법</span>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-label">단원 핵심 개념 (Key Concepts)</div>
+        <div class="concept-pills">
+          <span class="pill pill-blue">비판적 사고</span>
+          <span class="pill pill-purple">미디어 리터러시</span>
+          <span class="pill pill-green">디지털 시민성</span>
+          <span class="pill pill-orange">정보 신뢰성</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">단원 관련 개념 (Related Concepts)</div>
+        <div class="concept-pills">
+          <span class="pill pill-blue">의도</span><span class="pill pill-blue">맥락</span>
+          <span class="pill pill-purple">알고리즘</span><span class="pill pill-purple">프레임</span>
+          <span class="pill pill-green">책임</span><span class="pill pill-orange">팩트체크</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">단원 일반화 (Unit Generalization)</div>
+      <div class="generalization-box">비판적으로 사고하는 디지털 시민은 미디어 메시지의 의도와 맥락을 분석하고, AI와 협력하여 정보의 신뢰성을 판단함으로써 온라인 공간에서 책임 있는 주체로 성장할 수 있다.</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">단원 탐구 질문 (Unit Inquiry Questions)</div>
+      <div class="q-card factual"><span class="q-badge factual">사실적 Factual</span><ul><li>미디어는 어떤 방식으로 정보를 생산하고 전달하는가?</li><li>생성형 AI는 어떤 원리로 작동하는가?</li></ul></div>
+      <div class="q-card conceptual"><span class="q-badge conceptual">개념적 Conceptual</span><ul><li>미디어 메시지는 왜 항상 특정 의도와 관점을 내포하는가?</li><li>질문을 통한 탐구는 어떻게 비판적 사고력을 발달시키는가?</li></ul></div>
+      <div class="q-card debatable"><span class="q-badge debatable">논쟁적 Debatable</span><ul><li>AI는 사람의 비판적 사고를 도울 수 있는가, 아니면 약화시키는가?</li><li>디지털 공간에서 개인의 자유와 사회적 책임의 균형은 어디에 있는가?</li></ul></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">차시 구성 한눈에 보기</div>
+      <div class="lesson-grid" id="lesson-map"></div>
+    </div>
+  </div>
+
+  <!-- LESSON PAGES -->
+  <div id="lesson-pages"></div>
+</main>
+
+<script>
+const COLORS = ['#2e86c1','#8e44ad','#1e8449','#e67e22','#c0392b','#27ae60','#2c3e50'];
+
+const lessons = [
+  { num:1, title:'미디어의 이해', sub:'Media Understanding', desc:'일상 속 미디어의 개념을 이해하고, 미디어가 정보 전달에 미치는 역할을 탐구한다.', time:'40분',
+    concepts:['미디어','정보','소통'], related:['채널','메시지','수용자'],
+    gen:'미디어는 다양한 형태로 정보를 생산·전달하며, 우리의 인식과 행동에 의도적·비의도적으로 영향을 미친다.',
+    q:{ f:['우리 주변에는 어떤 종류의 미디어가 있나요?','미디어는 어떻게 정보를 전달하나요?'], c:['미디어는 우리의 생각과 감정에 어떤 영향을 줄까요?','왜 같은 사건도 미디어마다 다르게 보도될까요?'], d:['모든 미디어는 공정하게 정보를 전달하나요?','미디어 없는 세상은 더 나을까요, 더 나쁠까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'미디어와 나',body:'하루 동안 접한 미디어를 포스트잇에 써서 붙이기. "오늘 아침 일어나서 가장 먼저 한 일은?" 발문으로 시작.'},
+      {icon:'🔎',step:'집중하기',title:'미디어 정의 탐색',body:'미디어란 무엇인가? 교사와 함께 개념 좁히기. 전통 미디어 vs 디지털 미디어 구분.'},
+      {icon:'📋',step:'조사하기',title:'미디어 지도 그리기',body:'모둠별로 "하루 미디어 접촉 지도" 제작(종류, 시간, 목적, 감정 기록). AI에게 내가 사용하는 미디어의 특징 질문하기.'},
+      {icon:'📝',step:'정리하기',title:'분류표 작성',body:'전달 방식, 상호작용 여부, 생산 주체에 따라 미디어를 분류하는 표 완성.'},
+      {icon:'💡',step:'일반화하기',title:'공통 특성 발견',body:'모든 미디어의 공통점: 목적·제작자·수용자가 존재한다는 점 도출. 일반화 문장 함께 완성.'},
+      {icon:'🚀',step:'전이하기',title:'가족 미디어 관찰',body:'오늘 저녁 가족 중 한 명의 미디어 이용 패턴을 관찰·기록. "왜 그 미디어를 선택했는지" 인터뷰.'},
+      {icon:'🪞',step:'성찰하기',title:'배움 되돌아보기',body:'오늘 가장 놀라웠던 사실은? 내가 미디어를 이용하는 이유에 대해 새롭게 알게 된 점 기록.'}
+    ],
+    transfer:{ title:'전이 과제: 가족 미디어 사용 인터뷰', desc:'가족 중 한 명을 인터뷰하여 미디어 이용 패턴과 목적을 기록한다.', items:['가족이 하루 동안 사용하는 미디어 목록 작성','각 미디어를 사용하는 이유 및 느낀 점 기록','자신의 이용 패턴과 비교하여 차이점과 공통점 발견','다음 차시에 모둠과 공유'] },
+    rubric:[
+      {c:'미디어 개념 이해',e:'미디어의 개념과 종류를 정확히 설명하고 구체적 예를 다양하게 제시함',g:'미디어의 개념을 이해하고 기본적인 종류를 구분함',n:'교사의 도움으로 미디어의 개념을 부분적으로 이해함'},
+      {c:'탐구 참여',e:'미디어 접촉 지도를 자세히 작성하고 AI와 적극적으로 질문·답변함',g:'미디어 접촉 지도를 작성하고 AI와 기본적인 대화를 나눔',n:'안내에 따라 활동지를 일부 완성함'},
+      {c:'일반화 표현',e:'미디어의 공통 특성을 자신의 언어로 명확히 일반화함',g:'제시된 틀을 참고하여 일반화 문장을 작성함',n:'교사의 도움으로 일반화 문장을 완성함'}
+    ]
+  },
+  { num:2, title:'질문하는 AI', sub:'Socratic AI', desc:'소크라테스식 문답법의 원리를 이해하고 생성형 AI와 대화적 탐구를 경험한다.', time:'40분',
+    concepts:['소크라테스식 질문','AI 상호작용','비판적 사고'], related:['프롬프트','대화','추론'],
+    gen:'좋은 질문은 깊은 사고를 자극하며, 생성형 AI와의 소크라테스식 대화는 학습자의 비판적 사고력을 단계적으로 발달시킨다.',
+    q:{ f:['소크라테스는 어떻게 가르쳤나요?','생성형 AI는 어떤 원리로 작동하나요?'], c:['질문을 통한 학습이 답을 주는 학습과 어떻게 다를까요?','AI가 던지는 질문은 왜 우리의 사고를 자극할 수 있을까요?'], d:['AI가 교사보다 더 좋은 질문을 할 수 있을까요?','AI와의 대화로 진정한 배움이 일어날 수 있을까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'소크라테스를 만나다',body:'"당신이 소크라테스라면 어떤 질문을 하겠습니까?" 브레인스토밍. 소크라테스 문답법 이야기 소개.'},
+      {icon:'🔎',step:'집중하기',title:'질문의 힘',body:'좋은 질문의 특징 탐구(열린 질문 vs 닫힌 질문). 소크라테스식 질문의 3단계: 사실→개념→논쟁.'},
+      {icon:'📋',step:'조사하기',title:'AI와 첫 대화',body:'"오늘 본 광고에 대해 질문해줘" 입력 후 AI의 질문 방식 관찰. 짝과 함께 AI의 질문 패턴 분석 기록.'},
+      {icon:'📝',step:'정리하기',title:'질문 유형 분류',body:'AI가 한 질문들을 사실적·개념적·논쟁적으로 분류하는 활동지 작성.'},
+      {icon:'💡',step:'일반화하기',title:'질문과 사고의 관계',body:'AI의 역질문을 경험한 후 느낀 사고의 변화 공유. 일반화: 질문은 사고를 어떻게 변화시키는가?'},
+      {icon:'🚀',step:'전이하기',title:'나만의 소크라테스 질문 세트',body:'관심 있는 미디어 주제를 골라 소크라테스식 질문 3가지(사실·개념·논쟁) 직접 만들기.'},
+      {icon:'🪞',step:'성찰하기',title:'질문으로 배운 것',body:'AI와 대화하며 가장 어려웠던 질문은? 내가 만든 질문 중 가장 마음에 드는 것과 이유 작성.'}
+    ],
+    transfer:{ title:'전이 과제: 나만의 소크라테스 질문 세트', desc:'관심 있는 미디어 콘텐츠를 하나 선택하여 소크라테스식 질문 세트를 제작한다.', items:['미디어 콘텐츠(뉴스, 광고, SNS 게시글 등) 하나 선택','사실적 질문 2개, 개념적 질문 2개, 논쟁적 질문 1개 작성','각 질문에 예상 답변 간단히 기록','다음 차시 탐구 활동에 활용'] },
+    rubric:[
+      {c:'소크라테스식 질문 이해',e:'특징과 3단계를 정확히 설명하고 창의적 예를 제시함',g:'특징을 이해하고 기본 예를 작성함',n:'개념을 부분적으로 이해함'},
+      {c:'AI 상호작용',e:'AI와 깊이 있는 대화를 나누며 후속 질문을 스스로 생성함',g:'AI의 질문에 성실히 답변하고 기본 탐구를 수행함',n:'AI와 기본적인 대화를 시도함'},
+      {c:'질문 제작',e:'3가지 유형의 질문을 모두 적절히 만들고 논리적 연결성이 있음',g:'3가지 유형의 질문을 모두 작성함',n:'1~2가지 유형의 질문을 작성함'}
+    ]
+  },
+  { num:3, title:'의도와 맥락', sub:'Intent & Context', desc:'뉴스 기사 분석을 통해 미디어 메시지의 숨겨진 의도와 맥락을 파악하는 능력을 기른다.', time:'40분',
+    concepts:['의도','맥락','미디어 메시지'], related:['편향','프레임','출처'],
+    gen:'미디어 메시지는 항상 특정 목적과 맥락 속에서 생산되며, 비판적 독자는 표면적 내용 너머의 숨겨진 의도를 분석할 수 있다.',
+    q:{ f:['뉴스 기사는 누가 어떤 과정으로 만드나요?','5가지 미디어 리터러시 핵심 질문(저자·형식·청중·내용·목적)은 무엇인가요?'], c:['같은 사건도 미디어마다 다르게 보도될 수 있는 이유는?','광고는 어떤 방식으로 시청자의 감정을 자극하나요?'], d:['미디어 생산자의 의도를 알면 정보를 다르게 받아들여야 할까요?','객관적인 뉴스는 존재할 수 있을까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'같은 사건, 다른 기사',body:'동일한 사건을 보도한 2개의 서로 다른 뉴스 기사 제시. "두 기사의 차이점이 뭔지 찾아볼까요?" 흥미 유발.'},
+      {icon:'🔎',step:'집중하기',title:'5가지 핵심 질문',body:'미디어 리터러시 5대 질문: ①누가 만들었나? ②어떤 기법? ③누구 대상? ④어떤 가치관? ⑤목적은?'},
+      {icon:'📋',step:'조사하기',title:'AI와 함께 기사 분석',body:'뉴스 기사를 AI에게 입력하고 "이 기사의 생산자는 어떤 의도를 가지고 있을까요?" 소크라테스식 역질문 유도.'},
+      {icon:'📝',step:'정리하기',title:'의도 분석 시트 완성',body:'5가지 핵심 질문 틀로 기사 분석 결과 정리. 발견한 숨겨진 의도와 근거 기록.'},
+      {icon:'💡',step:'일반화하기',title:'의도와 메시지의 관계',body:'모든 미디어 메시지에는 의도가 있다. 의도를 알면 메시지를 어떻게 다르게 받아들이게 되는가?'},
+      {icon:'🚀',step:'전이하기',title:'광고 의도 분석',body:'좋아하는 광고 하나를 선택하여 5가지 핵심 질문으로 분석. 어떤 감정·욕구를 자극하는지 파악.'},
+      {icon:'🪞',step:'성찰하기',title:'새로운 눈으로 보기',body:'"미디어를 볼 때 나는 앞으로 ___를 확인할 것이다" 문장 완성.'}
+    ],
+    transfer:{ title:'전이 과제: 광고 의도 분석', desc:'일상에서 접하는 광고 하나를 선택하여 5가지 미디어 리터러시 핵심 질문으로 분석한다.', items:['TV, 유튜브, SNS 등에서 광고 하나 선택','5가지 핵심 질문으로 분석','이 광고가 나의 감정·욕구에 어떤 영향을 주는지 서술','AI에게 소크라테스식 질문을 요청하고 대화 기록'] },
+    rubric:[
+      {c:'의도 파악',e:'명시적·암묵적 의도를 구체적 근거와 함께 분석함',g:'주요 의도를 파악하고 간단한 근거를 제시함',n:'교사의 도움으로 기본적인 의도를 찾음'},
+      {c:'5대 질문 적용',e:'5가지 질문을 모두 체계적으로 적용하여 심층 분석함',g:'5가지 질문을 대부분 적용함',n:'2~3가지 질문을 부분적으로 적용함'},
+      {c:'AI 협업 탐구',e:'AI의 역질문에 깊이 있게 반응하며 분석을 발전시킴',g:'AI와 기본적인 분석 대화를 나눔',n:'AI와 간단한 질의응답을 수행함'}
+    ]
+  },
+  { num:4, title:'알고리즘 분석', sub:'Algorithm Analysis', desc:'숏폼 및 SNS 알고리즘의 작동 방식과 상업적 목적을 탐구하고 필터버블 개념을 이해한다.', time:'40분',
+    concepts:['알고리즘','필터버블','상업적 목적'], related:['데이터','추천 시스템','확증 편향'],
+    gen:'디지털 플랫폼의 알고리즘은 사용자 행동 데이터를 기반으로 콘텐츠를 선별 제공하며, 이는 우리의 정보 환경을 제한하고 상업적 목적에 활용된다.',
+    q:{ f:['SNS 알고리즘은 어떻게 작동하나요?','필터버블이란 무엇인가요?'], c:['알고리즘이 우리가 접하는 정보를 제한할 때 어떤 문제가 생길까요?','플랫폼이 알고리즘을 통해 얻는 이익은 무엇일까요?'], d:['알고리즘이 우리의 자유로운 선택을 방해하고 있을까요?','알고리즘 추천은 편리함인가요, 위험한 통제인가요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'왜 이 영상만 뜰까?',body:'"유튜브/틱톡을 켤 때 처음 나오는 영상은 어떻게 정해질까요?" 질문으로 시작. 자신의 피드를 관찰한 경험 나누기.'},
+      {icon:'🔎',step:'집중하기',title:'알고리즘의 작동 원리',body:'알고리즘이 수집하는 데이터(시청 시간, 클릭, 좋아요 등) 설명. 필터버블·에코챔버 개념 도입.'},
+      {icon:'📋',step:'조사하기',title:'AI와 알고리즘 탐구',body:'"내 SNS 피드가 왜 비슷한 내용만 보여줄까?" AI에게 질문. AI의 역질문에 답하며 알고리즘의 목적 탐구.'},
+      {icon:'📝',step:'정리하기',title:'알고리즘 다이어그램',body:'사용자 행동→데이터 수집→분석→콘텐츠 추천→광고 수익의 흐름을 다이어그램으로 정리.'},
+      {icon:'💡',step:'일반화하기',title:'알고리즘과 정보 환경',body:'"필터버블은 ___함으로써 우리의 세계관을 좁힐 수 있다" 일반화 문장 완성.'},
+      {icon:'🚀',step:'전이하기',title:'필터버블 탈출 실험',body:'평소와 다른 주제의 콘텐츠를 의도적으로 시청하고 피드 변화를 관찰하는 1주일 실험 계획 세우기.'},
+      {icon:'🪞',step:'성찰하기',title:'나의 디지털 환경 점검',body:'내 SNS 피드는 얼마나 다양한 관점을 포함하나요? 필터버블에서 벗어나기 위해 무엇을 할 수 있을까요?'}
+    ],
+    transfer:{ title:'전이 과제: 필터버블 탈출 실험', desc:'의도적으로 다양한 관점의 콘텐츠를 소비하며 알고리즘의 변화를 관찰한다.', items:['평소 접하지 않던 주제·관점의 콘텐츠 3가지 이상 시청·읽기','3일 후 피드의 변화를 기록(달라진 점 3가지)','알고리즘 변화를 통해 알게 된 점 서술','AI와 함께 자신의 정보 환경 다양성 평가'] },
+    rubric:[
+      {c:'알고리즘 이해',e:'작동 원리와 상업적 목적을 정확히 설명하고 구체적 예를 제시함',g:'기본 원리와 필터버블 개념을 이해함',n:'알고리즘의 개념을 부분적으로 이해함'},
+      {c:'비판적 분석',e:'알고리즘이 사회에 미치는 영향을 다각도로 분석하고 균형 잡힌 시각을 제시함',g:'긍정·부정적 영향을 모두 언급함',n:'한 가지 측면의 영향만 서술함'},
+      {c:'실험 계획',e:'구체적이고 실현 가능한 필터버블 탈출 실험 계획을 수립함',g:'기본적인 실험 계획을 작성함',n:'교사의 도움으로 계획을 일부 작성함'}
+    ]
+  },
+  { num:5, title:'비판적 판별', sub:'Critical Fact-checking', desc:'온라인 허위 정보 사례를 AI와 함께 팩트체크하며 정보 신뢰성 판단 능력을 기른다.', time:'40분',
+    concepts:['팩트체크','허위정보','정보 신뢰성'], related:['출처 검증','교차 확인','디지털 발자국'],
+    gen:'신뢰할 수 있는 정보와 허위 정보를 구별하는 능력은 민주 사회의 건강한 시민이 갖추어야 할 필수 역량이며, 다양한 출처 교차 확인을 통해 강화된다.',
+    q:{ f:['가짜 뉴스의 주요 특징은 무엇인가요?','팩트체크는 어떤 방법으로 할 수 있나요?'], c:['허위 정보가 빠르게 퍼지는 이유는 무엇일까요?','정보의 신뢰성을 판단하는 기준은 무엇인가요?'], d:['AI가 사람보다 팩트체크를 더 잘할 수 있을까요?','허위 정보를 퍼트린 사람에게는 어떤 책임이 있을까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'가짜 or 진짜?',body:'진짜·가짜가 섞인 짧은 뉴스 5개 제시. "어떻게 구별했나요?" 판단 근거 발표. 속은 경험 공유.'},
+      {icon:'🔎',step:'집중하기',title:'허위 정보의 특징',body:'가짜 뉴스의 6가지 유형 소개. SIFT 모델(Stop, Investigate, Find better sources, Trace claims) 소개.'},
+      {icon:'📋',step:'조사하기',title:'AI와 팩트체크',body:'허위 정보 사례를 AI에게 입력하고 검증 과정 함께 수행. "이 정보의 출처는 어디인가요?" 역질문에 답하기.'},
+      {icon:'📝',step:'정리하기',title:'팩트체크 시트 완성',body:'모둠별로 허위 정보 사례 2개를 SIFT 모델로 분석하여 팩트체크 보고서 작성.'},
+      {icon:'💡',step:'일반화하기',title:'신뢰성 판단 기준',body:'"정보의 신뢰성은 ___를 확인함으로써 높일 수 있다" 일반화 문장 완성.'},
+      {icon:'🚀',step:'전이하기',title:'나의 팩트체크 가이드',body:'내가 만든 팩트체크 가이드(체크리스트) 제작. 가족이나 친구에게 공유할 수 있는 형태로 완성.'},
+      {icon:'🪞',step:'성찰하기',title:'나는 어떤 정보 소비자?',body:'평소 정보를 확인하는 습관은 어떤가요? 앞으로 정보를 접할 때 무엇을 가장 먼저 확인할 건가요?'}
+    ],
+    transfer:{ title:'전이 과제: 팩트체크 가이드 제작', desc:'누구나 쉽게 사용할 수 있는 팩트체크 체크리스트를 제작하여 공유한다.', items:['팩트체크 5단계 체크리스트 직접 제작(자유 형식)','실제 뉴스 기사 하나를 제작한 체크리스트로 검증','가족이나 친구에게 체크리스트 설명하고 반응 기록','AI에게 체크리스트의 부족한 점 피드백 요청'] },
+    rubric:[
+      {c:'허위정보 판별',e:'특징을 정확히 파악하고 다양한 검증 방법을 활용함',g:'주요 특징을 파악하고 기본 검증을 수행함',n:'교사의 도움으로 명백한 허위 정보를 판별함'},
+      {c:'SIFT 모델 적용',e:'4단계를 모두 체계적으로 적용하여 분석함',g:'주요 단계를 적용함',n:'일부 단계를 부분적으로 적용함'},
+      {c:'가이드 제작',e:'누구나 이해할 수 있는 창의적인 팩트체크 가이드를 완성함',g:'기본 정보가 포함된 가이드를 완성함',n:'교사의 도움으로 가이드를 일부 완성함'}
+    ]
+  },
+  { num:6, title:'비교와 추론', sub:'Compare & Infer', desc:'동일 사건에 대한 서로 다른 미디어 프레임을 비교 분석하고 비판적 토론을 경험한다.', time:'40분',
+    concepts:['미디어 프레임','관점','비판적 비교'], related:['편향','균형','다원성'],
+    gen:'동일한 사건에 대한 다양한 미디어 프레임을 비교 분석함으로써 더 균형 잡힌 세계관을 형성하고 독립적인 판단을 내릴 수 있다.',
+    q:{ f:['미디어 프레임이란 무엇인가요?','같은 사건을 다르게 보도하는 방법에는 어떤 것들이 있나요?'], c:['서로 다른 프레임이 우리의 이해에 어떤 영향을 줄까요?','특정 프레임이 특정 집단에게 유리할 수 있을까요?'], d:['모든 관점을 공평하게 다루는 미디어가 가능할까요?','다양한 관점을 접하는 것이 항상 좋은 것일까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'두 개의 이야기',body:'같은 사진에 서로 다른 제목 붙이기 게임. "어떤 제목이 더 사실에 가깝나요?" 토론. 프레임의 힘 체험.'},
+      {icon:'🔎',step:'집중하기',title:'미디어 프레임 이해',body:'미디어 프레임의 개념과 작동 방식 학습. 강조, 배제, 연결의 프레이밍 기법 소개.'},
+      {icon:'📋',step:'조사하기',title:'AI와 프레임 비교 분석',body:'동일 사건을 다룬 2~3개 미디어 보도 분석. "각 기사가 어떤 프레임을 사용하고 있나요?" AI 역질문 유도.'},
+      {icon:'📝',step:'정리하기',title:'프레임 비교 보고서',body:'같은 사건→다른 프레임→다른 인상의 흐름을 표로 정리. 각 프레임이 독자에게 미치는 영향 분석.'},
+      {icon:'💡',step:'일반화하기',title:'균형 잡힌 시각',body:'"미디어 메시지는 ___에 따라 다르게 프레이밍되며, 이를 인식하면 ___할 수 있다" 일반화.'},
+      {icon:'🚀',step:'전이하기',title:'내가 편집장이라면?',body:'같은 사건을 두 가지 다른 프레임으로 직접 써보기. 표현, 사진, 제목 선택.'},
+      {icon:'🪞',step:'성찰하기',title:'나의 정보 다이어트',body:'나는 주로 어떤 관점의 미디어만 접하고 있나요? 더 균형 잡힌 정보 소비를 위해 무엇을 할 수 있을까요?'}
+    ],
+    transfer:{ title:'전이 과제: 두 개의 프레임으로 쓰기', desc:'최근 뉴스 하나를 선택하여 두 가지 다른 프레임으로 제목과 첫 문장을 작성한다.', items:['최근 뉴스 이슈 하나 선택','동일한 사실 기반으로 서로 다른 프레임의 제목 2개 작성','각 프레임이 독자에게 어떤 인상을 줄지 분석','AI와 함께 두 프레임의 차이와 영향 토론'] },
+    rubric:[
+      {c:'프레임 분석',e:'서로 다른 프레임의 특징을 구체적 언어 분석과 함께 설명함',g:'주요 프레임의 차이를 파악하고 설명함',n:'교사의 안내로 기본적인 차이를 인식함'},
+      {c:'비판적 토론',e:'논리적 근거로 관점을 표현하고 상대 의견을 존중하며 토론함',g:'기본적인 근거로 의견을 표현하고 토론에 참여함',n:'토론에 부분적으로 참여함'},
+      {c:'프레임 제작',e:'동일한 사실로 창의적인 두 가지 프레임을 효과적으로 표현함',g:'두 가지 프레임을 구별되게 작성함',n:'교사의 도움으로 한 가지 프레임을 작성함'}
+    ]
+  },
+  { num:7, title:'디지털 시민성', sub:'Digital Citizenship', desc:'비판적 미디어 리터러시를 바탕으로 디지털 공간에서의 책임 있는 행동 수칙을 제정하고 성찰한다.', time:'40분',
+    concepts:['디지털 시민성','책임','성찰'], related:['윤리','공동체','지속가능성'],
+    gen:'비판적 미디어 리터러시를 갖춘 디지털 시민은 온라인 공간에서 책임감 있는 행동을 통해 자신과 공동체를 위한 더 건강한 디지털 생태계를 만들 수 있다.',
+    q:{ f:['디지털 시민성이란 무엇이며 어떤 요소로 구성되나요?','온라인에서 책임 있는 행동의 예는 무엇인가요?'], c:['디지털 공간에서의 행동이 실제 사회에 어떤 영향을 미칠까요?','비판적 미디어 리터러시는 어떻게 더 나은 디지털 시민을 만드나요?'], d:['디지털 공간에서 자유와 책임 사이의 올바른 균형은 어디에 있을까요?','AI 시대에 디지털 시민의 역할은 어떻게 달라져야 할까요?'] },
+    flow:[
+      {icon:'🤝',step:'관계맺기',title:'7차시를 돌아보며',body:'지금까지 배운 7가지 핵심 개념 마인드맵 함께 그리기. "나는 이제 미디어를 어떻게 다르게 보고 있나요?" 소감 나누기.'},
+      {icon:'🔎',step:'집중하기',title:'디지털 시민성의 의미',body:'디지털 시민성의 9가지 요소 소개. 비판적 미디어 리터러시가 왜 디지털 시민성의 핵심인지 탐구.'},
+      {icon:'📋',step:'조사하기',title:'AI와 시민성 탐구',body:'"비판적으로 사고하는 디지털 시민이 할 수 있는 구체적인 행동은?" AI에게 질문. 모둠별 디지털 시민 헌장 초안 작성.'},
+      {icon:'📝',step:'정리하기',title:'디지털 시민 수칙 제정',body:'모둠 토의를 거쳐 "우리 반 미디어 이용 수칙" 5개 항목 확정. 각 수칙의 이유와 실천 방법 기록.'},
+      {icon:'💡',step:'일반화하기',title:'나와 공동체',body:'"비판적 디지털 시민은 ___함으로써 건강한 디지털 공동체에 기여한다" 일반화.'},
+      {icon:'🚀',step:'전이하기',title:'나의 미디어 리터러시 선언',body:'이 수업에서 배운 것을 바탕으로 "나의 미디어 리터러시 선언문" 작성.'},
+      {icon:'🪞',step:'성찰하기',title:'7차시 전체 성찰',body:'가장 인상 깊었던 순간은? 가장 어려웠던 개념은? 앞으로 일상에서 어떻게 적용할 것인지 3가지 이상 계획 수립.'}
+    ],
+    transfer:{ title:'전이 과제 (단원 최종): 나의 미디어 리터러시 선언문', desc:'7차시 학습을 통해 성장한 자신을 돌아보며 미디어 리터러시 선언문을 작성한다.', items:['이 단원에서 배운 핵심 개념 3가지를 자신의 언어로 설명','나는 앞으로 미디어를 볼 때 ___을 실천하겠다는 다짐 5가지 작성','가족이나 친구에게 미디어 리터러시의 중요성 설명하기 실천','AI와 함께 나의 선언문에 빠진 것은 없는지 점검'] },
+    rubric:[
+      {c:'디지털 시민성 이해',e:'개념과 구성 요소를 정확히 설명하고 실생활과 연결함',g:'핵심 개념을 이해하고 기본적인 예를 제시함',n:'개념을 부분적으로 이해함'},
+      {c:'수칙 제정 참여',e:'논리적 근거로 창의적인 수칙을 제안하고 토의에 적극 기여함',g:'모둠 토의에 적극 참여하고 수칙 제정에 기여함',n:'모둠 활동에 기본적으로 참여함'},
+      {c:'선언문 작성',e:'7차시 학습을 통합적으로 성찰하며 구체적이고 실천 가능한 선언문을 완성함',g:'학습 내용을 반영한 선언문을 완성함',n:'교사의 도움으로 선언문을 일부 작성함'},
+      {c:'단원 성찰',e:'7차시 전체를 깊이 있게 성찰하고 개인적 성장을 구체적으로 표현함',g:'주요 학습 내용을 성찰하고 변화를 기록함',n:'기본적인 성찰 내용을 작성함'}
+    ]
+  }
+];
+
+// ═══ LOCALSTORAGE ═══
+const LS = { completed:'mml_completed', notes:'mml_notes', current:'mml_current' };
+function getCompleted(){ try{return JSON.parse(localStorage.getItem(LS.completed)||'{}')}catch(e){return{}} }
+function getNotes()    { try{return JSON.parse(localStorage.getItem(LS.notes)||'{}')}   catch(e){return{}} }
+function saveNote(idx,nid,txt){ const d=getNotes(); if(!d[idx])d[idx]={}; d[idx][nid]=txt; localStorage.setItem(LS.notes,JSON.stringify(d)); }
+function clearAllData(){ if(confirm('모든 저장 데이터를 초기화할까요?')){ [LS.completed,LS.notes,LS.current].forEach(k=>localStorage.removeItem(k)); location.reload(); } }
+function showToast(){ const t=document.getElementById('saveToast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500); }
+
+// ═══ PROGRESS ═══
+function updateProgress(){
+  const c=getCompleted();
+  const done=Object.values(c).filter(Boolean).length;
+  document.getElementById('progress-text').textContent=`${done} / 7 완료`;
+  document.getElementById('progress-fill').style.width=`${(done/7)*100}%`;
+  lessons.forEach((_,i)=>{ const b=document.getElementById(`badge-${i}`); if(b) b.className='nav-done'+(c[i]?' show':''); });
+}
+
+// ═══ RENDER SIDEBAR ═══
+function renderNav(){
+  document.getElementById('lesson-nav').innerHTML=lessons.map((l,i)=>`
+    <button class="nav-btn" id="nav-${i}" onclick="showLesson(${i},this)">
+      <span class="nav-num">${l.num}</span>
+      <span class="nav-text">${l.title}<span class="nav-sub">${l.sub}</span></span>
+      <span class="nav-done" id="badge-${i}">✓</span>
+    </button>`).join('');
+}
+
+// ═══ RENDER MAP ═══
+function renderMap(){
+  document.getElementById('lesson-map').innerHTML=lessons.map((l,i)=>`
+    <div class="lesson-mini" onclick="showLesson(${i})" style="border-left-color:${COLORS[i]}">
+      <div class="lesson-mini-num">${l.num}차시</div>
+      <div class="lesson-mini-title">${l.title}</div>
+      <div class="lesson-mini-concept">${l.concepts.join(' · ')}</div>
+    </div>`).join('');
+}
+
+// ═══ RENDER LESSONS ═══
+function renderLessons(){
+  document.getElementById('lesson-pages').innerHTML=lessons.map((l,i)=>{
+    const flow=l.flow.map((f,fi)=>`
+      <div class="flow-step step-s${fi+1}">
+        <div class="step-label"><span class="step-icon">${f.icon}</span>${f.step}</div>
+        <div class="step-content"><h4>${f.title}</h4><p>${f.body}</p></div>
+      </div>`).join('');
+    const rubric=l.rubric.map(r=>`
+      <tr><td>${r.c}</td>
+      <td><span style="color:#1e8449;font-weight:700">● 잘함</span><br>${r.e}</td>
+      <td><span style="color:#1a5276;font-weight:700">● 보통</span><br>${r.g}</td>
+      <td><span style="color:#c0392b;font-weight:700">● 노력 요함</span><br>${r.n}</td></tr>`).join('');
+    const noteLabels=['📝 오늘 배운 핵심','💭 새롭게 생긴 질문','🔗 일상과의 연결','⭐ 나의 다짐'];
+    const notes=noteLabels.map((label,ni)=>`
+      <div class="reflect-box">
+        <h4>${label}</h4>
+        <textarea class="reflect-ta" id="note-${i}-${ni}" placeholder="여기에 기록하세요..."
+          oninput="saveNote(${i},'n${ni}',this.value);showToast()"></textarea>
+      </div>`).join('');
+    return `
+    <div class="page" id="page-lesson-${i}">
+      <div class="lesson-header" style="border-left:5px solid ${COLORS[i]}">
+        <div class="lesson-num-badge" style="background:${COLORS[i]}"><span>${l.num}</span>차시</div>
+        <div class="lesson-header-info">
+          <h2>${l.title}</h2>
+          <p>${l.desc}</p>
+          <div class="lesson-chips">
+            ${l.concepts.map(c=>`<span class="lchip">📌 ${c}</span>`).join('')}
+            <span class="lchip">⏱ ${l.time}</span>
+          </div>
+        </div>
+        <button id="cbtn-${i}" class="complete-btn undone no-print" onclick="toggleComplete(${i})">☐ 완료 표시</button>
+      </div>
+      <div class="tabs no-print" id="tabs-${i}">
+        <button class="tab-btn active" onclick="showTab(${i},'concept',this)">핵심개념·일반화</button>
+        <button class="tab-btn" onclick="showTab(${i},'questions',this)">탐구 질문</button>
+        <button class="tab-btn" onclick="showTab(${i},'flow',this)">수업 활동 흐름</button>
+        <button class="tab-btn" onclick="showTab(${i},'transfer',this)">전이 활동</button>
+        <button class="tab-btn" onclick="showTab(${i},'rubric',this)">평가 루브릭</button>
+      </div>
+      <div class="tab-content active" id="tab-${i}-concept">
+        <div class="two-col">
+          <div class="info-card"><div class="info-card-title">핵심 개념</div><div class="concept-pills">${l.concepts.map(c=>`<span class="pill pill-blue">${c}</span>`).join('')}</div></div>
+          <div class="info-card"><div class="info-card-title">관련 개념</div><div class="concept-pills">${l.related.map(c=>`<span class="pill pill-purple">${c}</span>`).join('')}</div></div>
+        </div>
+        <div class="info-card"><div class="info-card-title">일반화 (Generalization)</div><div class="generalization-box">${l.gen}</div></div>
+      </div>
+      <div class="tab-content" id="tab-${i}-questions">
+        <div class="q-card factual"><span class="q-badge factual">사실적 Factual</span><ul>${l.q.f.map(q=>`<li>${q}</li>`).join('')}</ul></div>
+        <div class="q-card conceptual"><span class="q-badge conceptual">개념적 Conceptual</span><ul>${l.q.c.map(q=>`<li>${q}</li>`).join('')}</ul></div>
+        <div class="q-card debatable"><span class="q-badge debatable">논쟁적 Debatable</span><ul>${l.q.d.map(q=>`<li>${q}</li>`).join('')}</ul></div>
+      </div>
+      <div class="tab-content" id="tab-${i}-flow"><div>${flow}</div></div>
+      <div class="tab-content" id="tab-${i}-transfer">
+        <div class="transfer-card"><h3>🚀 ${l.transfer.title}</h3><p>${l.transfer.desc}</p><ul>${l.transfer.items.map(it=>`<li>${it}</li>`).join('')}</ul></div>
+        <div class="info-card"><div class="info-card-title">다음 차시 연계</div><p style="font-size:13px;color:#555">이 전이 활동의 결과물은 다음 차시 <strong>관계맺기</strong> 단계에서 모둠과 공유하며 새로운 탐구의 출발점이 됩니다.</p></div>
+      </div>
+      <div class="tab-content" id="tab-${i}-rubric">
+        <div class="info-card"><div class="info-card-title">성취 수준 평가 루브릭</div><div style="overflow-x:auto"><table class="rubric-table"><thead><tr><th>평가 기준</th><th>잘함 (3)</th><th>보통 (2)</th><th>노력 요함 (1)</th></tr></thead><tbody>${rubric}</tbody></table></div></div>
+        <div class="info-card"><div class="info-card-title">성찰 기록 (로컬 저장됨)</div><div class="reflect-grid">${notes}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ NAV ═══
+function showPage(pageId, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+pageId).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('breadcrumb').innerHTML='단원 개요';
+  localStorage.setItem(LS.current, pageId);
+  window.scrollTo(0,0);
+}
+
+function showLesson(idx, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-lesson-'+idx).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const navBtn = btn || document.getElementById('nav-'+idx);
+  if(navBtn) navBtn.classList.add('active');
+  document.getElementById('breadcrumb').innerHTML=`<span>${lessons[idx].num}차시</span> · ${lessons[idx].title}`;
+  localStorage.setItem(LS.current, 'lesson-'+idx);
+  loadNotes(idx);
+  loadComplete(idx);
+  window.scrollTo(0,0);
+}
+
+function showTab(lessonIdx, tabId, btn){
+  document.getElementById('tabs-'+lessonIdx).querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ['concept','questions','flow','transfer','rubric'].forEach(t=>{
+    const el=document.getElementById(`tab-${lessonIdx}-${t}`);
+    if(el) el.classList.remove('active');
+  });
+  const target=document.getElementById(`tab-${lessonIdx}-${tabId}`);
+  if(target) target.classList.add('active');
+}
+
+// ═══ COMPLETE ═══
+function toggleComplete(idx){
+  const c=getCompleted(); c[idx]=!c[idx];
+  localStorage.setItem(LS.completed,JSON.stringify(c));
+  loadComplete(idx); updateProgress(); showToast();
+}
+function loadComplete(idx){
+  const c=getCompleted();
+  const btn=document.getElementById('cbtn-'+idx);
+  if(!btn) return;
+  if(c[idx]){ btn.textContent='✅ 완료됨'; btn.className='complete-btn done no-print'; }
+  else       { btn.textContent='☐ 완료 표시'; btn.className='complete-btn undone no-print'; }
+}
+
+// ═══ NOTES ═══
+function loadNotes(idx){
+  const n=getNotes(); if(!n[idx]) return;
+  [0,1,2,3].forEach(ni=>{ const el=document.getElementById(`note-${idx}-${ni}`); if(el&&n[idx]['n'+ni]) el.value=n[idx]['n'+ni]; });
+}
+
+// ═══ INIT ═══
+function init(){
+  renderNav(); renderMap(); renderLessons(); updateProgress();
+  const last=localStorage.getItem(LS.current)||'overview';
+  if(last.startsWith('lesson-')){
+    const idx=parseInt(last.replace('lesson-',''));
+    if(!isNaN(idx)&&idx>=0&&idx<7){ showLesson(idx); return; }
+  }
+  document.getElementById('nav-overview').classList.add('active');
+}
+init();
+</script>
+</body>
+</html>

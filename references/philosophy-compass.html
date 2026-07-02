@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교수학습 방향의 철학적 나침반 카드뉴스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFBF5;
+    --accent-1: #FF6B6B;
+    --accent-2: #4ECDC4;
+    --accent-3: #FFE66D;
+    --accent-4: #6C5CE7;
+    --accent-5: #FF9F43;
+    --accent-6: #A29BFE;
+    --text: #2D3436;
+    --text-light: #636E72;
+    --radius: 20px;
+    --card-w: 520px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #F0EDE8;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text);
+    padding: 40px 20px;
+  }
+  .page-title {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .page-title h1 {
+    font-size: 22px; font-weight: 900; color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .page-title p { font-size: 14px; color: var(--text-light); margin-top: 6px; }
+
+  /* ── 카드 공통 ── */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+  }
+  .card {
+    width: var(--card-w);
+    max-width: 100%;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── 카드 헤더 ── */
+  .card-header {
+    padding: 28px 32px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .card-num {
+    min-width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #fff;
+    flex-shrink: 0;
+  }
+  .card-titles { flex: 1; }
+  .card-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 2px 10px; border-radius: 20px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .card-title {
+    font-size: 20px; font-weight: 900;
+    line-height: 1.3; letter-spacing: -0.3px;
+  }
+  .card-sub {
+    font-size: 13px; color: var(--text-light);
+    margin-top: 4px; font-weight: 500;
+  }
+
+  /* ── 카드 바디 ── */
+  .card-body { padding: 0 32px 28px; }
+  .card-body p {
+    font-size: 14px; line-height: 1.75;
+    color: var(--text-light); margin-bottom: 16px;
+  }
+
+  /* ── 아이템 리스트 ── */
+  .item-list { display: flex; flex-direction: column; gap: 10px; }
+  .item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: #f7f4ef;
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .item-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .item-text { flex: 1; }
+  .item-text strong {
+    font-size: 14px; font-weight: 700;
+    display: block; margin-bottom: 2px;
+  }
+  .item-text span { font-size: 13px; color: var(--text-light); }
+
+  /* ── 방향 나침반 그리드 ── */
+  .compass-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 0;
+  }
+  .compass-cell {
+    border-radius: 14px; padding: 14px 16px;
+  }
+  .compass-cell .dir {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 4px;
+  }
+  .compass-cell .dir-title {
+    font-size: 15px; font-weight: 900; margin-bottom: 6px;
+  }
+  .compass-cell ul {
+    list-style: none; padding: 0;
+  }
+  .compass-cell ul li {
+    font-size: 12px; color: var(--text-light);
+    padding: 2px 0; display: flex; gap: 6px; align-items: flex-start;
+  }
+  .compass-cell ul li::before { content: "·"; font-weight: 700; opacity: 0.5; }
+
+  /* ── 중심 뱃지 ── */
+  .center-badge {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    border-radius: 16px; padding: 14px 20px;
+    margin-bottom: 12px; text-align: center;
+  }
+  .center-badge .badge-icon { font-size: 28px; }
+  .center-badge .badge-text strong {
+    font-size: 16px; font-weight: 900; display: block;
+  }
+  .center-badge .badge-text span { font-size: 12px; opacity: 0.75; }
+
+  /* ── 단계 흐름 ── */
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .flow-step {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 14px;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .flow-num {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900; color: #fff; flex-shrink: 0;
+  }
+  .flow-content { flex: 1; }
+  .flow-content strong { font-size: 14px; font-weight: 800; display: block; }
+  .flow-content span { font-size: 12px; color: var(--text-light); }
+  .flow-arrow {
+    text-align: center; font-size: 18px;
+    color: var(--text-light); opacity: 0.4;
+    margin: -2px 0;
+    margin-left: 31px;
+  }
+
+  /* ── 2단 비교 ── */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .compare-col { border-radius: 14px; padding: 16px; }
+  .compare-col .col-title {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; margin-bottom: 10px; opacity: 0.75;
+  }
+  .compare-col ul { list-style: none; }
+  .compare-col ul li {
+    font-size: 13px; padding: 5px 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  /* ── 플랫폼 카드 ── */
+  .platform-cards { display: flex; flex-direction: column; gap: 10px; }
+  .platform-card {
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .platform-icon { font-size: 26px; flex-shrink: 0; }
+  .platform-info { flex: 1; }
+  .platform-info .p-level {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 3px;
+  }
+  .platform-info .p-name {
+    font-size: 15px; font-weight: 800; margin-bottom: 4px;
+  }
+  .platform-info .p-url {
+    font-size: 11px; color: var(--accent-4); font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .platform-info .p-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .platform-info .p-tag {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 20px; font-weight: 600;
+  }
+
+  /* ── 표 ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    padding: 10px 12px; font-weight: 700; font-size: 12px;
+    text-align: left; border-bottom: 2px solid rgba(0,0,0,0.1);
+  }
+  td {
+    padding: 9px 12px; border-bottom: 1px solid rgba(0,0,0,0.06);
+    vertical-align: top; line-height: 1.5;
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+
+  /* ── 커버 카드 ── */
+  .cover {
+    background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+    color: #fff; text-align: center; padding: 52px 32px;
+  }
+  .cover .cover-icon { font-size: 64px; margin-bottom: 16px; }
+  .cover h1 {
+    font-size: 26px; font-weight: 900; letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .cover .cover-sub { font-size: 14px; opacity: 0.85; margin-bottom: 20px; }
+  .cover .cover-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .cover .cover-tag {
+    background: rgba(255,255,255,0.2); border-radius: 20px;
+    font-size: 12px; font-weight: 600; padding: 4px 12px;
+  }
+
+  /* ── 마지막 카드 ── */
+  .final {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+    text-align: center; padding: 44px 32px;
+  }
+  .final .final-icon { font-size: 56px; margin-bottom: 12px; }
+  .final h2 {
+    font-size: 22px; font-weight: 900;
+    color: #2D3436; margin-bottom: 8px;
+  }
+  .final p { font-size: 14px; color: #636E72; margin-bottom: 16px; }
+  .final .school-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.7);
+    border-radius: 20px; padding: 6px 18px;
+    font-size: 13px; font-weight: 700; color: #2D3436;
+  }
+
+  /* ── 구분선 데코 ── */
+  .deco-line {
+    height: 4px; border-radius: 2px; margin: 0 0 20px;
+  }
+  .quote-box {
+    border-radius: 14px; padding: 14px 18px;
+    margin-bottom: 16px; position: relative;
+  }
+  .quote-box .q-mark {
+    font-size: 36px; font-weight: 900; opacity: 0.2;
+    position: absolute; top: 6px; left: 12px; line-height: 1;
+  }
+  .quote-box p {
+    font-size: 14px; font-weight: 700;
+    line-height: 1.6; margin: 0; padding-left: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>📌 교수학습 방향의 철학적 나침반</h1>
+  <p>카드를 스크롤하며 읽어보세요 · 총 9장</p>
+</div>
+
+<div class="cards">
+
+  <!-- ━━━ CARD 0: 커버 ━━━ -->
+  <div class="card cover">
+    <div class="cover-icon">🧭</div>
+    <h1>교수학습 방향의<br>철학적 나침반</h1>
+    <div class="cover-sub">2022 개정교육과정 | 별처럼 빛나는 STAR 광석교육</div>
+    <div class="cover-tags">
+      <span class="cover-tag">🌱 깊이 있는 학습</span>
+      <span class="cover-tag">🙋 학생 참여형</span>
+      <span class="cover-tag">💡 맞춤형 수업</span>
+      <span class="cover-tag">🌈 다양한 환경</span>
+      <span class="cover-tag">📋 과정중심평가</span>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 1: 핵심 가치 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-4)">1</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#ede9fe;color:var(--accent-4)">핵심 가치</span>
+        <div class="card-title">모든 수업이 향하는 곳 🎯</div>
+        <div class="card-sub">역량 &amp; 주도성 — Competency &amp; Agency</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="center-badge" style="background:#ede9fe;">
+        <span class="badge-icon">⭐</span>
+        <div class="badge-text">
+          <strong style="color:var(--accent-4)">역량과 주도성을 가진 학생</strong>
+          <span>2022 개정교육과정이 바라는 최종 목표</span>
+        </div>
+      </div>
+      <div class="item-list">
+        <div class="item">
+          <span class="item-icon">🧠</span>
+          <div class="item-text">
+            <strong>역량 (Competency)</strong>
+            <span>지식을 삶의 맥락에서 활용하는 힘. 알고 있는 것을 실제로 쓸 수 있는 능력</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🚀</span>
+          <div class="item-text">
+            <strong>주도성 (Agency)</strong>
+            <span>스스로 방향을 정하고 나아가는 힘. 배움의 주인이 되는 것</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔄</span>
+          <div class="item-text">
+            <strong>4대 교수학습 방향이 이 하나를 향해 수렴</strong>
+            <span>깊이 있는 학습 · 참여형 · 맞춤형 · 다양한 환경</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 2: 4대 방향 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-1)">2</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#ffe0e0;color:var(--accent-1)">교수학습 방향</span>
+        <div class="card-title">4대 교수학습 방향 🧭</div>
+        <div class="card-sub">나침반의 N·W·E·S 네 방위처럼</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="compass-grid">
+        <div class="compass-cell" style="background:#e8faf9;">
+          <div class="dir">🌿 NORTH</div>
+          <div class="dir-title" style="color:#1D9E75;">깊이 있는 학습</div>
+          <ul>
+            <li>개념 기반 탐구수업</li>
+            <li>빅아이디어 중심 설계</li>
+            <li>사실 → 개념 → 전이</li>
+          </ul>
+        </div>
+        <div class="compass-cell" style="background:#ffe0e0;">
+          <div class="dir">🌊 WEST</div>
+          <div class="dir-title" style="color:var(--accent-1);">학생 참여형 수업</div>
+          <ul>
+            <li>협력 학습·프로젝트</li>
+            <li>토의토론 중심</li>
+            <li>학생이 수업의 주인</li>
+          </ul>
+        </div>
+        <div class="compass-cell" style="background:#ffeef5;">
+          <div class="dir">🌸 EAST</div>
+          <div class="dir-title" style="color:#993556;">학생 맞춤형 수업</div>
+          <ul>
+            <li>데이터 기반 피드백</li>
+            <li>UDL 보편적 학습 설계</li>
+            <li>개별 학습 경로 구성</li>
+          </ul>
+        </div>
+        <div class="compass-cell" style="background:#fff8e0;">
+          <div class="dir">☀️ SOUTH</div>
+          <div class="dir-title" style="color:var(--accent-5);">다양한 환경 조성</div>
+          <ul>
+            <li>교실 안팎 연계</li>
+            <li>에듀테크 활용</li>
+            <li>유연한 공간 구성</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 3: 과정중심평가 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-2)">3</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#d4f5f3;color:#0f6e56;">과정중심평가</span>
+        <div class="card-title">평가가 달라진다 📝</div>
+        <div class="card-sub">결과보다 과정, 측정보다 성장</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="quote-box" style="background:#d4f5f3;">
+        <span class="q-mark">"</span>
+        <p style="color:#085041;">학생은 평가의 <strong>대상</strong>이 아니라<br>성장의 <strong>주체</strong>입니다.</p>
+      </div>
+      <div class="compare">
+        <div class="compare-col" style="background:#ffe0e0;">
+          <div class="col-title" style="color:var(--accent-1);">😓 이전 관점</div>
+          <ul>
+            <li>🔴 결과 중심</li>
+            <li>🔴 일회성 측정</li>
+            <li>🔴 평가의 대상</li>
+            <li>🔴 분절된 평가</li>
+            <li>🔴 교사 주도</li>
+          </ul>
+        </div>
+        <div class="compare-col" style="background:#d4f5f3;">
+          <div class="col-title" style="color:#085041;">😊 새로운 관점</div>
+          <ul>
+            <li>🟢 과정 중심</li>
+            <li>🟢 지속적 성장</li>
+            <li>🟢 성장의 주체</li>
+            <li>🟢 선순환 체계</li>
+            <li>🟢 자기주도 평가</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 4: 선순환 고리 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-5)">4</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#fff0d4;color:var(--accent-5);">선순환 고리</span>
+        <div class="card-title">성장은 멈추지 않아요 🔄</div>
+        <div class="card-sub">진단 → 설계 → 형성 → 다시 진단</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="flow">
+        <div class="flow-step" style="background:#e8faf9;">
+          <div class="flow-num" style="background:#1D9E75;">1</div>
+          <div class="flow-content">
+            <strong style="color:#085041;">🔍 진단평가 — 출발점 파악</strong>
+            <span>학생의 현재 수준·특성을 파악해요</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step" style="background:#e6f1fb;">
+          <div class="flow-num" style="background:#185FA5;">2</div>
+          <div class="flow-content">
+            <strong style="color:#0C447C;">🎨 맞춤형 교수학습 설계</strong>
+            <span>진단 결과로 개별 학습 경로를 설계해요</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step" style="background:#fff0d4;">
+          <div class="flow-num" style="background:var(--accent-5);">3</div>
+          <div class="flow-content">
+            <strong style="color:#854F0B;">📊 형성평가 — 과정 점검·피드백</strong>
+            <span>배움의 과정을 살피고 바로 피드백해요</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step" style="background:#ffeef5;">
+          <div class="flow-num" style="background:#993556;">4</div>
+          <div class="flow-content">
+            <strong style="color:#72243E;">🔁 다음 학습을 위한 진단 자료</strong>
+            <span>평가 결과가 다음 출발점이 되어요</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-light);">
+        ↑ 다시 1단계로 &nbsp;·&nbsp; 이 고리는 계속 돌아요 ♻️
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 5: 진단평가 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:#1D9E75;">5</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#d4f5f3;color:#085041;">진단평가</span>
+        <div class="card-title">맞춤형 교육의 출발점 🔍</div>
+        <div class="card-sub">알아야 도울 수 있어요</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="item-list">
+        <div class="item">
+          <span class="item-icon">👤</span>
+          <div class="item-text">
+            <strong>학생 맞춤형 교육</strong>
+            <span>학생 수준·특성 파악 → 개별 학습 경로 설계</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🛡️</span>
+          <div class="item-text">
+            <strong>학습 결손 예방 &amp; 격차 완화</strong>
+            <span>취약 부분 조기 발견 → 빠른 지원으로 격차 줄이기</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📐</span>
+          <div class="item-text">
+            <strong>교수학습 설계 기초 제공</strong>
+            <span>데이터 기반 수업 설계 → 출발점 행동 확인</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 6: 형성평가 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-5);">6</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#fff0d4;color:var(--accent-5);">형성평가</span>
+        <div class="card-title">성장하는 수업의 엔진 ⚙️</div>
+        <div class="card-sub">수업 안에서 계속 성장해요</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="item-list">
+        <div class="item">
+          <span class="item-icon">💬</span>
+          <div class="item-text">
+            <strong>지속적 성장 지원 &amp; 피드백</strong>
+            <span>적시 피드백 제공 → 성장 과정을 눈에 보이게</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔧</span>
+          <div class="item-text">
+            <strong>교수학습의 질적 개선</strong>
+            <span>수업 중 즉각 수정 → 교사의 성찰적 실천</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🌟</span>
+          <div class="item-text">
+            <strong>자기주도 학습 능력 향상</strong>
+            <span>자기 평가·동료 평가 → 메타인지 능력 신장</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 7: 플랫폼 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-4);">7</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#ede9fe;color:var(--accent-4);">평가 플랫폼</span>
+        <div class="card-title">어디서 쓸 수 있나요? 💻</div>
+        <div class="card-sub">충남수준 · 국가수준 도구 한눈에</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="platform-cards">
+        <div class="platform-card" style="background:#e8faf9;">
+          <span class="platform-icon">🌿</span>
+          <div class="platform-info">
+            <div class="p-level">충남수준 · 진단평가</div>
+            <div class="p-name" style="color:#085041;">온채움</div>
+            <div class="p-url">onbaisce.cne.go.kr</div>
+            <div class="p-tags">
+              <span class="p-tag" style="background:#b2ede6;color:#085041;">학습수준 진단</span>
+              <span class="p-tag" style="background:#b2ede6;color:#085041;">심리정서 분석</span>
+              <span class="p-tag" style="background:#b2ede6;color:#085041;">맞춤 자료</span>
+            </div>
+          </div>
+        </div>
+        <div class="platform-card" style="background:#fff0d4;">
+          <span class="platform-icon">🏫</span>
+          <div class="platform-info">
+            <div class="p-level">충남수준 · 형성평가</div>
+            <div class="p-name" style="color:#854F0B;">충남형미래교육 평가</div>
+            <div class="p-url">edus.or.kr</div>
+            <div class="p-tags">
+              <span class="p-tag" style="background:#ffd6a0;color:#633806;">NO.8 형성평가</span>
+              <span class="p-tag" style="background:#ffd6a0;color:#633806;">NO.9 에듀테크</span>
+              <span class="p-tag" style="background:#ffd6a0;color:#633806;">NO.14 선순환</span>
+            </div>
+          </div>
+        </div>
+        <div class="platform-card" style="background:#ede9fe;">
+          <span class="platform-icon">🇰🇷</span>
+          <div class="platform-info">
+            <div class="p-level">국가수준 · 통합 포털 (2026.2 개통)</div>
+            <div class="p-name" style="color:var(--accent-4);">국가기초학력지원포털</div>
+            <div class="p-url">basics.go.kr</div>
+            <div class="p-tags">
+              <span class="p-tag" style="background:#c8c0fb;color:#3c30a0;">진단-보정 통합</span>
+              <span class="p-tag" style="background:#c8c0fb;color:#3c30a0;">자율평가</span>
+              <span class="p-tag" style="background:#c8c0fb;color:#3c30a0;">NEIS 연계</span>
+              <span class="p-tag" style="background:#c8c0fb;color:#3c30a0;">AI 맞춤</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 8: 에듀테크 환경 ━━━ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num" style="background:var(--accent-1);">8</div>
+      <div class="card-titles">
+        <span class="card-tag" style="background:#ffe0e0;color:var(--accent-1);">수업 환경</span>
+        <div class="card-title">에듀테크로 수업을 열어요 🖥️</div>
+        <div class="card-sub">도구보다 목적이 먼저!</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr style="background:#ffe0e0;">
+              <th>단계</th>
+              <th>목적</th>
+              <th>대표 도구</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>🔍 진단</td>
+              <td>출발점 파악</td>
+              <td>온채움, 구글 폼, Kahoot</td>
+            </tr>
+            <tr>
+              <td>🎨 설계</td>
+              <td>맞춤 수업 구성</td>
+              <td>Padlet, 캔버스, Claude</td>
+            </tr>
+            <tr>
+              <td>📚 실행</td>
+              <td>참여형 수업</td>
+              <td>띵커벨, Mentimeter</td>
+            </tr>
+            <tr>
+              <td>🔁 환류</td>
+              <td>성장 기록</td>
+              <td>클래스팅, Obsidian</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="height:14px;"></div>
+      <div class="item-list">
+        <div class="item">
+          <span class="item-icon">💡</span>
+          <div class="item-text">
+            <strong>원칙 1 — 도구보다 목적 먼저</strong>
+            <span>"왜 쓰는가"가 수업 설계의 출발점</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📖</span>
+          <div class="item-text">
+            <strong>원칙 2 — 디지털 리터러시 함께 기르기</strong>
+            <span>도구 사용법을 수업 중 자연스럽게 익히도록</span>
+          </div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🗂️</span>
+          <div class="item-text">
+            <strong>원칙 3 — 과정 기록 습관화</strong>
+            <span>활동 결과물을 포트폴리오에 쌓아 선순환 증거로</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━━ CARD 9: 마지막 ━━━ -->
+  <div class="card final">
+    <div class="final-icon">🌟</div>
+    <h2>별처럼 빛나는<br>STAR 광석교육</h2>
+    <p>학생이 성장의 주체가 되는 수업,<br>오늘도 우리는 그 길을 함께 갑니다 ✨</p>
+    <div class="school-badge">🏫 광석초등학교 · 2022 개정교육과정</div>
+  </div>
+
+</div><!-- /cards -->
+
+<div style="text-align:center;margin:40px 0 20px;font-size:12px;color:#aaa;">
+  총 9장 · 과정중심평가 교수학습 철학적 나침반
+</div>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교육 패러다임 전환 — 세 축</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f6;color:#1a1a1a;padding:24px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:24px}
+.sl{font-size:11px;font-weight:600;color:#888;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.7rem}
+.axis-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.axis-card{border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s;background:#fff}
+.axis-card:hover{border-color:#ccc}
+.axis-card.on{border-width:2px}
+.axis-head{padding:14px 16px 10px}
+.axis-num{font-size:11px;font-weight:600;letter-spacing:.08em;margin-bottom:6px}
+.axis-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.axis-arrow{display:flex;align-items:center;gap:6px;font-size:12px;color:#888;margin-top:8px}
+.axis-from{font-size:12px}
+.axis-to{font-size:12px;font-weight:500}
+.axis-body{padding:12px 16px 14px;border-top:1px solid #eee;background:#fafaf8}
+.axis-desc{font-size:12px;color:#666;line-height:1.6}
+.detail-panel{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;min-height:200px}
+.dp-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.dp-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dp-title{font-size:15px;font-weight:500}
+.dp-sub{font-size:12px;color:#666;margin-top:2px}
+.shift-row{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:10px}
+.shift-box{padding:10px 14px;border-radius:8px;font-size:13px}
+.shift-from{background:#f5f5f3;color:#666;border:1px solid #eee}
+.shift-to{font-weight:500;border:1px solid transparent}
+.shift-arrow{font-size:18px;color:#ccc;text-align:center}
+.shift-label{font-size:11px;color:#888;margin-bottom:4px}
+.principle-list{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.principle-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:#f8f8f6;font-size:12px;line-height:1.5}
+.principle-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.flow-track{display:flex;gap:0;align-items:stretch;overflow:hidden;border-radius:10px;border:1px solid #e8e8e8;margin-bottom:1.5rem}
+.flow-node{flex:1;padding:14px 10px;text-align:center;position:relative;border-right:1px solid #eee;background:#fff}
+.flow-node:last-child{border-right:none}
+.fn-num{font-size:11px;font-weight:600;margin-bottom:5px}
+.fn-title{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.3}
+.fn-desc{font-size:11px;color:#666;line-height:1.4}
+.quote-strip{background:#f5f5f3;border-left:3px solid #ccc;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1.5rem}
+.quote-text{font-size:14px;color:#1a1a1a;font-style:italic;line-height:1.6;font-family:Georgia,serif}
+.quote-src{font-size:11px;color:#888;margin-top:6px}
+.gen-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.gen-label{font-size:13px;font-weight:500}
+.gen-btn{display:flex;align-items:center;gap:5px;padding:7px 16px;font-size:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:transparent;font-family:inherit;transition:all .15s}
+.gen-btn:hover{background:#f5f5f3}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-out{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1rem;min-height:60px}
+.ai-text{font-size:13px;line-height:1.7;white-space:pre-wrap}
+.ai-hint{font-size:13px;color:#888}
+.spinner{display:inline-block;width:12px;height:12px;border:1.5px solid #ddd;border-top-color:#333;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>교육 패러다임 전환의 세 축</h1>
+<p class="subtitle">평가의 새로운 의미 · 교사의 역할 변화 · 교육의 종착역</p>
+
+<div class="sl">세 축 — 클릭해 상세 내용 확인</div>
+<div class="axis-grid" id="axis-grid"></div>
+<div class="detail-panel" id="detail-panel"><div class="ai-hint">축 카드를 클릭하면 상세 내용이 펼쳐집니다.</div></div>
+
+<div class="sl">세 축이 만드는 교육 성장 흐름</div>
+<div class="flow-track">
+  <div class="flow-node" style="background:rgba(83,74,183,.04)"><div class="fn-num" style="color:#534AB7">01</div><div class="fn-title">평가 재정의</div><div class="fn-desc">점수 → 성장<br>과정 중심 피드백</div></div>
+  <div class="flow-node" style="background:rgba(15,110,86,.04)"><div class="fn-num" style="color:#0F6E56">02</div><div class="fn-title">교사 역할 전환</div><div class="fn-desc">전달 → 촉진<br>학습 설계·동반</div></div>
+  <div class="flow-node" style="background:rgba(24,95,165,.04)"><div class="fn-num" style="color:#185FA5">03</div><div class="fn-title">교육의 목적지</div><div class="fn-desc">지식 → 소통<br>개념 전이·적용</div></div>
+  <div class="flow-node" style="background:rgba(186,117,23,.04)"><div class="fn-num" style="color:#BA7517">04</div><div class="fn-title">학생 성장</div><div class="fn-desc">자기주도 역량<br>실제 삶에 전이</div></div>
+</div>
+
+<div class="quote-strip">
+  <div class="quote-text">"교육의 목표는 학생이 교실을 떠난 뒤에도 스스로 사고하고, 연결하고, 소통할 수 있는 사람으로 성장하는 것이다."</div>
+  <div class="quote-src">2022 개정교육과정 · 역량 중심 교육 철학</div>
+</div>
+
+<div class="gen-row"><div class="gen-label">AI — 세 축 통합 교육철학 해설</div><button class="gen-btn" id="ai-btn" onclick="genAI()"><i class="ti ti-sparkles"></i> 해설 생성</button></div>
+<div class="ai-out" id="ai-out"><div class="ai-hint">버튼을 누르면 세 축의 교육철학적 의미를 AI가 통합 해설합니다.</div></div>
+</div>
+
+<script>
+const AXES=[{id:'eval',num:'축 01',title:'평가의 새로운 의미',from:'점수',to:'성장',color:'#534AB7',bg:'rgba(83,74,183,.08)',borderOn:'#534AB7',iconBg:'rgba(83,74,183,.12)',iconColor:'#534AB7',icon:'ti-chart-bar',desc:'평가는 학습의 끝이 아니라 성장의 거울입니다. 수치가 아닌 과정을 포착하고, 결과가 아닌 변화를 기록합니다.',shifts:[{from:'결과 중심 측정',to:'과정 중심 기록',label:'평가 대상'},{from:'일회성 시험',to:'지속적 형성평가',label:'평가 시점'},{from:'서열·등급 확인',to:'성장 가능성 발견',label:'평가 목적'},{from:'교사 주도 판단',to:'자기·동료 평가',label:'평가 주체'}],principles:['형성평가는 교수학습 개선의 엔진이다','루브릭은 기준이 아니라 성장의 지도다','피드백은 점수가 아닌 다음 행동을 안내한다','AI 진단은 교사의 관찰을 대체하지 않고 확장한다']},{id:'teacher',num:'축 02',title:'교사의 역할 변화',from:'지식 전달자',to:'성장 촉진자',color:'#0F6E56',bg:'rgba(15,110,86,.08)',borderOn:'#0F6E56',iconBg:'rgba(15,110,86,.12)',iconColor:'#0F6E56',icon:'ti-user',desc:'교사는 정보를 주는 사람에서 학생이 스스로 발견하도록 돕는 사람으로 변합니다.',shifts:[{from:'지식 전달·설명',to:'탐구 환경 설계',label:'주요 활동'},{from:'정답 제시',to:'질문 제기',label:'수업 방식'},{from:'평가자·판단자',to:'성장 관찰·기록자',label:'평가 역할'},{from:'교과서 중심',to:'학생 경험 중심',label:'수업 중심'}],principles:['교사의 질문이 학생의 사고 깊이를 결정한다','개별 개입은 데이터가 아닌 관계에서 시작된다','AI는 교사의 판단을 보조하는 도구다','촉진자는 때로 침묵으로 가르친다']},{id:'goal',num:'축 03',title:'교육의 종착역',from:'지식',to:'소통 (개념 전이)',color:'#185FA5',bg:'rgba(24,95,165,.08)',borderOn:'#185FA5',iconBg:'rgba(24,95,165,.12)',iconColor:'#185FA5',icon:'ti-arrows-transfer-up',desc:'교육의 궁극적 목표는 지식을 보유하는 것이 아닙니다. 배운 개념을 새로운 맥락에 적용하고, 타인과 소통하며, 실제 삶에서 전이하는 능력입니다.',shifts:[{from:'지식 축적·암기',to:'개념 이해·전이',label:'학습 목표'},{from:'시험 통과',to:'실제 상황 적용',label:'성취 기준'},{from:'교과 내 완결',to:'교과 간·삶으로 연결',label:'학습 범위'},{from:'수동적 수용',to:'능동적 소통·창출',label:'학습 형태'}],principles:['개념 전이가 일어날 때 진짜 학습이 완성된다','소통은 언어가 아니라 이해의 표현이다','GRASPS 과제는 전이를 측정하는 실제적 도구다','교실 밖에서도 작동하는 배움이 교육의 종착역이다']}];
+
+let activeAxis=null;
+function renderAxes(){
+  const grid=document.getElementById('axis-grid');grid.innerHTML='';
+  AXES.forEach(a=>{
+    const card=document.createElement('div');card.className='axis-card'+(activeAxis===a.id?' on':'');
+    if(activeAxis===a.id){card.style.borderColor=a.borderOn;card.style.background=a.bg}
+    card.innerHTML=`<div class="axis-head" style="background:${activeAxis===a.id?a.bg:''}"><div class="axis-num" style="color:${a.color}">${a.num}</div><div class="axis-title">${a.title}</div><div class="axis-arrow"><span class="axis-from" style="color:#888">${a.from}</span><i class="ti ti-arrow-right" style="font-size:14px;color:#ccc"></i><span class="axis-to" style="color:${a.color}">${a.to}</span></div></div><div class="axis-body"><div class="axis-desc">${a.desc}</div></div>`;
+    card.onclick=()=>{activeAxis=a.id;renderAxes();renderDetail(a)};
+    grid.appendChild(card);
+  });
+}
+function renderDetail(a){
+  const panel=document.getElementById('detail-panel');
+  const shifts=a.shifts.map(s=>`<div class="shift-row"><div class="shift-box shift-from"><div class="shift-label">${s.label} — 이전</div>${s.from}</div><div class="shift-arrow"><i class="ti ti-arrow-right"></i></div><div class="shift-box shift-to" style="background:${a.bg};color:${a.color};border-color:${a.color}40"><div class="shift-label" style="color:${a.color}88">${s.label} — 전환 후</div>${s.to}</div></div>`).join('');
+  const principles=a.principles.map(p=>`<div class="principle-item"><div class="principle-dot" style="background:${a.color}"></div>${p}</div>`).join('');
+  panel.innerHTML=`<div class="dp-head"><div class="dp-icon" style="background:${a.iconBg}"><i class="ti ${a.icon}" style="color:${a.iconColor};font-size:16px"></i></div><div><div class="dp-title">${a.title}</div><div class="dp-sub">${a.from} → ${a.to}</div></div></div>${shifts}<div class="principle-list">${principles}</div>`;
+}
+async function genAI(){
+  const btn=document.getElementById('ai-btn'),out=document.getElementById('ai-out');
+  btn.disabled=true;out.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span style="font-size:13px;color:#888">AI 해설 생성 중...</span></div>';
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:'당신은 초등학교 교사를 위한 교육철학 전문가입니다. 2022 개정교육과정의 맥락에서 교육 패러다임 전환의 세 축을 통합적으로 해설합니다. 교사가 교실에서 바로 적용할 수 있는 실천적 관점으로, 따뜻하고 구체적인 언어로 6~8문장 작성하세요. 마크다운 없이 순수 텍스트로 반환하세요.',messages:[{role:'user',content:'평가의 새로운 의미(점수→성장), 교사의 역할 변화(지식 전달자→성장 촉진자), 교육의 종착역(지식→소통·개념 전이)의 세 축이 어떻게 하나의 교육 철학으로 연결되는지, 초등 현장에서의 의미를 통합 해설해 주세요.'}]})});const data=await res.json();const text=data.content?.find(c=>c.type==='text')?.text||'생성 실패';out.innerHTML=`<div class="ai-text">${text}</div>`}catch(e){out.innerHTML='<div class="ai-hint" style="color:#c0392b">오류가 발생했습니다.</div>'}
+  btn.disabled=false;
+}
+renderAxes();
+</script>
+</body>
+</html>

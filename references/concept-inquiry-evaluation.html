@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>평가 - 개념기반 탐구수업</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky: #D6EEFF; --sky-mid: #A8D8F0; --sky-deep: #2E86B8;
+      --sky-navy: #1A5F80; --white: #FFFFFF;
+      --text-main: #1A3A4A; --text-sub: #4A7A96; --text-hint: #7AAFC4;
+      --border: rgba(90,174,212,0.3); --border-mid: rgba(90,174,212,0.5);
+    }
+    body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; font-size: 14px; background: var(--sky); color: var(--text-main); }
+
+    .top-bar { background: var(--sky-navy); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 36px; }
+    .top-bar a { color: var(--sky-mid); font-size: 12px; text-decoration: none; margin-right: 16px; }
+    .top-bar a:hover { color: var(--white); }
+    .top-bar-right { color: var(--sky-mid); font-size: 12px; }
+
+    .gnb { background: var(--white); border-bottom: 2px solid var(--sky-mid); display: flex; align-items: center; padding: 0 32px; height: 62px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(46,134,184,0.08); }
+    .gnb-logo { display: flex; align-items: center; gap: 12px; margin-right: 32px; text-decoration: none; }
+    .gnb-logo img { width: 46px; height: 46px; object-fit: contain; }
+    .gnb-logo-texts .logo-text { color: var(--sky-navy); font-size: 16px; font-weight: 700; line-height: 1.2; }
+    .gnb-logo-texts .logo-sub { color: var(--text-hint); font-size: 11px; margin-top: 1px; }
+    .gnb-menus { display: flex; height: 62px; margin-left: auto; }
+    .gnb-menu { color: var(--text-sub); font-size: 14px; padding: 0 18px; display: flex; align-items: center; height: 62px; text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: color 0.2s; }
+    .gnb-menu:hover { color: var(--sky-deep); }
+    .gnb-menu.active { color: var(--sky-deep); border-bottom: 3px solid var(--sky-deep); font-weight: 600; }
+
+    .layout { display: flex; min-height: calc(100vh - 36px - 62px - 60px); }
+
+    .lnb { width: 200px; min-width: 200px; background: var(--white); border-right: 1px solid var(--border-mid); }
+    .lnb-title { background: var(--sky-deep); color: var(--white); font-size: 14px; font-weight: 600; padding: 16px 18px; }
+    .lnb-item { display: block; padding: 12px 18px; font-size: 14px; color: var(--text-sub); border-bottom: 1px solid var(--border); text-decoration: none; }
+    .lnb-item:hover { background: var(--sky); }
+    .lnb-item.active { background: var(--sky); color: var(--sky-navy); font-weight: 600; border-left: 4px solid var(--sky-deep); padding-left: 14px; }
+    .lnb-sub { display: block; padding: 9px 18px 9px 32px; font-size: 13px; color: var(--text-hint); border-bottom: 1px solid var(--border); text-decoration: none; }
+    .lnb-sub:hover { background: var(--sky); }
+    .lnb-sub.active { color: var(--sky-deep); font-weight: 600; background: #EBF5FD; }
+
+    .main { flex: 1; padding: 28px 32px; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; font-size: 12px; color: var(--text-hint); }
+    .breadcrumb a { color: var(--text-hint); text-decoration: none; }
+    .breadcrumb-sep { color: var(--border-mid); }
+    .breadcrumb-current { color: var(--sky-deep); font-weight: 600; }
+    .page-title { font-size: 20px; font-weight: 700; color: var(--text-main); padding-bottom: 14px; border-bottom: 2px solid var(--sky-mid); display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .page-bar { width: 5px; height: 22px; background: var(--sky-deep); border-radius: 3px; }
+
+    /* 성장보고서 */
+    .report-wrap { border: 1px solid var(--border-mid); border-radius: 10px; overflow: hidden; background: var(--white); }
+    .report-header { background: var(--sky-deep); color: var(--white); padding: 20px; text-align: center; }
+    .report-header .school { font-size: 13px; color: var(--sky-mid); margin-bottom: 4px; }
+    .report-header .title { font-size: 20px; font-weight: 700; }
+    .report-header .year { font-size: 13px; color: var(--sky-mid); margin-top: 5px; }
+
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table td { padding: 10px 16px; border: 1px solid var(--border); font-size: 13px; }
+    .info-table .label { background: var(--sky); color: var(--sky-navy); font-weight: 600; width: 90px; }
+    .info-table .value { background: var(--white); color: var(--text-main); }
+
+    .legend { display: flex; gap: 16px; padding: 10px 16px; background: var(--sky); flex-wrap: wrap; border-top: 1px solid var(--border-mid); align-items: center; }
+    .legend-label { font-size: 12px; font-weight: 600; color: var(--sky-navy); margin-right: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-sub); }
+
+    .section-title { background: var(--sky-mid); color: var(--sky-navy); font-size: 13px; font-weight: 600; padding: 8px 16px; }
+
+    .grade-table { width: 100%; border-collapse: collapse; }
+    .grade-table th { background: var(--sky); color: var(--sky-navy); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--border-mid); text-align: center; }
+    .grade-table td { padding: 8px 12px; border: 1px solid var(--border); font-size: 13px; text-align: center; vertical-align: middle; background: var(--white); }
+    .grade-table tr:hover td { background: #F0F8FF; }
+    .grade-table .subject-label { background: var(--sky); font-weight: 600; color: var(--sky-deep); width: 55px; }
+    .grade-table .area { text-align: left; color: var(--text-sub); width: 130px; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 600; }
+    .badge-A { background: var(--sky-navy); color: var(--white); }
+    .badge-B { background: var(--sky-deep); color: var(--white); }
+    .badge-C { background: var(--sky); color: var(--sky-navy); border: 1px solid var(--sky-mid); }
+    .badge-D { background: #f0f0f0; color: #888; border: 1px solid #ddd; }
+
+    .attitude-table { width: 100%; border-collapse: collapse; }
+    .attitude-table th { background: var(--sky); color: var(--sky-navy); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--border-mid); text-align: center; }
+    .attitude-table td { padding: 9px 12px; border: 1px solid var(--border); font-size: 13px; background: var(--white); }
+    .attitude-table .note { color: var(--text-sub); font-size: 12px; }
+
+    .attend-row { display: flex; }
+    .attend-cell { flex: 1; text-align: center; padding: 12px 4px; border: 1px solid var(--border); background: var(--white); }
+    .attend-cell:not(:last-child) { border-right: none; }
+    .attend-cell .a-label { color: var(--text-hint); font-weight: 600; font-size: 11px; margin-bottom: 4px; }
+    .attend-cell .a-val { font-size: 18px; font-weight: 700; color: var(--sky-deep); }
+
+    .comment-box { padding: 16px; background: var(--white); }
+    .comment-section { margin-bottom: 14px; }
+    .comment-section:last-child { margin-bottom: 0; }
+    .comment-label { font-size: 12px; font-weight: 600; color: var(--sky-deep); margin-bottom: 6px; }
+    .comment-text { font-size: 13px; color: var(--text-main); line-height: 1.8; background: var(--sky); border: 1px solid var(--border-mid); border-radius: 6px; padding: 12px 14px; }
+
+    .footer { background: var(--sky-navy); padding: 18px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-left { display: flex; align-items: center; gap: 12px; }
+    .footer-left img { width: 30px; height: 30px; object-fit: contain; opacity: 0.85; }
+    .footer-info .footer-name { color: var(--white); font-size: 14px; font-weight: 600; }
+    .footer-info .footer-desc { color: var(--sky-mid); font-size: 12px; margin-top: 2px; }
+    .footer-copy { color: var(--text-hint); font-size: 11px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div>
+      <a href="#">홈</a>
+      <a href="#">사이트맵</a>
+      <a href="http://kwangsok.cnees.kr/" target="_blank">광석초 홈페이지</a>
+    </div>
+    <span class="top-bar-right">교내 교직원 전용</span>
+  </div>
+
+  <nav class="gnb">
+    <a class="gnb-logo" href="index.html">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="21" fill="#D6EEFF" stroke="#2E86B8" stroke-width="1.5"/>
+        <circle cx="22" cy="10" r="5" fill="#1A5F80"/>
+        <circle cx="12" cy="28" r="5" fill="#2E86B8"/>
+        <circle cx="32" cy="28" r="5" fill="#5BAED4"/>
+        <line x1="22" y1="15" x2="14" y2="24" stroke="#2E86B8" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="15" x2="30" y2="24" stroke="#2E86B8" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="17" y1="28" x2="27" y2="28" stroke="#2E86B8" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="22" y="13" text-anchor="middle" font-size="5" fill="white" font-family="sans-serif" font-weight="bold">개</text>
+        <text x="12" y="31" text-anchor="middle" font-size="5" fill="white" font-family="sans-serif" font-weight="bold">탐</text>
+        <text x="32" y="31" text-anchor="middle" font-size="5" fill="white" font-family="sans-serif" font-weight="bold">성</text>
+      </svg>
+      <div class="gnb-logo-texts">
+        <div class="logo-text">개념기반 탐구수업</div>
+        <div class="logo-sub">광석초 · 교내 교직원 전용</div>
+      </div>
+    </a>
+    <div class="gnb-menus">
+      <a href="about.html" class="gnb-menu">소개</a>
+      <a href="grade1/index.html" class="gnb-menu">학년별 수업</a>
+      <a href="resources.html" class="gnb-menu">지도안 자료실</a>
+      <a href="gallery.html" class="gnb-menu">수업 갤러리</a>
+      <a href="evaluation.html" class="gnb-menu active">평가</a>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside class="lnb">
+      <div class="lnb-title">평가</div>
+      <a href="evaluation.html" class="lnb-item active">학생 성장 보고서</a>
+      <a href="#" class="lnb-sub active">· 보고서 조회</a>
+      <a href="#" class="lnb-sub">· 출력</a>
+      <a href="eval-standard.html" class="lnb-item">교과별 평가 기준</a>
+      <a href="eval-resources.html" class="lnb-item">평가 자료실</a>
+    </aside>
+
+    <main class="main">
+      <div class="breadcrumb">
+        <a href="index.html">홈</a>
+        <span class="breadcrumb-sep">›</span>
+        <a href="#">평가</a>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">학생 성장 보고서</span>
+      </div>
+      <div class="page-title">
+        <div class="page-bar"></div>
+        학생 성장 보고서
+      </div>
+
+      <div class="report-wrap">
+        <div class="report-header">
+          <div class="school">광석초등학교</div>
+          <div class="title">학생 성장 보고서</div>
+          <div class="year">2024학년도 1학기</div>
+        </div>
+
+        <table class="info-table">
+          <tr>
+            <td class="label">성 명</td><td class="value">홍 길 동</td>
+            <td class="label">학 번</td><td class="value">2024-301</td>
+          </tr>
+          <tr>
+            <td class="label">학년/반</td><td class="value">3학년 2반</td>
+            <td class="label">출석번호</td><td class="value">12번</td>
+          </tr>
+          <tr>
+            <td class="label">담임교사</td><td class="value">김선생</td>
+            <td class="label">작성일</td><td class="value">2024년 7월 15일</td>
+          </tr>
+        </table>
+
+        <div class="legend">
+          <span class="legend-label">평가 기준</span>
+          <span class="legend-item"><span class="badge badge-A">매우잘함</span> 학년 수준 충분히 초과</span>
+          <span class="legend-item"><span class="badge badge-B">잘함</span> 학년 수준 도달</span>
+          <span class="legend-item"><span class="badge badge-C">보통</span> 부분 성취</span>
+          <span class="legend-item"><span class="badge badge-D">노력요함</span> 수준 미달</span>
+        </div>
+
+        <div class="section-title">교과별 학습 성취도</div>
+        <table class="grade-table">
+          <thead><tr><th>교과</th><th>성취 영역</th><th>1분기</th><th>2분기</th><th>종합</th></tr></thead>
+          <tbody>
+            <tr><td class="subject-label" rowspan="3">국어</td><td class="area">읽기·이해력</td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td></tr>
+            <tr><td class="area">쓰기·표현력</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="area">말하기·듣기</td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="subject-label" rowspan="3">수학</td><td class="area">수와 연산</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="area">도형·측정</td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-C">보통</span></td></tr>
+            <tr><td class="area">문제 해결력</td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="subject-label" rowspan="2">사회</td><td class="area">사회·문화 이해</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="area">탐구·참여 태도</td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td></tr>
+            <tr><td class="subject-label" rowspan="2">과학</td><td class="area">과학적 사고</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="area">실험·탐구</td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td></tr>
+            <tr><td class="subject-label" rowspan="2">영어</td><td class="area">듣기·말하기</td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-C">보통</span></td></tr>
+            <tr><td class="area">읽기·쓰기</td><td><span class="badge badge-C">보통</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="subject-label" rowspan="2">체육</td><td class="area">신체 활동 능력</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td></tr>
+            <tr><td class="area">건강 관리 태도</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="subject-label">음악</td><td class="area">음악 이해·표현</td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td><td><span class="badge badge-B">잘함</span></td></tr>
+            <tr><td class="subject-label">미술</td><td class="area">창의적 표현</td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td><td><span class="badge badge-A">매우잘함</span></td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-title">학습 태도 및 생활 습관</div>
+        <table class="attitude-table">
+          <thead><tr><th>항목</th><th>1분기</th><th>2분기</th><th>특이사항</th></tr></thead>
+          <tbody>
+            <tr><td>수업 참여 태도</td><td style="text-align:center;"><span class="badge badge-A">매우잘함</span></td><td style="text-align:center;"><span class="badge badge-A">매우잘함</span></td><td class="note">적극적이고 발표 의욕이 높음</td></tr>
+            <tr><td>과제 완성도</td><td style="text-align:center;"><span class="badge badge-B">잘함</span></td><td style="text-align:center;"><span class="badge badge-B">잘함</span></td><td class="note">기한 내 성실하게 제출</td></tr>
+            <tr><td>친구 관계·배려심</td><td style="text-align:center;"><span class="badge badge-B">잘함</span></td><td style="text-align:center;"><span class="badge badge-A">매우잘함</span></td><td class="note">협동 활동에서 리더십 발휘</td></tr>
+            <tr><td>자기 주도 학습</td><td style="text-align:center;"><span class="badge badge-C">보통</span></td><td style="text-align:center;"><span class="badge badge-B">잘함</span></td><td class="note">2분기부터 자기 주도성 향상</td></tr>
+            <tr><td>규칙 준수·안전</td><td style="text-align:center;"><span class="badge badge-A">매우잘함</span></td><td style="text-align:center;"><span class="badge badge-A">매우잘함</span></td><td class="note">교내 규칙 철저히 준수</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-title">출결 현황</div>
+        <div class="attend-row">
+          <div class="attend-cell"><div class="a-label">수업일수</div><div class="a-val">98일</div></div>
+          <div class="attend-cell"><div class="a-label">출석</div><div class="a-val">96일</div></div>
+          <div class="attend-cell"><div class="a-label">결석</div><div class="a-val">1일</div></div>
+          <div class="attend-cell"><div class="a-label">지각</div><div class="a-val">1회</div></div>
+          <div class="attend-cell"><div class="a-label">조퇴</div><div class="a-val">0회</div></div>
+          <div class="attend-cell"><div class="a-label">공결</div><div class="a-val">1일</div></div>
+        </div>
+
+        <div class="section-title">담임교사 종합 의견</div>
+        <div class="comment-box">
+          <div class="comment-section">
+            <div class="comment-label">★ 강점</div>
+            <div class="comment-text">홍길동 학생은 이번 학기 동안 매우 성실하고 적극적인 학습 태도를 보여주었습니다. 특히 국어 읽기와 미술 창작 활동에서 뛰어난 재능을 발휘하였으며, 모둠 활동 시 친구들과 협력하는 자세가 훌륭하였습니다.</div>
+          </div>
+          <div class="comment-section">
+            <div class="comment-label">▲ 성장 영역</div>
+            <div class="comment-text">수학 문제 해결 과정을 단계별로 정리하는 연습이 필요합니다. 영어 말하기에서 자신감을 더 키울 수 있도록 가정에서의 꾸준한 연습을 권장합니다.</div>
+          </div>
+          <div class="comment-section">
+            <div class="comment-label">▶ 다음 학기 목표</div>
+            <div class="comment-text">수학 서술형 풀이 과정 서술 연습 / 영어 말하기 자신감 향상 / 독서 기록장 꾸준히 작성하기를 중심 목표로 삼고, 자신의 강점인 창의적 표현 능력을 다양한 교과에 접목해 보기를 권장합니다.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="21" fill="#1A5F80" stroke="#A8D8F0" stroke-width="1.5"/>
+        <circle cx="22" cy="10" r="5" fill="white"/>
+        <circle cx="12" cy="28" r="5" fill="#A8D8F0"/>
+        <circle cx="32" cy="28" r="5" fill="#D6EEFF"/>
+        <line x1="22" y1="15" x2="14" y2="24" stroke="#A8D8F0" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="15" x2="30" y2="24" stroke="#A8D8F0" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="17" y1="28" x2="27" y2="28" stroke="#A8D8F0" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="22" y="13" text-anchor="middle" font-size="5" fill="#1A5F80" font-family="sans-serif" font-weight="bold">개</text>
+        <text x="12" y="31" text-anchor="middle" font-size="5" fill="#1A5F80" font-family="sans-serif" font-weight="bold">탐</text>
+        <text x="32" y="31" text-anchor="middle" font-size="5" fill="#1A5F80" font-family="sans-serif" font-weight="bold">성</text>
+      </svg>
+      <div class="footer-info">
+        <div class="footer-name">개념기반 탐구수업</div>
+        <div class="footer-desc">교내 교직원 전용 · 충청남도 논산계룡</div>
+      </div>
+    </div>
+    <div class="footer-copy">COPYRIGHT © KWANGSOK ELEMENTARY SCHOOL. ALL RIGHTS RESERVED.</div>
+  </footer>
+
+</body>
+</html>

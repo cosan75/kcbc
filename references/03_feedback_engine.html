@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과정중심 수행평가 AI 피드백 엔진</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f6;color:#1a1a1a;padding:24px}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:24px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e0e0e0;margin-bottom:24px}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;transition:all .15s;font-family:inherit}
+.tab.on{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.panel{display:none}.panel.on{display:block}
+.sl{font-size:11px;font-weight:600;color:#888;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.7rem}
+/* Stage rail */
+.stage-rail{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:stretch;margin-bottom:1.5rem}
+.stage-box{border:1px solid #e8e8e8;border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .15s;background:#fff}
+.stage-box:hover{border-color:#ccc}
+.stage-box.on{border-width:2px}
+.stage-num{font-size:11px;font-weight:600;letter-spacing:.07em;margin-bottom:5px}
+.stage-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.stage-sub{font-size:11px;color:#888;line-height:1.4}
+.stage-arrow{display:flex;align-items:center;justify-content:center;padding:0 6px;color:#ccc;font-size:16px}
+/* Detail */
+.detail-card{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1.25rem;margin-bottom:1.5rem}
+.dc-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #eee}
+.dc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dc-title{font-size:14px;font-weight:500}
+.dc-desc{font-size:12px;color:#666;margin-top:2px}
+.step-item{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:#f8f8f6;margin-bottom:6px}
+.step-item:last-child{margin-bottom:0}
+.step-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.step-text{font-size:12px;line-height:1.5}
+/* Slip section */
+.slip-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem}
+.slip-card{border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:all .15s}
+.slip-card:hover{border-color:#ccc}
+.slip-card.on{border-width:2px}
+.slip-icon{font-size:16px;margin-bottom:5px}
+.slip-label{font-size:12px;font-weight:500;line-height:1.3;margin-bottom:3px}
+.slip-sub{font-size:11px;color:#888}
+.ctx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.2rem}
+.ctx-card{border:1px solid #e8e8e8;border-radius:8px;padding:9px 11px;cursor:pointer;background:#fff;transition:all .15s}
+.ctx-card:hover{border-color:#ccc}
+.ctx-card.on{border:2px solid #534AB7;background:#EEEDFE}
+.ctx-label{font-size:12px;font-weight:500}
+.ctx-sub{font-size:11px;color:#888;margin-top:2px}
+.sbar{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:7px;margin-bottom:1.2rem}
+.sc{border:1px solid #e8e8e8;border-radius:8px;padding:9px 11px;cursor:pointer;background:#fff;transition:all .15s}
+.sc:hover{border-color:#ccc}
+.sc.on{border:2px solid #534AB7;background:#EEEDFE}
+.sn{font-size:12px;font-weight:500}.sm{font-size:11px;color:#888;margin-top:2px}
+/* Gen */
+.gen-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.gen-label{font-size:13px;font-weight:500}
+.gen-btn{display:flex;align-items:center;gap:5px;padding:7px 16px;font-size:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:transparent;font-family:inherit;transition:all .15s}
+.gen-btn:hover{background:#f5f5f3}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.fb-out{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1rem;min-height:80px;margin-bottom:.75rem}
+.fb-hd{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding-bottom:.6rem;border-bottom:1px solid #eee}
+.fb-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.fb-sname{font-size:13px;font-weight:500}
+.fb-meta{font-size:11px;color:#888}
+.fb-text{font-size:13px;line-height:1.75;white-space:pre-wrap}
+.fb-hint{font-size:13px;color:#888}
+.copy-row{display:flex;gap:7px;align-items:center}
+.copy-btn{display:flex;align-items:center;gap:4px;padding:5px 11px;font-size:12px;border:1px solid #e8e8e8;border-radius:8px;cursor:pointer;background:transparent;color:#666;font-family:inherit;transition:all .12s}
+.copy-btn:hover{background:#f5f5f3}
+.copy-notice{font-size:12px;color:#888}
+/* Action chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.2rem}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;border:1px solid #e8e8e8;border-radius:12px;cursor:pointer;background:#f5f5f3;color:#666;transition:all .12s;font-family:inherit}
+.chip:hover{border-color:#ccc}
+.chip.on{background:rgba(15,110,86,.1);border-color:#0F6E56;color:#085041}
+/* Bank */
+.bank-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.bank-item{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 14px}
+.bank-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bank-badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.bank-title{font-size:13px;font-weight:500}
+.bank-preview{font-size:12px;color:#666;line-height:1.5}
+.bank-btn{font-size:11px;padding:3px 9px;border:1px solid #e8e8e8;border-radius:4px;cursor:pointer;background:transparent;color:#666;font-family:inherit;margin-top:6px;transition:all .12s}
+.bank-btn:hover{background:#f5f5f3}
+/* Dilemma */
+.dilemma-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.dc-card{border:1px solid #e8e8e8;border-radius:10px;overflow:hidden}
+.dc-hd{padding:10px 14px;font-size:13px;font-weight:500}
+.dc-body{padding:10px 14px;font-size:12px;color:#666;line-height:1.6}
+.dc-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px}
+.dc-item:last-child{margin-bottom:0}
+.dc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.sol-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.sol-step{display:flex;gap:10px;align-items:flex-start}
+.sol-num{width:24px;height:24px;border-radius:50%;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#666;flex-shrink:0;margin-top:1px}
+.sol-body{flex:1;padding:10px 12px;border:1px solid #eee;border-radius:8px}
+.sol-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.sol-desc{font-size:12px;color:#666;line-height:1.5}
+.sol-tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:8px;margin-top:5px;background:#f5f5f3;color:#666}
+.dvd{height:1px;background:#eee;margin:1.25rem 0}
+.spinner{display:inline-block;width:12px;height:12px;border:1.5px solid #ddd;border-top-color:#333;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>과정중심 수행평가 AI 피드백 엔진</h1>
+<p class="subtitle">교사 부담 절감 · 학생 성장 방향 제시 · 3단계 평가 흐름</p>
+<div class="tabs">
+  <button class="tab on" onclick="sw('fb')">AI 피드백 생성</button>
+  <button class="tab" onclick="sw('bank')">피드백 문장 은행</button>
+  <button class="tab" onclick="sw('dilemma')">딜레마 해결 전략</button>
+</div>
+
+<!-- TAB 1 -->
+<div class="panel on" id="p-fb">
+  <div class="sl">3단계 평가 흐름 — 클릭해 세부 내용 확인</div>
+  <div class="stage-rail">
+    <div class="stage-box" id="stg-1" onclick="selStage(1)"><div class="stage-num" style="color:#534AB7">STAGE 01</div><div class="stage-title">평가 기준 설정 + 1차 제출</div><div class="stage-sub">명확한 루브릭 공유 · 학생 과제 제출</div></div>
+    <div class="stage-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="stage-box" id="stg-2" onclick="selStage(2)"><div class="stage-num" style="color:#BA7517">STAGE 02</div><div class="stage-title">AI 1차 피드백 + 실수 감지</div><div class="stage-sub">즉각 피드백 · 문제 행동 개입</div></div>
+    <div class="stage-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="stage-box" id="stg-3" onclick="selStage(3)"><div class="stage-num" style="color:#0F6E56">STAGE 03</div><div class="stage-title">교사 2차 심층 피드백</div><div class="stage-sub">성장 관찰 · 개별 맞춤 코칭</div></div>
+  </div>
+  <div id="stage-detail"><div class="fb-out"><div class="fb-hint">단계 카드를 클릭하면 상세 내용이 표시됩니다.</div></div></div>
+  <div class="dvd"></div>
+  <div class="sl">실수 유형 감지 → AI 즉각 개입</div>
+  <div class="slip-grid" id="slip-grid"></div>
+  <div class="sl">수업 맥락 선택</div>
+  <div class="ctx-grid" id="ctx-grid"></div>
+  <div class="sl">학생 선택</div>
+  <div class="sbar" id="stu-bar"></div>
+  <div class="gen-row"><div class="gen-label">AI 실시간 개입 전략</div><button class="gen-btn" id="gen-btn" onclick="genIntervention()" disabled><i class="ti ti-sparkles"></i> 개입 전략 생성</button></div>
+  <div class="fb-out" id="fb-out"><div class="fb-hint">실수 유형·맥락·학생을 선택하면 AI가 즉각 개입 전략을 생성합니다.</div></div>
+  <div class="copy-row" id="copy-row" style="display:none"><button class="copy-btn" onclick="doCopy()"><i class="ti ti-copy" style="font-size:14px"></i> 복사</button><button class="copy-btn" onclick="gen2nd()"><i class="ti ti-arrow-right" style="font-size:14px"></i> 2차 심층 피드백</button><span class="copy-notice" id="copy-notice"></span></div>
+  <div class="dvd"></div>
+  <div class="sl">교사 2차 심층 피드백</div>
+  <div class="chips" id="chip-row"></div>
+  <div class="gen-row"><div class="gen-label">2차 심층 피드백 생성</div><button class="gen-btn" id="gen2-btn" onclick="gen2nd()"><i class="ti ti-sparkles"></i> 심층 피드백 생성</button></div>
+  <div class="fb-out" id="fb2-out"><div class="fb-hint">학생 선택 후 생성하면 교사가 전달할 심층 성장 코칭 피드백을 생성합니다.</div></div>
+  <div class="copy-row" id="copy2-row" style="display:none"><button class="copy-btn" onclick="doCopy2()"><i class="ti ti-copy" style="font-size:14px"></i> 복사</button><span class="copy-notice" id="copy2-notice"></span></div>
+</div>
+
+<!-- TAB 2 -->
+<div class="panel" id="p-bank">
+  <div class="sl">상황별 피드백 문장 은행</div>
+  <div class="bank-list" id="bank-list"></div>
+</div>
+
+<!-- TAB 3 -->
+<div class="panel" id="p-dilemma">
+  <div class="sl">과정중심 수행평가의 딜레마 구조</div>
+  <div class="dilemma-grid" id="dilemma-grid"></div>
+  <div class="sl">AI로 딜레마 해소하는 5단계</div>
+  <div class="sol-list" id="sol-list"></div>
+  <div class="gen-row"><div class="gen-label">AI — 딜레마 해소 실천 전략</div><button class="gen-btn" id="dil-btn" onclick="genDilemma()"><i class="ti ti-sparkles"></i> 전략 생성</button></div>
+  <div class="fb-out" id="dil-out"><div class="fb-hint">버튼을 누르면 교사 부담을 줄이면서 피드백 질을 높이는 실천 전략을 AI가 제안합니다.</div></div>
+</div>
+</div>
+
+<script>
+const STUDENTS=[{id:1,name:'김민준',score:88},{id:2,name:'이서연',score:74},{id:3,name:'박지호',score:62},{id:4,name:'최예원',score:55},{id:5,name:'정도윤',score:41},{id:6,name:'강수아',score:78}];
+const STAGES=[
+  {id:1,color:'#534AB7',bg:'rgba(83,74,183,.08)',icon:'ti-clipboard-list',title:'평가 기준 설정 + 1차 과제 제출',desc:'학생이 무엇을 잘 해야 하는지 명확히 알고 출발하는 단계',steps:['성취기준에 연결된 분석적 루브릭 사전 공유 — 학생이 기대 수준을 명확히 인지','루브릭을 학생 언어로 재해석하는 "나의 목표 체크" 활동으로 이해 확인','1차 과제 수행 — 중간 점검 없이 현재 수준 그대로 제출 (진단 목적)','AI가 제출물을 루브릭 기준으로 자동 분석하여 영역별 수준 데이터 생성','교사는 제출 패턴 전체 조망 — 개별 채점 대신 군집 파악에 집중']},
+  {id:2,color:'#BA7517',bg:'rgba(186,117,23,.08)',icon:'ti-robot',title:'AI 1차 즉각 피드백 + 실수 실시간 감지',desc:'AI가 즉시 방향을 제시하고, 수업 중 문제 행동을 교사에게 알려주는 단계',steps:['AI 전진 피드백(Feed-Forward): 점수 없이 "다음에 무엇을 할지" 행동 중심 안내','학생 자기주도 수정: AI 피드백을 읽고 스스로 1차 결과물 수정','실수 감지 알림: 배회·소극·오개념·멈춤·연속오답·포기 6가지 패턴 자동 감지','교사에게 실시간 알림 + 즉각 개입 스크립트 제공','모둠 활동 중 역할 이탈 학생을 위한 구조적 재참여 전략 제시']},
+  {id:3,color:'#0F6E56',bg:'rgba(15,110,86,.08)',icon:'ti-user-check',title:'교사 2차 심층 피드백',desc:'AI가 처리할 수 없는 관계·맥락·감정을 교사가 깊이 파고드는 단계',steps:['1차 수정본과 원본 비교 — AI가 변화 폭·패턴을 분석하여 교사에게 요약 제공','교사 심층 코칭: 오개념의 뿌리, 포기의 원인, 소극성의 배경을 대화로 탐색','"성장 증거 찾기" 피드백: 수정 전후에서 잘 달라진 부분을 명시적으로 인정','다음 학습 목표를 학생과 함께 설정 — 교사가 아닌 학생이 목표를 말하도록','필요시 개별화 지도 계획 수립 · 학부모 소통 준비 · 지속 관찰 일정 기록']}
+];
+const SLIPS=[{id:'wander',icon:'ti-walk',label:'배회·소극적 참여',sub:'모둠 활동 중 이탈',color:'#A32D2D',bg:'rgba(163,45,45,.1)'},{id:'misconception',icon:'ti-alert-triangle',label:'오개념 보유',sub:'잘못된 이해로 진행',color:'#BA7517',bg:'rgba(186,117,23,.1)'},{id:'stuck',icon:'ti-player-pause',label:'멈춰있는 학생',sub:'개별 과제 중 정체',color:'#534AB7',bg:'rgba(83,74,183,.1)'},{id:'wrong',icon:'ti-x',label:'연속 오답',sub:'같은 유형 반복 실수',color:'#993C1D',bg:'rgba(153,60,29,.1)'},{id:'giveup',icon:'ti-flag',label:'성급한 포기',sub:'시도 없이 중단',color:'#3C3489',bg:'rgba(60,52,137,.1)'},{id:'passive',icon:'ti-user-minus',label:'소극적 참여',sub:'모둠에서 존재감 없음',color:'#5F5E5A',bg:'rgba(95,94,90,.1)'}];
+const CTXS=[{id:'group',label:'모둠 협력 활동',sub:'토의·탐구·역할 분담 중'},{id:'individual',label:'개별 문제 풀이',sub:'혼자 과제 수행 중'},{id:'writing',label:'글쓰기·산출물 제작',sub:'결과물 작성 중'},{id:'present',label:'발표·공유 활동',sub:'발표 준비·진행 중'}];
+const CHIPS=[{l:'수정 내용 확인됨'},{l:'오개념 재지도 완료'},{l:'추가 지원 필요'},{l:'학부모 소통 예정'},{l:'목표 재설정'}];
+const BANK=[{type:'전진 피드백',bb:'#EEEDFE',bt:'#3C3489',title:'아이디어는 있지만 구체성 부족',preview:'핵심 생각을 잘 잡았어요. 다음에는 그 생각을 뒷받침할 구체적인 예시나 이유를 하나 더 추가해 보면 어떨까요?'},{type:'전진 피드백',bb:'#EEEDFE',bt:'#3C3489',title:'구성이 흐트러진 경우',preview:'내용은 풍부해요. 서론-본론-결론 순서로 다시 한번 배치해 보면 읽는 사람이 훨씬 따라오기 쉬울 거예요.'},{type:'강점 강화',bb:'#E1F5EE',bt:'#085041',title:'독창적 시각이 보일 때',preview:'이 부분에서 보여준 나만의 시각이 정말 인상적이에요. 이 관점을 더 깊이 파고들면 이 글에서 가장 빛나는 부분이 될 수 있어요.'},{type:'강점 강화',bb:'#E1F5EE',bt:'#085041',title:'성실한 자료 수집',preview:'다양한 자료를 꼼꼼히 모은 노력이 보여요. 이제 그 자료들 중 가장 중요한 것을 골라 자신의 말로 풀어쓰면 더욱 설득력 있을 거예요.'},{type:'질문형 피드백',bb:'#FAEEDA',bt:'#633806',title:'표면적 서술에 머물 때',preview:'"왜 그렇게 생각하나요?" 한 가지만 대답해 보세요. 그 이유를 글에 넣으면 이 문장이 훨씬 깊어질 거예요.'},{type:'질문형 피드백',bb:'#FAEEDA',bt:'#633806',title:'결론이 약한 경우',preview:'"만약 이 내용을 모르는 친구에게 한 문장으로 설명한다면?" 그 대답이 바로 이 글의 결론이에요.'}];
+const DILEMMAS=[{title:'피드백의 질 딜레마',hb:'rgba(83,74,183,.1)',ht:'#3C3489',dc:'#534AB7',items:['개별 맞춤 피드백은 시간이 많이 걸린다','일괄 피드백은 학생 성장에 실질적 도움이 적다','구체적일수록 작성 부담이 가중된다','30명 학생에게 매번 질 높은 피드백 불가능']},{title:'교사 부담 딜레마',hb:'rgba(186,117,23,.1)',ht:'#633806',dc:'#BA7517',items:['과정 관찰 + 기록 + 피드백의 삼중 부담','행정 업무와 교수학습의 시간 충돌','피드백 작성 시간 = 수업 준비 시간 감소','번아웃 위험 → 피드백 형식화']}];
+const SOL_STEPS=[{title:'AI 1차 초안 생성',desc:'루브릭 데이터 입력 → AI 즉시 생성, 교사는 검토·수정만',tag:'시간 절감 80%'},{title:'피드백 문장 은행 활용',desc:'자주 쓰는 고품질 문장 저장·재사용. 일관성 유지.',tag:'재사용성 확보'},{title:'전진 피드백 프레임 적용',desc:'"잘한 점 + 다음 행동 1가지"만 담는 구조',tag:'방향 제시 집중'},{title:'질문형 피드백 전환',desc:'답 대신 학생 스스로 사고하게 하는 질문 1개로 대체',tag:'학생 자기주도 강화'},{title:'동료·자기 평가 연계',desc:'학생 자기평가 → 동료 피드백 → 교사 최종 코멘트',tag:'평가 생태계 구축'}];
+
+let selSlip=null,selCtx=null,selStu=null,lastFb1='',lastFb2='';
+let selChips=new Set();
+
+function gsc(s){return s>=80?'#0F6E56':s>=70?'#185FA5':s>=55?'#BA7517':'#A32D2D'}
+function sw(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');const idx={fb:0,bank:1,dilemma:2}[id];document.querySelectorAll('.tab')[idx].classList.add('on')}
+function checkReady(){document.getElementById('gen-btn').disabled=!(selSlip&&selCtx&&selStu)}
+function showNtc(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>el.textContent='',2200)}
+
+function selStage(n){
+  const s=STAGES[n-1];
+  document.querySelectorAll('.stage-box').forEach((b,i)=>{b.classList.toggle('on',i===n-1);b.style.borderColor=i===n-1?STAGES[i].color:'';b.style.background=i===n-1?STAGES[i].bg:''});
+  const steps=s.steps.map(st=>`<div class="step-item"><div class="step-dot" style="background:${s.color}"></div><div class="step-text">${st}</div></div>`).join('');
+  document.getElementById('stage-detail').innerHTML=`<div class="detail-card" style="border-color:${s.color}40"><div class="dc-head"><div class="dc-icon" style="background:${s.bg}"><i class="ti ${s.icon}" style="color:${s.color};font-size:16px"></i></div><div><div class="dc-title">${s.title}</div><div class="dc-desc">${s.desc}</div></div></div>${steps}</div>`;
+}
+
+function renderSlips(){
+  document.getElementById('slip-grid').innerHTML='';
+  SLIPS.forEach(s=>{
+    const c=document.createElement('div');c.className='slip-card'+(selSlip===s.id?' on':'');
+    if(selSlip===s.id){c.style.borderColor=s.color;c.style.background=s.bg}
+    c.innerHTML=`<div class="slip-icon"><i class="ti ${s.icon}" style="font-size:16px;color:${s.color}"></i></div><div class="slip-label">${s.label}</div><div class="slip-sub">${s.sub}</div>`;
+    c.onclick=()=>{selSlip=s.id;renderSlips();checkReady()};
+    document.getElementById('slip-grid').appendChild(c);
+  });
+}
+function renderCtx(){
+  document.getElementById('ctx-grid').innerHTML='';
+  CTXS.forEach(c=>{
+    const d=document.createElement('div');d.className='ctx-card'+(selCtx===c.id?' on':'');
+    d.innerHTML=`<div class="ctx-label">${c.label}</div><div class="ctx-sub">${c.sub}</div>`;
+    d.onclick=()=>{selCtx=c.id;renderCtx();checkReady()};
+    document.getElementById('ctx-grid').appendChild(d);
+  });
+}
+function renderStuBar(){
+  document.getElementById('stu-bar').innerHTML='';
+  STUDENTS.forEach(s=>{
+    const c=document.createElement('div');c.className='sc'+(selStu===s.id?' on':'');
+    c.innerHTML=`<div class="sn">${s.name}</div><div class="sm">${s.score}점</div>`;
+    c.onclick=()=>{selStu=s.id;renderStuBar();checkReady()};
+    document.getElementById('stu-bar').appendChild(c);
+  });
+}
+function renderChips(){
+  document.getElementById('chip-row').innerHTML='';
+  CHIPS.forEach(ch=>{
+    const c=document.createElement('button');c.className='chip'+(selChips.has(ch.l)?' on':'');
+    c.textContent=ch.l;c.onclick=()=>{if(selChips.has(ch.l))selChips.delete(ch.l);else selChips.add(ch.l);renderChips()};
+    document.getElementById('chip-row').appendChild(c);
+  });
+}
+function renderBank(){
+  document.getElementById('bank-list').innerHTML=BANK.map(b=>`<div class="bank-item"><div class="bank-head"><span class="bank-badge" style="background:${b.bb};color:${b.bt}">${b.type}</span><span class="bank-title">${b.title}</span></div><div class="bank-preview">${b.preview}</div><button class="bank-btn" onclick="applyBank('${b.type}')">생성기에서 사용 ↗</button></div>`).join('');
+}
+function applyBank(type){sw('fb')}
+function renderDilemma(){
+  document.getElementById('dilemma-grid').innerHTML=DILEMMAS.map(d=>`<div class="dc-card"><div class="dc-hd" style="background:${d.hb};color:${d.ht}">${d.title}</div><div class="dc-body">${d.items.map(i=>`<div class="dc-item"><div class="dc-dot" style="background:${d.dc}"></div>${i}</div>`).join('')}</div></div>`).join('');
+  document.getElementById('sol-list').innerHTML=SOL_STEPS.map((s,i)=>`<div class="sol-step"><div class="sol-num">${i+1}</div><div class="sol-body"><div class="sol-title">${s.title}</div><div class="sol-desc">${s.desc}</div><span class="sol-tag">${s.tag}</span></div></div>`).join('');
+}
+
+async function callAI(sys,usr,outId,btnId){
+  const out=document.getElementById(outId),btn=document.getElementById(btnId);
+  btn.disabled=true;out.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span style="font-size:13px;color:#888">AI 생성 중...</span></div>';
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,system:sys,messages:[{role:'user',content:usr}]})});const data=await res.json();const text=data.content?.find(c=>c.type==='text')?.text||'생성 실패';return text}catch(e){out.innerHTML='<div class="fb-hint" style="color:#c0392b">오류가 발생했습니다.</div>';btn.disabled=false;return null}
+}
+
+async function genIntervention(){
+  const s=STUDENTS.find(x=>x.id===selStu);const slip=SLIPS.find(x=>x.id===selSlip);const ctx=CTXS.find(x=>x.id===selCtx);
+  const text=await callAI('당신은 초등학교 수업 현장 전문가입니다. 수업 중 발생하는 학생의 특정 행동 패턴에 즉각 개입하는 교사 전략을 제안합니다. [즉각 개입 멘트] 교사가 그 학생에게 바로 건넬 수 있는 한 문장, [개입 전략] 구체적 행동 2~3가지, [AI 피드백 연계] 학생 자기주도 수정을 유도하는 질문 1가지. 마크다운 없이 순수 텍스트로 반환하세요.',`학생: ${s.name} (${s.score}점)\n수업 맥락: ${ctx.label}\n감지된 실수: ${slip.label} — ${slip.sub}\n\n즉각 개입 전략과 멘트를 제안해주세요.`,'fb-out','gen-btn');
+  if(text){lastFb1=text;const out=document.getElementById('fb-out');out.innerHTML=`<div class="fb-hd"><div class="fb-avatar" style="background:#FAEEDA;color:#633806">${s.name.slice(0,2)}</div><div><div class="fb-sname">${s.name}</div><div class="fb-meta">${slip.label} · ${ctx.label}</div></div></div><div class="fb-text">${text}</div>`;document.getElementById('copy-row').style.display='flex';document.getElementById('gen-btn').disabled=false}
+}
+async function gen2nd(){
+  if(!selStu){document.getElementById('fb2-out').innerHTML='<div class="fb-hint" style="color:#c0392b">먼저 학생을 선택해주세요.</div>';return}
+  const s=STUDENTS.find(x=>x.id===selStu);const slip=selSlip?SLIPS.find(x=>x.id===selSlip):null;const chips=[...selChips].join(', ')||'미선택';
+  const text=await callAI('당신은 초등학교 교사를 위한 심층 성장 피드백 전문가입니다. AI 1차 피드백 이후 학생이 수정을 마친 뒤, 교사가 전달하는 2차 심층 코칭 피드백을 작성합니다. 수정 과정에서 보인 노력 인정, 오개념 탐색 질문 1개, 다음 목표 설정 안내, 따뜻한 마무리를 포함해 5~7문장으로 작성하세요. 마크다운 없이 순수 텍스트로 반환하세요.',`학생: ${s.name} (${s.score}점)\n실수 유형: ${slip?slip.label:'해당없음'}\n교사 관찰: ${chips}\n1차 피드백: ${lastFb1?lastFb1.slice(0,100)+'...':'완료'}\n\n2차 심층 성장 코칭 피드백을 작성해주세요.`,'fb2-out','gen2-btn');
+  if(text){lastFb2=text;const out=document.getElementById('fb2-out');out.innerHTML=`<div class="fb-hd"><div class="fb-avatar" style="background:#E1F5EE;color:#085041">${s.name.slice(0,2)}</div><div><div class="fb-sname">${s.name} — 교사 2차 심층 피드백</div><div class="fb-meta">성장 코칭</div></div></div><div class="fb-text">${text}</div>`;document.getElementById('copy2-row').style.display='flex';document.getElementById('gen2-btn').disabled=false}
+}
+async function genDilemma(){callAI('당신은 초등학교 교사를 위한 교육평가 전문가입니다. 과정중심 수행평가에서 "피드백 질 vs 교사 부담"의 딜레마를 AI를 활용해 실질적으로 해소하는 전략을 제안합니다. 현장 교사가 내일 바로 적용할 수 있는 구체적 방법 중심으로 6~8문장 작성하세요. 마크다운 없이 순수 텍스트로 반환하세요.','과정중심 수행평가 딜레마 해소 전략을 제안해 주세요.','dil-out','dil-btn').then(t=>{if(t)document.getElementById('dil-out').innerHTML=`<div class="fb-text">${t}</div>`})}
+function doCopy(){if(!lastFb1)return;navigator.clipboard.writeText(lastFb1).then(()=>showNtc('copy-notice','복사되었습니다'))}
+function doCopy2(){if(!lastFb2)return;navigator.clipboard.writeText(lastFb2).then(()=>showNtc('copy2-notice','복사되었습니다'))}
+
+renderSlips();renderCtx();renderStuBar();renderChips();renderBank();renderDilemma();
+</script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학습 결과 누적 관리 — 이수 확인 & 포트폴리오</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f6;color:#1a1a1a;padding:24px}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:24px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e0e0e0;margin-bottom:24px}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;transition:all .15s;font-family:inherit}
+.tab.on{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.panel{display:none}.panel.on{display:block}
+.sl{font-size:11px;font-weight:600;color:#888;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.7rem}
+.sbar{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:7px;margin-bottom:1.4rem}
+.sc{border:1px solid #e8e8e8;border-radius:8px;padding:9px 11px;cursor:pointer;background:#fff;transition:all .15s}
+.sc:hover{border-color:#ccc}
+.sc.on{border:2px solid #534AB7;background:#EEEDFE}
+.sn{font-size:12px;font-weight:500}.sm{font-size:11px;color:#888;margin-top:2px}
+.sb{height:3px;border-radius:2px;margin-top:5px;background:#eee}
+.sf{height:100%;border-radius:2px}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.4rem}
+.stc{background:#f5f5f3;border-radius:8px;padding:12px}
+.stl{font-size:12px;color:#666;margin-bottom:4px}
+.stv{font-size:21px;font-weight:500}
+.sts{font-size:11px;color:#888;margin-top:2px}
+.track-box{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1rem;margin-bottom:1.4rem}
+.track-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.track-t{font-size:13px;font-weight:500}
+.track-p{font-size:13px;font-weight:500}
+.tbar{height:7px;border-radius:4px;background:#eee;margin-bottom:10px;overflow:hidden}
+.tfill{height:100%;border-radius:4px;transition:width .5s}
+.crow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.cn{font-size:12px;color:#666;width:88px;flex-shrink:0}
+.cbar{flex:1;height:4px;border-radius:2px;background:#eee;overflow:hidden}
+.cfill{height:100%;border-radius:2px}
+.clv{font-size:11px;width:30px;text-align:right}
+.ev-list{display:flex;flex-direction:column;gap:7px;margin-bottom:1.4rem}
+.ev-it{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:9px 13px;display:flex;align-items:flex-start;gap:9px}
+.ev-ic{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ev-bd{flex:1;min-width:0}
+.ev-tt{font-size:13px;font-weight:500}
+.ev-mt{font-size:11px;color:#888;margin-top:2px}
+.ev-ds{font-size:12px;color:#666;margin-top:3px;line-height:1.4}
+.ev-bg{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.bdg{font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600}
+.bdg-ok{background:#E1F5EE;color:#085041}.bdg-pt{background:#FAEEDA;color:#633806}
+.add-form{background:#f5f5f3;border-radius:10px;padding:1rem;margin-bottom:1.4rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px}
+.fi{width:100%;padding:7px 10px;font-size:13px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit;margin-bottom:8px}
+.fi:focus{outline:none;border-color:#ccc}
+.lrow{display:flex;gap:5px;margin-bottom:8px}
+.lb{flex:1;padding:5px 2px;font-size:11px;border:1px solid #e8e8e8;border-radius:8px;cursor:pointer;background:transparent;color:#666;font-family:inherit;transition:all .12s;text-align:center}
+.lb:hover{background:#fff}
+.lb.a4{background:#085041;color:#9FE1CB;border-color:#0F6E56}
+.lb.a3{background:#0C447C;color:#B5D4F4;border-color:#185FA5}
+.lb.a2{background:#633806;color:#FAC775;border-color:#BA7517}
+.lb.a1{background:#791F1F;color:#F7C1C1;border-color:#A32D2D}
+.arow{display:flex;gap:7px;align-items:center}
+.abtn{display:flex;align-items:center;gap:4px;padding:7px 14px;font-size:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:transparent;font-family:inherit;transition:all .15s}
+.abtn:hover{background:#fff}
+.ntc{font-size:12px;color:#888}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:1.4rem}
+.pfc{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:12px}
+.pfh{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.pfic{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.pft{font-size:13px;font-weight:500}
+.pfd{font-size:11px;color:#888;margin-top:1px}
+.pfb{height:4px;border-radius:2px;background:#eee;overflow:hidden;margin-bottom:6px}
+.pff{height:100%;border-radius:2px}
+.pfoot{display:flex;align-items:center;justify-content:space-between}
+.pfs{font-size:13px;font-weight:500}
+.pfdelta{font-size:12px}
+.tl{display:flex;flex-direction:column;gap:0;margin-bottom:1.4rem}
+.tli{display:flex;gap:11px;align-items:stretch;padding-bottom:13px}
+.tli:last-child{padding-bottom:0}
+.tll{display:flex;flex-direction:column;align-items:center;width:26px;flex-shrink:0}
+.tld{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tlln{width:1.5px;flex:1;margin:3px 0 0;background:#eee}
+.tli:last-child .tlln{display:none}
+.tlb{flex:1;min-width:0}
+.tldt{font-size:11px;color:#888;margin-bottom:2px}
+.tltt{font-size:13px;font-weight:500;margin-bottom:3px}
+.tlds{font-size:12px;color:#666;line-height:1.5}
+.tlcs{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tlc{font-size:11px;padding:2px 7px;border-radius:8px;background:#f5f5f3;color:#666}
+.tlsc{font-size:12px;font-weight:500;margin-top:3px}
+.cert-wrap{background:#f5f5f3;border-radius:10px;padding:1.25rem;margin-bottom:1.4rem}
+.cert-in{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1.25rem}
+.cert-hd{display:flex;align-items:center;gap:9px;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1px solid #eee}
+.cert-logo{width:30px;height:30px;border-radius:6px;background:#E1F5EE;display:flex;align-items:center;justify-content:center}
+.cert-sch{font-size:13px;font-weight:500}
+.cert-sb{font-size:11px;color:#888}
+.cert-nm{font-size:15px;font-weight:500;margin-bottom:4px}
+.cert-st{font-size:12px;color:#666;line-height:1.6;font-family:Georgia,serif;margin-bottom:.9rem}
+.cert-eg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.9rem}
+.cert-ec{background:#f8f8f6;border-radius:8px;padding:7px 9px}
+.cert-en{font-size:11px;font-weight:500}
+.cert-el{font-size:11px;margin-top:1px}
+.cert-ft{display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid #eee}
+.cert-date{font-size:11px;color:#888}
+.cert-sign{font-size:12px;color:#888}
+.gen-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.gen-label{font-size:13px;font-weight:500}
+.gen-btn{display:flex;align-items:center;gap:5px;padding:7px 15px;font-size:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:transparent;font-family:inherit;transition:all .15s}
+.gen-btn:hover{background:#f5f5f3}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-out{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:1rem;min-height:70px}
+.ai-text{font-size:13px;line-height:1.75;white-space:pre-wrap}
+.ai-hint{font-size:13px;color:#888}
+.dvd{height:1px;background:#eee;margin:1.25rem 0}
+.spinner{display:inline-block;width:12px;height:12px;border:1.5px solid #ddd;border-top-color:#333;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>학습 결과 확인 및 누적 관리</h1>
+<p class="subtitle">이수 확인 증거 자료 · 성장 과정 포트폴리오 · 이수 확인서</p>
+<div class="tabs">
+  <button class="tab on" onclick="sw('ev')">이수 확인 증거</button>
+  <button class="tab" onclick="sw('pf')">성장 포트폴리오</button>
+  <button class="tab" onclick="sw('cert')">이수 확인서</button>
+</div>
+
+<div class="panel on" id="p-ev">
+  <div class="sl">학생 선택</div>
+  <div class="sbar" id="ev-sb"></div>
+  <div class="stats4" id="ev-st"></div>
+  <div class="track-box" id="ev-tr"></div>
+  <div class="sl">누적 증거 자료</div>
+  <div class="ev-list" id="ev-ls"></div>
+  <div class="sl">증거 자료 직접 추가</div>
+  <div class="add-form">
+    <div class="fl">과제명</div><input class="fi" id="add-nm" placeholder="예: 3단원 탐구 보고서 수정본" />
+    <div class="fl">증거 유형</div>
+    <select class="fi" id="add-ty"><option value="ai">AI 피드백 기록</option><option value="teacher">교사 관찰 기록</option><option value="self">자기평가</option><option value="peer">동료평가</option><option value="submit">제출물</option><option value="revision">수정본</option></select>
+    <div class="fl">달성 수준</div>
+    <div class="lrow" id="add-lr"></div>
+    <div class="fl">비고</div><input class="fi" id="add-nt" placeholder="관찰 내용, 특이사항 등" />
+    <div class="arow"><button class="abtn" onclick="addEv()"><i class="ti ti-plus" style="font-size:14px"></i> 증거 추가</button><span class="ntc" id="add-nc"></span></div>
+  </div>
+  <div class="gen-row"><div class="gen-label">AI — 이수 판정 근거 요약</div><button class="gen-btn" id="ev-gb" onclick="genEvSummary()" disabled><i class="ti ti-sparkles"></i> 근거 요약 생성</button></div>
+  <div class="ai-out" id="ev-ao"><div class="ai-hint">학생을 선택하면 누적 증거를 바탕으로 이수 판정 근거를 AI가 요약합니다.</div></div>
+</div>
+
+<div class="panel" id="p-pf">
+  <div class="sl">학생 선택</div>
+  <div class="sbar" id="pf-sb"></div>
+  <div class="sl">단원별 성장 기록</div>
+  <div class="pf-grid" id="pf-gr"></div>
+  <div class="sl">성장 타임라인</div>
+  <div class="tl" id="pf-tl"></div>
+  <div class="dvd"></div>
+  <div class="gen-row"><div class="gen-label">AI — 성장 포트폴리오 서사</div><button class="gen-btn" id="pf-gb" onclick="genPfNarrative()" disabled><i class="ti ti-sparkles"></i> 서사 생성</button></div>
+  <div class="ai-out" id="pf-ao"><div class="ai-hint">학생을 선택하면 학기 전체 성장 서사를 AI가 작성합니다.</div></div>
+</div>
+
+<div class="panel" id="p-cert">
+  <div class="sl">학생 선택</div>
+  <div class="sbar" id="cert-sb"></div>
+  <div class="cert-wrap" id="cert-mck"><div class="ai-hint" style="text-align:center;padding:1rem 0">학생을 선택하면 이수 확인서 미리보기가 나타납니다.</div></div>
+  <div class="gen-row"><div class="gen-label">AI — 교사 종합 소견</div><button class="gen-btn" id="cert-gb" onclick="genCertComment()" disabled><i class="ti ti-sparkles"></i> 소견 생성</button></div>
+  <div class="ai-out" id="cert-ao"><div class="ai-hint">학생을 선택하면 이수 확인서용 교사 종합 소견을 AI가 생성합니다.</div></div>
+</div>
+</div>
+
+<script>
+const STU=[{id:1,name:'김민준',scores:[72,81,88],target:75},{id:2,name:'이서연',scores:[68,74,74],target:75},{id:3,name:'박지호',scores:[55,60,62],target:75},{id:4,name:'최예원',scores:[60,65,55],target:75},{id:5,name:'정도윤',scores:[38,41,41],target:75},{id:6,name:'강수아',scores:[70,75,78],target:75}];
+const CRIT=['개념 이해','적용 능력','표현·소통','참여·협력'];
+const LN={4:'우수',3:'양호',2:'보통',1:'미흡'};
+const LC={4:'#0F6E56',3:'#185FA5',2:'#BA7517',1:'#A32D2D'};
+const UNITS=[{u:'1단원 — 생물과 환경',d:'2025.03~04',c:'#534AB7',bg:'rgba(83,74,183,.08)'},{u:'2단원 — 날씨와 우리 생활',d:'2025.05~06',c:'#0F6E56',bg:'rgba(15,110,86,.08)'},{u:'3단원 — 식물의 구조',d:'2025.09~10',c:'#185FA5',bg:'rgba(24,95,165,.08)'},{u:'4단원 — 물질의 성질',d:'2025.11~12',c:'#BA7517',bg:'rgba(186,117,23,.08)'}];
+function gsc(s){return s>=80?'#0F6E56':s>=70?'#185FA5':s>=55?'#BA7517':'#A32D2D'}
+function lv(sc){return sc>=80?4:sc>=70?3:sc>=55?2:1}
+let selEv=null,selPf=null,selCert=null,addLv=null,extraEv={};
+
+function baseEv(s){const sc=s.scores[2];return[{ico:'ti-robot',ib:'#EEEDFE',ic:'#3C3489',tt:'AI 1차 피드백 기록',dt:'2025.09.12',ty:'ai',lv:lv(sc),nt:'개념 이해 영역 전진 피드백 제공, 수정 유도',st:sc>=60?'ok':'pt'},{ico:'ti-edit',ib:'#E1F5EE',ic:'#085041',tt:'1차 수정 제출본',dt:'2025.09.15',ty:'submit',lv:lv(sc),nt:'AI 피드백 반영 수정본, 자기평가지 첨부',st:sc>=70?'ok':'pt'},{ico:'ti-user-check',ib:'#E6F1FB',ic:'#0C447C',tt:'교사 관찰 기록',dt:'2025.09.18',ty:'teacher',lv:lv(sc),nt:'모둠 참여도, 질문 빈도, 발표 태도 기록',st:'ok'},{ico:'ti-users',ib:'#FBEAF0',ic:'#72243E',tt:'동료평가 결과',dt:'2025.09.20',ty:'peer',lv:sc>=75?3:2,nt:'모둠원 상호평가 평균 점수 및 코멘트',st:sc>=65?'ok':'pt'},{ico:'ti-chart-bar',ib:'#FAEEDA',ic:'#633806',tt:'교사 2차 심층 피드백',dt:'2025.09.25',ty:'teacher',lv:lv(sc),nt:'성장 확인, 다음 목표 설정 면담 기록',st:'ok'}]}
+function getEvList(s){return[...baseEv(s),...(extraEv[s.id]||[])]}
+
+function renderSbar(cid,selId,cb){
+  const el=document.getElementById(cid);el.innerHTML='';
+  STU.forEach(s=>{const sc=s.scores[2];const c=document.createElement('div');c.className='sc'+(selId===s.id?' on':'');c.innerHTML=`<div class="sn">${s.name}</div><div class="sm">${sc}점</div><div class="sb"><div class="sf" style="width:${sc}%;background:${gsc(sc)}"></div></div>`;c.onclick=()=>cb(s.id);el.appendChild(c)});
+}
+function renderEvStats(s){const sc=s.scores[2];const ev=getEvList(s);const ok=ev.filter(e=>e.st==='ok').length;const pct=Math.round(ok/ev.length*100);const delta=s.scores[2]-s.scores[0];document.getElementById('ev-st').innerHTML=`<div class="stc"><div class="stl">현재 점수</div><div class="stv">${sc}<span style="font-size:13px;font-weight:400">점</span></div><div class="sts">목표 ${s.target}점</div></div><div class="stc"><div class="stl">성장 폭</div><div class="stv" style="color:${delta>=0?'#0F6E56':'#A32D2D'}">+${delta}<span style="font-size:13px;font-weight:400">점</span></div><div class="sts">1차 → 현재</div></div><div class="stc"><div class="stl">증거 완성도</div><div class="stv">${pct}<span style="font-size:13px;font-weight:400">%</span></div><div class="sts">${ok}/${ev.length}개 완료</div></div><div class="stc"><div class="stl">이수 판정</div><div class="stv" style="font-size:16px;color:${sc>=s.target?'#0F6E56':'#A32D2D'}">${sc>=s.target?'이수':'미이수'}</div><div class="sts">${sc>=s.target?'기준 달성':'추가 지원 필요'}</div></div>`}
+function renderTrack(s){const sc=s.scores[2];const lvs=[lv(sc),sc>=75?3:2,sc>=80?4:sc>=70?3:2,sc>=70?3:2];const avg=Math.round(lvs.reduce((a,b)=>a+b)/lvs.length);const pct=Math.round(avg/4*100);document.getElementById('ev-tr').innerHTML=`<div class="track-hd"><div class="track-t">성취기준 도달 현황</div><div class="track-p" style="color:${LC[avg]}">${LN[avg]} (${pct}%)</div></div><div class="tbar"><div class="tfill" style="width:${pct}%;background:${LC[avg]}"></div></div>${CRIT.map((c,i)=>`<div class="crow"><div class="cn">${c}</div><div class="cbar"><div class="cfill" style="width:${Math.round(lvs[i]/4*100)}%;background:${LC[lvs[i]]}"></div></div><div class="clv" style="color:${LC[lvs[i]]}">${LN[lvs[i]]}</div></div>`).join('')}`}
+function renderEvList(s){const list=getEvList(s);const tyMap={ai:'AI 피드백',teacher:'교사 기록',self:'자기평가',peer:'동료평가',submit:'제출물',revision:'수정본'};const stMap={ok:'완료',pt:'부분'};document.getElementById('ev-ls').innerHTML=list.map(e=>`<div class="ev-it"><div class="ev-ic" style="background:${e.ib}"><i class="ti ${e.ico}" style="font-size:13px;color:${e.ic}"></i></div><div class="ev-bd"><div class="ev-tt">${e.tt}</div><div class="ev-mt">${e.dt} · ${tyMap[e.ty]||e.ty}</div><div class="ev-ds">${e.nt}</div><div class="ev-bg"><span class="bdg bdg-${e.st}">${stMap[e.st]||'완료'}</span><span class="bdg" style="background:${LC[e.lv]+'22'};color:${LC[e.lv]}">${LN[e.lv]}</span></div></div></div>`).join('')}
+function renderAddLr(){document.getElementById('add-lr').innerHTML=[4,3,2,1].map(l=>`<button class="lb ${addLv===l?'a'+l:''}" onclick="setAddLv(${l})">${l}단계 ${LN[l]}</button>`).join('')}
+function setAddLv(l){addLv=l;renderAddLr()}
+function showNtc(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>el.textContent='',2200)}
+function addEv(){if(!selEv){showNtc('add-nc','학생을 먼저 선택해주세요.');return}const nm=document.getElementById('add-nm').value.trim();if(!nm){showNtc('add-nc','과제명을 입력해주세요.');return}if(!addLv){showNtc('add-nc','수준을 선택해주세요.');return}const ty=document.getElementById('add-ty').value;const nt=document.getElementById('add-nt').value.trim()||'교사 직접 기록';const tiMap={ai:{ico:'ti-robot',ib:'#EEEDFE',ic:'#3C3489'},teacher:{ico:'ti-user-check',ib:'#E6F1FB',ic:'#0C447C'},self:{ico:'ti-user',ib:'#EAF3DE',ic:'#27500A'},peer:{ico:'ti-users',ib:'#FBEAF0',ic:'#72243E'},submit:{ico:'ti-file',ib:'#FAEEDA',ic:'#633806'},revision:{ico:'ti-edit',ib:'#E1F5EE',ic:'#085041'}};const ti=tiMap[ty]||tiMap.teacher;if(!extraEv[selEv])extraEv[selEv]=[];const now=new Date();extraEv[selEv].push({...ti,tt:nm,dt:`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`,ty,lv:addLv,nt,st:'ok'});const s=STU.find(x=>x.id===selEv);renderEvList(s);renderEvStats(s);document.getElementById('add-nm').value='';document.getElementById('add-nt').value='';addLv=null;renderAddLr();showNtc('add-nc','증거 자료가 추가되었습니다.')}
+
+function renderPfGrid(s){document.getElementById('pf-gr').innerHTML=UNITS.map((u,i)=>{const sc=i===0?s.scores[0]:i===1?s.scores[1]:i===2?s.scores[2]:Math.min(s.scores[2]+5,100);const prev=i===0?null:i===1?s.scores[0]:i===2?s.scores[1]:s.scores[2];const delta=prev!==null?sc-prev:null;return`<div class="pfc"><div class="pfh"><div class="pfic" style="background:${u.bg}"><i class="ti ti-book" style="color:${u.c};font-size:12px"></i></div><div><div class="pft">${u.u}</div><div class="pfd">${u.d}</div></div></div><div class="pfb"><div class="pff" style="width:${sc}%;background:${u.c}"></div></div><div class="pfoot"><div class="pfs">${sc}점</div>${delta!==null?`<div class="pfdelta" style="color:${delta>=0?'#0F6E56':'#A32D2D'}">${delta>=0?'+':''}${delta}점</div>`:'<div class="pfdelta" style="color:#888">출발점</div>'}</div></div>`}).join('')}
+function renderTimeline(s){const items=[{dt:'2025.03.05',c:'#534AB7',tt:'1단원 학습 시작 — 출발점 진단',ds:`AI 진단 ${s.scores[0]}점. 개념 이해 오개념 발견, 지원 계획 수립.`,cs:['진단평가','AI 분석','오개념 확인'],sc:s.scores[0]},{dt:'2025.04.20',c:'#0F6E56',tt:'AI 피드백 반영 — 1차 자기주도 수정',ds:'전진 피드백 수용 후 스스로 수정 완료. 적용 영역 개선.',cs:['AI 피드백','자기주도 수정'],sc:null},{dt:'2025.06.10',c:'#185FA5',tt:'2단원 수행평가 — 중간 성장 확인',ds:`${s.scores[1]}점 달성. +${s.scores[1]-s.scores[0]}점 향상. 교사 2차 심층 면담.`,cs:['형성평가','교사 관찰','성장 증거'],sc:s.scores[1]},{dt:'2025.09.25',c:'#BA7517',tt:'3단원 최종 수행 — 누적 이수 확인',ds:`${s.scores[2]}점 달성. 목표 ${s.target}점 ${s.scores[2]>=s.target?'달성':'미달'}. 전체 성장 +${s.scores[2]-s.scores[0]}점.`,cs:['총괄평가','이수 판정','포트폴리오 정리'],sc:s.scores[2]}];document.getElementById('pf-tl').innerHTML=items.map(it=>`<div class="tli"><div class="tll"><div class="tld" style="background:${it.c}"></div><div class="tlln"></div></div><div class="tlb"><div class="tldt">${it.dt}</div><div class="tltt">${it.tt}</div><div class="tlds">${it.ds}</div>${it.sc!==null?`<div class="tlsc" style="color:${gsc(it.sc)}">${it.sc}점</div>`:''}<div class="tlcs">${it.cs.map(c=>`<span class="tlc">${c}</span>`).join('')}</div></div></div>`).join('')}
+
+function renderCertMock(s){const sc=s.scores[2];const passed=sc>=s.target;const lvs=[lv(sc),sc>=75?3:2,sc>=80?4:sc>=70?3:2,sc>=70?3:2];document.getElementById('cert-mck').innerHTML=`<div class="cert-in"><div class="cert-hd"><div class="cert-logo"><i class="ti ti-school" style="font-size:15px;color:#0F6E56"></i></div><div><div class="cert-sch">광석초등학교</div><div class="cert-sb">과정중심 수행평가 이수 확인서</div></div><div style="margin-left:auto"><span class="bdg ${passed?'bdg-ok':'bdg-pt'}">${passed?'이수 완료':'미이수'}</span></div></div><div class="cert-nm">${s.name}</div><div class="cert-st">위 학생은 2025학년도 과정중심 수행평가에 성실히 참여하였으며, AI 피드백 기반 자기주도 수정, 교사 관찰 기록, 동료평가 등 다양한 학습 증거를 통해 성취기준 도달 여부를 확인합니다.</div><div class="cert-eg">${CRIT.map((c,i)=>`<div class="cert-ec"><div class="cert-en">${c}</div><div class="cert-el" style="color:${LC[lvs[i]]}">${LN[lvs[i]]} (${lvs[i]}단계)</div></div>`).join('')}</div><div style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:#f8f8f6"><div style="font-size:11px;color:#888;margin-bottom:3px">누적 증거 자료</div><div style="font-size:12px;color:#1a1a1a">AI 피드백 기록 · 1차 수정 제출본 · 교사 관찰 기록 · 동료평가 · 교사 2차 심층 피드백</div></div><div class="cert-ft"><div class="cert-date">발급일 ${new Date().toLocaleDateString('ko-KR')}</div><div class="cert-sign">담임교사 확인 ___________</div></div></div>`}
+
+async function callAI(sys,usr,outId,btnId){
+  const out=document.getElementById(outId),btn=document.getElementById(btnId);
+  btn.disabled=true;out.innerHTML='<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span style="font-size:13px;color:#888">AI 생성 중...</span></div>';
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:sys,messages:[{role:'user',content:usr}]})});const data=await res.json();const text=data.content?.find(c=>c.type==='text')?.text||'생성 실패';out.innerHTML=`<div class="ai-text">${text}</div>`}catch(e){out.innerHTML='<div class="ai-hint" style="color:#c0392b">오류가 발생했습니다.</div>'}
+  btn.disabled=false;
+}
+function genEvSummary(){if(!selEv)return;const s=STU.find(x=>x.id===selEv);const ev=getEvList(s);const sc=s.scores[2];callAI('당신은 초등학교 교사를 위한 과정중심 수행평가 전문가입니다. 학생의 누적 증거 자료를 분석해 이수 판정 근거를 명확하게 요약합니다. 핵심 증거 자료 요약, 성취기준 도달 판단 근거, 성장 과정의 특징적 변화, 이수/미이수 판정 이유를 포함해 5~6문장으로 작성하세요. 생활기록부에 활용할 수 있는 객관적·서술적 언어로 작성하세요. 마크다운 없이 순수 텍스트로 반환하세요.',`학생: ${s.name}\n현재 점수: ${sc}점 / 목표: ${s.target}점\n이수 판정: ${sc>=s.target?'이수':'미이수'}\n성장 폭: +${sc-s.scores[0]}점\n누적 증거:\n${ev.map(e=>`- ${e.tt} (${e.dt}): ${e.nt} — ${LN[e.lv]}`).join('\n')}\n\n이수 판정 근거를 요약해주세요.`,'ev-ao','ev-gb')}
+function genPfNarrative(){if(!selPf)return;const s=STU.find(x=>x.id===selPf);callAI('당신은 초등학교 교사를 위한 학생 성장 포트폴리오 전문가입니다. 학생의 학기 전체 성장 과정을 따뜻하고 구체적인 서사로 기록합니다. 학기 초 출발점과 도전, AI 피드백과 자기주도 수정 과정, 가장 두드러진 성장 순간, 현재 도달 수준, 앞으로의 가능성을 포함해 6~8문장으로 작성하세요. 생활기록부 특기사항이나 포트폴리오 표지 글로 활용할 수 있는 서술형 언어로 작성하세요. 마크다운 없이 순수 텍스트로 반환하세요.',`학생: ${s.name}\n1단원: ${s.scores[0]}점\n2단원: ${s.scores[1]}점\n3단원: ${s.scores[2]}점\n총 성장: +${s.scores[2]-s.scores[0]}점\n목표 달성: ${s.scores[2]>=s.target?'달성':'미달'}\n\n학기 성장 포트폴리오 서사를 작성해주세요.`,'pf-ao','pf-gb')}
+function genCertComment(){if(!selCert)return;const s=STU.find(x=>x.id===selCert);const sc=s.scores[2];callAI('당신은 초등학교 담임교사입니다. 과정중심 수행평가 이수 확인서에 들어갈 교사 종합 소견을 작성합니다. 4~5문장의 공식적이고 따뜻한 소견을 작성하세요. 생활기록부 수준의 서술형 언어를 사용하고, 구체적 행동과 태도를 포함하세요. 마크다운 없이 순수 텍스트로 반환하세요.',`학생: ${s.name}\n최종: ${sc}점 / 목표: ${s.target}점\n이수: ${sc>=s.target?'이수':'미이수'}\n성장: +${sc-s.scores[0]}점\n\n이수 확인서 교사 종합 소견을 작성해주세요.`,'cert-ao','cert-gb')}
+
+function sw(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');const idx={ev:0,pf:1,cert:2}[id];document.querySelectorAll('.tab')[idx].classList.add('on')}
+
+const evCb=id=>{selEv=id;renderSbar('ev-sb',id,evCb);const s=STU.find(x=>x.id===id);renderEvStats(s);renderTrack(s);renderEvList(s);document.getElementById('ev-gb').disabled=false;document.getElementById('ev-ao').innerHTML='<div class="ai-hint">버튼을 누르면 이수 판정 근거를 요약합니다.</div>'};
+const pfCb=id=>{selPf=id;renderSbar('pf-sb',id,pfCb);const s=STU.find(x=>x.id===id);renderPfGrid(s);renderTimeline(s);document.getElementById('pf-gb').disabled=false;document.getElementById('pf-ao').innerHTML='<div class="ai-hint">버튼을 누르면 성장 서사를 작성합니다.</div>'};
+const certCb=id=>{selCert=id;renderSbar('cert-sb',id,certCb);const s=STU.find(x=>x.id===id);renderCertMock(s);document.getElementById('cert-gb').disabled=false;document.getElementById('cert-ao').innerHTML='<div class="ai-hint">버튼을 누르면 교사 종합 소견을 생성합니다.</div>'};
+renderSbar('ev-sb',null,evCb);renderSbar('pf-sb',null,pfCb);renderSbar('cert-sb',null,certCb);renderAddLr();
+</script>
+</body>
+</html>

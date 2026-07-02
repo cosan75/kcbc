@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRASPS 실제적 평가 설계 워크시트 | KCBC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+  :root {
+    --teal:    #0D9488;
+    --blue:    #2563EB;
+    --amber:   #D97706;
+    --purple:  #7C3AED;
+    --green:   #16A34A;
+    --rose:    #E11D48;
+    --ink:     #1E293B;
+    --muted:   #64748B;
+    --rule:    #CBD5E1;
+    --bg:      #F8FAFC;
+    --white:   #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg); color: var(--ink);
+    font-size: 13px; line-height: 1.6;
+  }
+  .page {
+    width: 210mm; min-height: 297mm; margin: 16px auto;
+    background: var(--white); padding: 14mm 14mm 12mm;
+    box-shadow: 0 4px 24px #0002;
+  }
+  .header {
+    border-top: 4px solid var(--teal);
+    border-bottom: 1.5px solid var(--rule);
+    padding: 10px 0 8px; margin-bottom: 14px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
+  }
+  .eyebrow {
+    font-size: 10px; color: var(--teal); font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px;
+  }
+  .header h1 {
+    font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1;
+  }
+  .header h1 span { color: var(--teal); }
+  .meta-tag {
+    font-size: 10px; background: #F0FDFA; color: var(--teal);
+    border-radius: 4px; padding: 2px 7px; font-weight: 700;
+  }
+  .name-row { display: flex; gap: 16px; margin-top: 4px; }
+  .name-field {
+    font-size: 11px; color: var(--muted);
+    border-bottom: 1px solid var(--rule); padding-bottom: 2px; min-width: 100px;
+  }
+  .intro {
+    background: #F0FDFA; border-left: 4px solid var(--teal);
+    border-radius: 0 8px 8px 0; padding: 9px 14px; margin-bottom: 16px;
+    font-size: 12px; color: #0F766E;
+  }
+  .intro strong { font-weight: 900; }
+  .section-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 900; margin-bottom: 10px; margin-top: 16px;
+  }
+  .badge {
+    background: var(--teal); color: #fff; border-radius: 4px;
+    padding: 1px 7px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  }
+  .grasps-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    margin-bottom: 16px;
+  }
+  .grasps-card {
+    border-radius: 8px; padding: 12px 14px;
+    border: 2px solid currentColor; position: relative;
+  }
+  .grasps-card.g { color: var(--teal);   background: #F0FDFA; }
+  .grasps-card.r { color: var(--blue);   background: #EFF6FF; }
+  .grasps-card.a { color: var(--amber);  background: #FFFBEB; }
+  .grasps-card.s { color: var(--purple); background: #F5F3FF; }
+  .grasps-card.p { color: var(--green);  background: #F0FDF4; }
+  .grasps-card.st{ color: var(--rose);   background: #FFF1F2; }
+  .grasps-letter {
+    font-size: 32px; font-weight: 900; line-height: 1;
+    position: absolute; top: 10px; right: 12px; opacity: 0.35;
+  }
+  .grasps-name { font-weight: 900; font-size: 15px; margin-bottom: 2px; }
+  .grasps-en { font-size: 10px; color: var(--muted); margin-bottom: 4px; font-weight: 400; }
+  .grasps-guide {
+    font-size: 11px; font-weight: 700; line-height: 1.5;
+    background: rgba(255,255,255,0.7); border-radius: 5px;
+    padding: 5px 7px; margin-bottom: 6px;
+  }
+  .grasps-write {
+    background: var(--white); border: 1px dashed currentColor; border-radius: 5px;
+    min-height: 46px; padding: 6px 8px; font-size: 11px; color: #94A3B8;
+  }
+  hr.divider { border: none; border-top: 1.5px dashed var(--rule); margin: 14px 0; }
+  .example-box {
+    background: #F1F5F9; border-radius: 8px; padding: 12px 14px;
+    font-size: 11px; margin-bottom: 14px;
+  }
+  .example-box h4 {
+    font-size: 12px; font-weight: 900; color: var(--ink); margin-bottom: 6px;
+  }
+  .example-row {
+    display: grid; grid-template-columns: 90px 1fr; gap: 6px 12px;
+    padding: 4px 0; border-top: 1px dashed var(--rule);
+  }
+  .example-row:first-of-type { border-top: none; }
+  .example-row .key { font-weight: 800; color: var(--teal); }
+  .reflection-box {
+    background: #F5F3FF; border: 1.5px solid #C4B5FD;
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .reflection-box .rfl-head {
+    font-weight: 900; font-size: 12px; color: var(--purple);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .rfl-item { margin-bottom: 8px; }
+  .rfl-q { font-size: 11px; font-weight: 700; margin-bottom: 3px; }
+  .rfl-line {
+    border-bottom: 1px dashed #C4B5FD; min-height: 20px; margin-bottom: 3px;
+  }
+  .footer {
+    border-top: 1px solid var(--rule); padding-top: 7px; margin-top: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-left { font-size: 9px; color: var(--muted); line-height: 1.6; }
+  .footer-right { font-size: 9px; color: var(--muted); text-align: right; }
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; padding: 12mm 13mm 10mm; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="eyebrow">KCBC · 실제적 평가 설계</div>
+      <h1><span>GRASPS</span> 6요소 워크시트</h1>
+    </div>
+    <div>
+      <div class="meta-tag">McTighe & Wiggins · UbD</div>
+      <div class="name-row">
+        <div class="name-field">교과·단원</div>
+        <div class="name-field">교사</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="intro">
+    <strong>GRASPS</strong>는 학생이 배운 것을 <strong>실제 상황에 적용</strong>하도록 설계된 수행 과제 프레임워크입니다. 6요소를 명시적으로 채우면 평가가 <strong>암기 확인이 아니라 개념 전이</strong>를 측정합니다. 학생이 "누가·왜·누구를 위해" 답을 만들어야 하는지 스스로 알게 하는 것이 핵심.
+  </div>
+
+  <div class="section-title"><span class="badge">STEP 1</span> 6요소 설계</div>
+
+  <div class="grasps-grid">
+    <div class="grasps-card g">
+      <div class="grasps-letter">G</div>
+      <div class="grasps-name">목표 · Goal</div>
+      <div class="grasps-en">What is the challenge?</div>
+      <div class="grasps-guide">학생이 해결해야 할 도전 과제/문제. "무엇을 성취해야 하는가?"</div>
+      <div class="grasps-write"></div>
+    </div>
+    <div class="grasps-card r">
+      <div class="grasps-letter">R</div>
+      <div class="grasps-name">역할 · Role</div>
+      <div class="grasps-en">Who are you?</div>
+      <div class="grasps-guide">학생이 맡을 실제 역할. 기자·시장·과학자·설계자·시민 등.</div>
+      <div class="grasps-write"></div>
+    </div>
+    <div class="grasps-card a">
+      <div class="grasps-letter">A</div>
+      <div class="grasps-name">청중 · Audience</div>
+      <div class="grasps-en">For whom?</div>
+      <div class="grasps-guide">결과물을 받아볼 대상. 급우가 아닌 <strong>실제 대상</strong>일수록 강력.</div>
+      <div class="grasps-write"></div>
+    </div>
+    <div class="grasps-card s">
+      <div class="grasps-letter">S</div>
+      <div class="grasps-name">상황 · Situation</div>
+      <div class="grasps-en">Context / Constraints</div>
+      <div class="grasps-guide">과제가 벌어지는 배경 + 제약(시간·자원·정책). 현실감의 원천.</div>
+      <div class="grasps-write"></div>
+    </div>
+    <div class="grasps-card p">
+      <div class="grasps-letter">P</div>
+      <div class="grasps-name">산출물 · Product</div>
+      <div class="grasps-en">What will you create?</div>
+      <div class="grasps-guide">학생이 만들 <strong>구체적 결과물</strong>. 보고서·안내문·설계도·짧은 영상 등.</div>
+      <div class="grasps-write"></div>
+    </div>
+    <div class="grasps-card st">
+      <div class="grasps-letter">S</div>
+      <div class="grasps-name">기준 · Standards</div>
+      <div class="grasps-en">By what criteria?</div>
+      <div class="grasps-guide">평가 준거. 루브릭(잘함/보통/노력요함)과 성공 지표.</div>
+      <div class="grasps-write"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title"><span class="badge">STEP 2</span> 참고 예시 — 초등 사회</div>
+
+  <div class="example-box">
+    <h4>📌 "우리 고장의 자랑을 소개하는 안내 자료 만들기"</h4>
+    <div class="example-row"><span class="key">G · 목표</span><span>다른 지역 사람들이 우리 고장을 방문하고 싶어지도록 소개 자료를 만든다.</span></div>
+    <div class="example-row"><span class="key">R · 역할</span><span>고장 홍보 담당 지자체 담당자</span></div>
+    <div class="example-row"><span class="key">A · 청중</span><span>옆 도시 초등학생 + 그 가족 (관광 가능성 있는 실제 대상)</span></div>
+    <div class="example-row"><span class="key">S · 상황</span><span>연말 예산 회의에 앞서, 다음 달 배포 예정 · A3 안내지 1장 분량</span></div>
+    <div class="example-row"><span class="key">P · 산출물</span><span>A3 안내지 (특징 3가지 + 근거 자료 + 방문 동선 지도)</span></div>
+    <div class="example-row"><span class="key">S · 기준</span><span>① 자료 인용 정확성 ② 3가지 근거의 다각성 ③ 청중 눈높이 언어 ④ 시각 정보 명료성</span></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title"><span class="badge">STEP 3</span> 자기 점검</div>
+
+  <div class="reflection-box">
+    <div class="rfl-head">🪞 이 과제가 실제적 평가인지 확인</div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q1. 청중이 실제 존재하나요? (급우/교사만이 아닌)</div>
+      <div class="rfl-line"></div>
+    </div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q2. 학생 응답이 <strong>다르게</strong> 나올 수 있는 여지가 있나요?</div>
+      <div class="rfl-line"></div>
+    </div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q3. 산출물이 학생의 사고 과정을 <strong>가시적으로</strong> 보여주나요?</div>
+      <div class="rfl-line"></div>
+    </div>
+    <div class="rfl-item">
+      <div class="rfl-q">Q4. 이 과제는 다른 단원/다른 학년으로 <strong>전이 가능</strong>한가요?</div>
+      <div class="rfl-line"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">
+      출처: McTighe & Wiggins. <em>Understanding by Design (UbD)</em>.<br>
+      참고: 2022 개정 교육과정 — 실제적 맥락 · 개념 전이 · 깊이 있는 학습
+    </div>
+    <div class="footer-right">
+      KCBC Builder Studio<br>
+      GRASPS 실제적 평가 설계 워크시트
+    </div>
+  </div>
+</div>
+</body>
+</html>
