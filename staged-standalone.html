@@ -35,13 +35,16 @@
       border-bottom:1px solid var(--line);
       height:56px;
     }
-    .gnb__back{
-      background:none; border:none; cursor:pointer;
-      display:inline-flex; align-items:center; gap:6px;
-      color:var(--ink-soft); padding:6px 8px; border-radius:8px;
+    .gnb__title{
+      font-size:14.5px; font-weight:800; margin:0; letter-spacing:-.3px;
+      padding:8px 18px; border-radius:999px;
+      background:linear-gradient(120deg, #fce4ff 0%, #fff2d9 45%, #d8f4e9 100%);
+      color:#3d3f5c;
+      box-shadow:
+        0 2px 6px rgba(150,150,200,.18),
+        inset 0 0 0 1px rgba(255,255,255,.7);
+      white-space:nowrap;
     }
-    .gnb__back:hover{ background:var(--line-soft); }
-    .gnb__title{ font-size:14px; font-weight:700; margin:0; letter-spacing:-.2px; }
     .gnb__spacer{ flex:1; }
     .gnb__actions{ display:flex; gap:4px; }
     .icon-btn{
@@ -62,6 +65,36 @@
     @media (max-width:640px){
       .app{ grid-template-columns:1fr; }
       .chat{ position:static !important; height:auto !important; }
+      .gnb__title{ font-size:13px; padding:6px 12px; }
+      .gnb__crumb{ display:none; }
+      .canvas{ padding:12px; }
+      .matrix{ grid-template-columns:64px repeat(3, minmax(0,1fr)); gap:4px; }
+      .matrix__row-label{ font-size:11px; padding:3px 4px; }
+      .matrix__cell{ min-height:56px; padding:6px; }
+      .matrix__cell-content{ font-size:11px; }
+      .matrix__cell-add{ width:22px; height:22px; top:4px; right:4px; }
+      .action-btn{ font-size:11px; padding:7px 3px; }
+      .action-btn__ico{ font-size:14px; }
+      .radar-card svg{ max-width:130px; }
+      .radar-card h3{ font-size:12px; }
+      .radar-card__score{ font-size:18px; }
+      .ws__page{ padding:22px 18px 18px; font-size:12px; }
+      .ws__title{ font-size:19px; margin-bottom:12px; }
+      .ws__gradebox th, .ws__gradebox td{ padding:3px 12px; font-size:11.5px; }
+      .ws__scoreinfo{ font-size:11.5px; }
+      .ws__info th, .ws__info td{ padding:4px 6px; font-size:11.5px; }
+      .ws__info th{ width:52px; }
+      .ws__section{ font-size:12.5px; }
+      .ws__q-head{ font-size:12px; padding-left:20px; text-indent:-20px; }
+      .ws__q-space{ min-height:140px; }
+      .radio-group{ gap:8px; }
+      .radio{ font-size:12px; }
+      .field__label{ font-size:12.5px; }
+      .input, .select, .textarea{ font-size:14px; } /* iOS auto-zoom 방지 */
+    }
+    @media (max-width:400px){
+      .radars{ grid-template-columns:1fr; gap:6px; }
+      .action-grid{ grid-template-columns:repeat(2, 1fr); }
     }
 
     /* ═════ Left Sidebar (Chat) ═════ */
@@ -135,12 +168,39 @@
     .cell-editor .field{ margin-bottom:8px; }
     .cell-editor__row{ display:flex; gap:8px; margin-top:8px; }
     .btn-tech{
-      flex:1; padding:10px; border-radius:8px; border:1.5px solid var(--accent);
+      flex:1; padding:9px 8px; border-radius:8px; border:1.5px solid var(--accent);
       background:var(--panel); color:var(--accent); font-weight:700; cursor:pointer;
-      display:inline-flex; align-items:center; justify-content:center; gap:6px;
-      transition:.15s; font-size:13px;
+      display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      transition:.15s; font-size:11.5px; white-space:nowrap; letter-spacing:-.2px;
     }
     .btn-tech:hover{ background:var(--accent); color:#fff; }
+
+    /* 성취기준 리스트 */
+    .ach-list{
+      max-height:170px; overflow-y:auto;
+      border:1px solid var(--line); border-radius:8px;
+      padding:5px; background:var(--panel);
+    }
+    .ach-item{
+      display:flex; gap:7px; padding:6px 6px 6px 4px; border-radius:6px;
+      align-items:flex-start; cursor:pointer;
+    }
+    .ach-item:hover{ background:var(--line-soft); }
+    .ach-item input{ margin-top:3px; accent-color:var(--accent); flex-shrink:0; }
+    .ach-item__code{
+      font-size:9.5px; padding:2px 5px; border-radius:4px; background:var(--accent-soft);
+      color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0;
+      margin-top:1px;
+    }
+    .ach-item__desc{
+      font-size:11.5px; color:var(--ink-soft); line-height:1.45;
+      word-break:keep-all;
+    }
+    .ach-count{
+      font-size:10.5px; color:var(--muted); font-weight:600;
+      margin-left:auto; padding:0 2px;
+    }
+    .ach-count b{ color:var(--accent); }
 
     details.adv{
       margin-top:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel);
@@ -175,8 +235,9 @@
     /* 평가지(수행평가지 워크시트) — 인쇄용 스타일 */
     .assessment-card{ background:transparent; border:none; padding:0; box-shadow:none; }
     .assessment-empty{
-      font-size:12px; color:var(--muted); text-align:center; padding:20px;
+      font-size:11px; color:var(--muted); text-align:center; padding:14px 12px;
       background:var(--panel); border:1px dashed var(--line); border-radius:10px;
+      line-height:1.5; word-break:keep-all;
     }
     .btn-mini{
       padding:6px 12px; border-radius:6px; border:1px solid var(--line);
@@ -262,10 +323,14 @@
     .rubric__grade--mid{ background:#eef1ff; color:var(--accent); }
     .rubric__grade--low{ background:#ffe1ec; color:var(--rose); }
 
-    /* 뷰 스위칭 — assessment view일 땐 매트릭스/툴바/레이더 숨김 */
-    .canvas[data-view="assessment"] > .canvas__toolbar,
-    .canvas[data-view="assessment"] > .card:not(.assessment-card),
-    .canvas[data-view="assessment"] > .radars{ display:none; }
+    /* 캔버스 툴바 리셋 버튼 */
+    .btn-reset{
+      padding:7px 14px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:12px; color:var(--ink-soft);
+      font-weight:600; transition:.15s; display:inline-flex; align-items:center; gap:4px;
+      white-space:nowrap;
+    }
+    .btn-reset:hover{ border-color:var(--rose); color:var(--rose); background:#fff5f8; }
 
     /* 인쇄 시 워크시트만 남기고 나머지 숨김 */
     @media print{
@@ -454,10 +519,7 @@
 
 <!-- ═════ GNB ═════ -->
 <header class="gnb">
-  <button class="gnb__back" title="이전 페이지">
-    <span>←</span><span>뒤로</span>
-  </button>
-  <h1 class="gnb__title">단계형 평가문항 제작 도구</h1>
+  <h1 class="gnb__title">✨ 단계형 평가문항 제작 도구</h1>
   <span class="gnb__crumb">「질문하는 학교」 · <b>학생 질문 능력 계발 모델</b></span>
   <div class="gnb__spacer"></div>
   <div class="gnb__actions">
@@ -520,7 +582,7 @@
             <label class="field__label">과목</label>
             <select class="select" id="subject">
               <option>국어</option><option selected>사회</option>
-              <option>과학</option><option>수학</option><option>도덕</option>
+              <option>과학</option><option>수학</option><option>영어</option>
             </select>
           </div>
         </div>
@@ -533,6 +595,16 @@
         <div class="field">
           <label class="field__label">중요한 질문 <span class="req">*</span></label>
           <textarea class="textarea" id="importantQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?"></textarea>
+        </div>
+
+        <!-- 성취기준 (학년·과목별 자동 로드) -->
+        <div class="field">
+          <label class="field__label">
+            성취기준 (2022 개정) <span class="req">*</span>
+            <span class="ach-count" id="achCount">선택 <b>0</b>개</span>
+          </label>
+          <div class="ach-list" id="achList"></div>
+          <p class="field__hint">학년·과목 변경 시 자동 로드. 관련 성취기준을 체크하세요.</p>
         </div>
 
         <!-- MAIL 필터 (Drop-down mega) -->
@@ -564,7 +636,7 @@
           <!-- ★ 기법 라이브러리 연동 강조 -->
           <div class="cell-editor__row">
             <button class="btn-tech" id="btnOpenTech">
-              💡 기법 라이브러리에서 시드 가져오기 <span style="opacity:.7">→</span>
+              💡 기법에서 시드 가져오기 <span style="opacity:.7">→</span>
             </button>
           </div>
 
@@ -623,12 +695,13 @@
   </aside>
 
   <!-- 오른쪽 캔버스 -->
-  <main class="canvas" data-view="matrix">
+  <main class="canvas">
     <div class="canvas__toolbar">
       <div>
         <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
         <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · MAIL 사용 <b id="mMail">0/5</b> · 개방형 <b id="mOpen">0%</b></p>
       </div>
+      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 처음으로">🔄 처음으로</button>
     </div>
 
     <!-- Matrix Card -->
@@ -641,16 +714,16 @@
 
       <div class="bridge">
         <div class="bridge__text">
-          <b>refine 국면(더 나은 질문 만들기)</b>의 채운 셀은 서·논술형 문항 + 3단 루브릭으로 자동 조립됩니다. <em>평가화는 국면이 아닌 다리(bridge).</em>
+          <b>refine 국면(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다.
         </div>
-        <button class="btn-bridge" id="btnConvert">🔧 평가문항으로 변환</button>
+        <button class="btn-bridge" id="btnConvert">📄 평가지 미리보기</button>
       </div>
     </section>
 
     <!-- 조립된 수행평가지 (워크시트) -->
     <section class="assessment-card" id="assessmentCard">
       <div class="assessment-empty" id="assessmentEmpty">
-        아직 <b>refine 국면</b>(더 나은 질문 만들기) 셀이 비어 있어요. 매트릭스에서 + 를 눌러 시드를 채우고 <b>🔧 평가문항으로 변환</b>을 누르면, 여기에 실제 <b>수행평가지</b>가 조립됩니다.
+        refine 국면 셀을 채운 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
       </div>
       <div id="assessmentBody" class="hidden"></div>
     </section>
@@ -840,6 +913,69 @@ const SEED_DIV = {
 };
 const OPEN_RE = /(왜|어떻게|어떤|어디|만약|어떨까|생각|판단|비교|평가|대안|이유|영향|연결|관점)/;
 
+/* ═════════ 성취기준 (2022 개정 · 데모용 대표 항목) ═════════ */
+function gradeBand(g){
+  return (g === '3학년' || g === '4학년') ? 'g34' : 'g56';
+}
+const ACHIEVEMENTS = {
+  g34: {
+    '국어': [
+      { code:'4국01-04', desc:'상대의 말을 요약하며 듣고 자신의 의견을 조리 있게 말한다.' },
+      { code:'4국02-03', desc:'글에서 낱말의 의미나 생략된 내용을 짐작한다.' },
+      { code:'4국03-02', desc:'중심 문장과 뒷받침 문장을 갖추어 문단을 쓴다.' },
+      { code:'4국05-03', desc:'인물의 마음이나 생각을 짐작하고 이를 자신과 비교하며 작품을 감상한다.' },
+    ],
+    '사회': [
+      { code:'4사03-01', desc:'우리 고장의 지리적 특성을 조사하고, 이것이 주민 생활에 미치는 영향을 파악한다.' },
+      { code:'4사04-04', desc:'옛사람들의 생활 도구나 주거 형태 등의 변화상을 알아본다.' },
+      { code:'4사06-01', desc:'우리 사회의 다양한 문화 현상을 조사·비교하고, 문화 다양성 존중의 태도를 갖는다.' },
+    ],
+    '과학': [
+      { code:'4과01-01', desc:'물체를 이루는 물질을 알아보기 위한 관찰·실험을 수행할 수 있다.' },
+      { code:'4과02-02', desc:'식물의 생김새와 특징을 비교하여 여러 가지 방법으로 분류할 수 있다.' },
+      { code:'4과14-01', desc:'물의 상태 변화를 관찰하고 상태 변화 과정에서의 에너지 출입을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'4수01-05', desc:'곱셈과 나눗셈의 관계를 이해하고 활용하여 문제를 해결한다.' },
+      { code:'4수02-06', desc:'분수의 덧셈과 뺄셈의 계산 원리를 이해하고 계산할 수 있다.' },
+      { code:'4수03-11', desc:'수직·평행 관계를 이해하고 이를 활용하여 도형을 설명한다.' },
+    ],
+    '영어': [
+      { code:'4영01-03', desc:'낱말이나 어구, 문장을 듣고 정확하게 따라 말한다.' },
+      { code:'4영02-05', desc:'그림이나 실물, 동작에 관한 쉬운 낱말과 표현을 듣고 이해한다.' },
+      { code:'4영04-02', desc:'주변의 사물이나 사람에 대해 쉽고 간단한 문장을 쓴다.' },
+    ],
+  },
+  g56: {
+    '국어': [
+      { code:'6국01-04', desc:'자료를 정리하여 말할 내용을 체계적으로 구성한다.' },
+      { code:'6국02-04', desc:'글을 읽고 내용의 타당성과 표현의 적절성을 판단한다.' },
+      { code:'6국03-04', desc:'적절한 근거와 알맞은 표현을 사용하여 주장하는 글을 쓴다.' },
+      { code:'6국05-05', desc:'작품에 대한 이해와 감상을 바탕으로 다른 사람과 의견을 나눈다.' },
+    ],
+    '사회': [
+      { code:'6사01-01', desc:'우리나라의 위치와 영역을 지도에서 찾고, 그 특징을 설명한다.' },
+      { code:'6사04-02', desc:'조선 후기의 사회·문화 변화상을 시대적 배경 속에서 파악한다.' },
+      { code:'6사07-04', desc:'우리 경제 체제의 특징을 시장 원리와 관련지어 설명한다.' },
+    ],
+    '과학': [
+      { code:'6과03-01', desc:'우리 몸의 각 기관이 어떻게 관련되어 있는지 조사하여 발표할 수 있다.' },
+      { code:'6과11-02', desc:'전지와 전구, 전선을 연결하여 전구에 불이 켜지는 조건을 설명할 수 있다.' },
+      { code:'6과16-02', desc:'지구와 달의 크기, 자전과 공전의 특징을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'6수02-06', desc:'원의 지름과 반지름, 원주율의 관계를 이해하고 원의 둘레와 넓이를 구할 수 있다.' },
+      { code:'6수03-04', desc:'비와 비율의 개념을 이해하고 이를 실생활 문제 해결에 활용한다.' },
+      { code:'6수04-03', desc:'평균의 의미를 알고, 자료의 평균을 구할 수 있다.' },
+    ],
+    '영어': [
+      { code:'6영01-04', desc:'대상이나 상황에 대한 간단한 설명을 듣고 세부 정보를 이해한다.' },
+      { code:'6영02-06', desc:'일상생활에 관한 자신의 의견이나 감정을 간단히 표현한다.' },
+      { code:'6영04-04', desc:'자신이나 주변 사람, 일상생활을 쉬운 문장으로 쓴다.' },
+    ],
+  },
+};
+
 /* ═════════ 상태 ═════════ */
 const state = {
   diversity:'general',
@@ -851,13 +987,8 @@ const state = {
   mailFilter:'all',
   items:{},           // { "generate:mid": {question, competency, score, kr:[]} }
   activeCell:null,    // "generate:mid"
-  view:'matrix',      // 'matrix' | 'assessment'
+  achievements:new Set(),  // 선택된 성취기준 코드 집합
 };
-function setView(v){
-  state.view = v;
-  const canvas = document.querySelector('.canvas');
-  if(canvas) canvas.dataset.view = v;
-}
 
 /* ═════════ Helpers ═════════ */
 const $ = (sel) => document.querySelector(sel);
@@ -1181,11 +1312,49 @@ $$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
   toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'특수교육형':'다문화교육형'}`);
 }));
 $('#model').addEventListener('change', e => { state.model = e.target.value; });
-$('#grade').addEventListener('change', e => { state.grade = e.target.value; });
-$('#subject').addEventListener('change', e => { state.subject = e.target.value; });
+$('#grade').addEventListener('change', e => { state.grade = e.target.value; renderAchievements(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; renderAchievements(); });
 $('#title').addEventListener('input', e => { state.title = e.target.value; });
 $('#importantQuestion').addEventListener('input', e => { state.importantQuestion = e.target.value; });
 $('#mailFilter').addEventListener('change', e => { state.mailFilter = e.target.value; renderMatrix(); });
+
+/* ═════════ 성취기준 렌더링 ═════════ */
+function currentAchievements(){
+  const band = gradeBand(state.grade);
+  return ACHIEVEMENTS[band]?.[state.subject] ?? [];
+}
+function renderAchievements(){
+  const list = $('#achList');
+  const items = currentAchievements();
+  if(items.length === 0){
+    list.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--muted); text-align:center;">해당 학년·과목 성취기준이 준비 중입니다.</div>`;
+  } else {
+    list.innerHTML = items.map(a => {
+      const on = state.achievements.has(a.code);
+      return `
+        <label class="ach-item">
+          <input type="checkbox" data-code="${a.code}" ${on?'checked':''}>
+          <span class="ach-item__code">${a.code}</span>
+          <span class="ach-item__desc">${escapeHtml(a.desc)}</span>
+        </label>
+      `;
+    }).join('');
+    list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const code = cb.dataset.code;
+        if(cb.checked) state.achievements.add(code);
+        else state.achievements.delete(code);
+        updateAchCount();
+        renderAssessmentCard();
+      });
+    });
+  }
+  updateAchCount();
+}
+function updateAchCount(){
+  const el = $('#achCount');
+  if(el) el.innerHTML = `선택 <b>${state.achievements.size}</b>개`;
+}
 
 /* ═════════ 자동 시드 채우기 ═════════ */
 $('#btnAutoSeed').addEventListener('click', () => {
@@ -1194,21 +1363,31 @@ $('#btnAutoSeed').addEventListener('click', () => {
     const seed = (SEED_DIV[div]?.[S.key]?.[L.key]) ?? SEED_BASE[S.key][L.key];
     upsertItem(S.key, L.key, { question: seed });
   }));
-  setView('matrix');
   renderMatrix();
   toast('✓ 12셀 자동 시드 완료 · 🔧 변환 버튼으로 평가지 조립');
   setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
-/* ═════════ 초기화 ═════════ */
-$('#btnReset').addEventListener('click', () => {
-  if(!confirm('작성 중인 매트릭스를 모두 지울까요?')) return;
+/* ═════════ 초기화 (처음으로) ═════════ */
+function resetAll(){
+  if(!confirm('매트릭스·평가지·단원 정보·성취기준 선택을 모두 처음으로 되돌릴까요?\n(되돌릴 수 없습니다)')) return;
   state.items = {};
   state.activeCell = null;
+  state.title = '';
+  state.importantQuestion = '';
+  state.mailFilter = 'all';
+  state.achievements.clear();
+  $('#title').value = '';
+  $('#importantQuestion').value = '';
+  $('#mailFilter').value = 'all';
   $('#cellEditor').classList.add('hidden');
+  renderAchievements();
   renderMatrix();
-  toast('초기화 완료');
-});
+  toast('🔄 처음으로 초기화 완료');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+$('#btnReset').addEventListener('click', resetAll);
+$('#btnResetCanvas').addEventListener('click', resetAll);
 
 /* ═════════ 사이드바 토글 ═════════ */
 $('#btnSidebar').addEventListener('click', () => {
@@ -1289,8 +1468,7 @@ function renderAssessmentCard(){
 
   body.innerHTML = `
     <div class="ws__topbar">
-      <button class="ws__back" id="btnBackToMatrix" title="매트릭스 편집으로 돌아가기">🧩 새 작성기</button>
-      <div style="flex:1"></div>
+      <div style="flex:1; font-size:12px; color:var(--muted);">📄 조립된 수행평가지 · 아래 A4 시안으로 미리보기 (교사 참조용 루브릭은 하단 접이식)</div>
       <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
       <button class="btn-mini" id="btnAssessmentPrint" title="인쇄">🖨 인쇄</button>
     </div>
@@ -1319,6 +1497,16 @@ function renderAssessmentCard(){
           <th>과제명</th><td colspan="3">${taskName}</td>
           <th>평가자</th><td>(인)</td>
         </tr>
+        ${state.achievements.size ? `
+        <tr>
+          <th>성취기준</th>
+          <td colspan="5" style="font-size:12px; line-height:1.7;">
+            ${Array.from(state.achievements).map(code => {
+              const item = currentAchievements().find(a => a.code === code);
+              return item ? `<div>[${item.code}] ${escapeHtml(item.desc)}</div>` : '';
+            }).join('')}
+          </td>
+        </tr>` : ''}
       </table>
       <div class="ws__section">활동 과제</div>
 
@@ -1351,11 +1539,6 @@ function renderAssessmentCard(){
     </details>
   `;
 
-  document.getElementById('btnBackToMatrix').addEventListener('click', () => {
-    setView('matrix');
-    toast('🧩 매트릭스 편집으로 복귀');
-    setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 80);
-  });
   document.getElementById('btnAssessmentCopy').addEventListener('click', async () => {
     const txt = assessmentToText(a);
     try{
@@ -1392,7 +1575,6 @@ $('#btnConvert').addEventListener('click', () => {
     return;
   }
   renderAssessmentCard();
-  setView('assessment');
   toast(`✓ ${refineItems.length}문항 수행평가지 조립 완료`);
   setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
@@ -1492,6 +1674,7 @@ $$('.lnb__item').forEach(btn => btn.addEventListener('click', () => {
 }));
 
 /* ═════════ 초기 렌더 ═════════ */
+renderAchievements();
 renderMatrix();
 </script>
 </body>
