@@ -97,6 +97,134 @@
       .action-grid{ grid-template-columns:repeat(2, 1fr); }
     }
 
+    /* ═════ 자동 저장 인디케이터 (GNB 우측) ═════ */
+    .save-ind{
+      display:inline-flex; align-items:center; gap:5px;
+      padding:5px 10px; border-radius:999px;
+      background:#eaf7ef; color:#1f7a4a; font-size:11px; font-weight:600;
+      white-space:nowrap;
+    }
+    .save-ind__dot{
+      width:6px; height:6px; border-radius:50%; background:#2ea66c;
+      box-shadow:0 0 0 3px rgba(46,166,108,.18);
+    }
+    @media (max-width:640px){ .save-ind{ display:none; } }
+
+    /* ═════ 상단 스텝바 (sticky) ═════ */
+    .stepbar{
+      position:sticky; top:56px; z-index:35; background:#fff;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; gap:0; padding:10px 16px;
+      overflow-x:auto;
+    }
+    .stepbar__item{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px; border-radius:999px; background:transparent;
+      border:1px solid transparent; cursor:pointer;
+      color:var(--muted); font-size:12px; font-weight:600;
+      white-space:nowrap; transition:.15s;
+    }
+    .stepbar__item:disabled{ cursor:not-allowed; opacity:.55; }
+    .stepbar__item:hover:not(:disabled){ background:var(--line-soft); color:var(--ink-soft); }
+    .stepbar__item.is-current{
+      background:var(--accent-soft); color:var(--accent); border-color:var(--accent);
+    }
+    .stepbar__item.is-done{ color:#1f7a4a; }
+    .stepbar__item.is-done .stepbar__num{ background:#2ea66c; color:#fff; }
+    .stepbar__num{
+      width:20px; height:20px; border-radius:50%;
+      background:var(--line); color:var(--ink-soft);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700;
+    }
+    .stepbar__item.is-current .stepbar__num{ background:var(--accent); color:#fff; }
+    .stepbar__sep{
+      color:var(--line); font-size:12px; margin:0 2px; user-select:none;
+    }
+
+    /* ═════ 30초 예시 배너 ═════ */
+    .demo-banner{
+      background:linear-gradient(120deg, #eef4ff, #f7f0ff);
+      border-bottom:1px solid var(--line);
+      padding:14px 20px; display:flex; align-items:center; gap:14px;
+    }
+    .demo-banner__body{ flex:1; min-width:0; }
+    .demo-banner__title{ font-size:13px; font-weight:800; margin:0 0 2px; color:var(--ink); }
+    .demo-banner__desc{ font-size:11.5px; color:var(--ink-soft); margin:0; line-height:1.4; }
+    .demo-banner__actions{ display:flex; gap:6px; flex-shrink:0; }
+    .demo-btn{
+      padding:8px 14px; border-radius:8px; border:none; cursor:pointer;
+      font-size:12px; font-weight:700; white-space:nowrap;
+    }
+    .demo-btn--primary{ background:var(--ink); color:#fff; }
+    .demo-btn--primary:hover{ background:var(--brand-hover); }
+    .demo-btn--ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); background:var(--panel); }
+    .demo-btn--ghost:hover{ border-color:var(--accent); color:var(--accent); }
+    .demo-banner.is-hidden{ display:none; }
+    @media (max-width:640px){
+      .demo-banner{ flex-direction:column; align-items:stretch; padding:12px; gap:10px; }
+      .demo-banner__desc{ font-size:11px; }
+    }
+
+    /* ═════ 사이드바 4단계 아코디언 ═════ */
+    .step-acc{
+      border-bottom:1px solid var(--line-soft);
+    }
+    .step-acc__head{
+      width:100%; display:flex; align-items:center; gap:8px;
+      padding:12px 4px; background:transparent; border:none; cursor:pointer;
+      text-align:left; color:var(--ink-soft); font-size:13px; font-weight:700;
+      transition:.12s;
+    }
+    .step-acc__head:hover{ color:var(--accent); }
+    .step-acc__num{
+      width:22px; height:22px; border-radius:50%;
+      background:var(--line); color:var(--ink-soft);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; flex-shrink:0;
+    }
+    .step-acc.is-current .step-acc__head{ color:var(--accent); }
+    .step-acc.is-current .step-acc__num{ background:var(--accent); color:#fff; }
+    .step-acc.is-done .step-acc__num{ background:#2ea66c; color:#fff; }
+    .step-acc__caret{ margin-left:auto; color:var(--muted); font-size:11px; transition:.15s; }
+    .step-acc.is-open .step-acc__caret{ transform:rotate(180deg); }
+    .step-acc__body{ display:none; padding:4px 4px 12px; }
+    .step-acc.is-open .step-acc__body{ display:block; }
+
+    /* ═════ 매트릭스 가로 스크롤 (모바일/태블릿) ═════ */
+    .matrix-scroll{ position:relative; }
+    .matrix-hint{
+      display:none; align-items:center; gap:4px;
+      font-size:11px; color:var(--accent); font-weight:600;
+      margin-top:6px; padding:4px 8px; background:var(--accent-soft);
+      border-radius:6px; width:fit-content;
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{ 0%,100%{opacity:.9;} 50%{opacity:.5;} }
+    @media (max-width:768px){
+      .matrix-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .matrix{ min-width:520px; }
+      .matrix-hint{ display:inline-flex; }
+    }
+
+    /* ═════ 수준 라벨 (상/중/하) 색상 + 텍스트 병기 ═════ */
+    .level-badge{
+      display:inline-block; padding:1px 6px; border-radius:4px;
+      font-size:10px; font-weight:700; margin-right:4px;
+    }
+    .level-badge--high{ background:#dff4f2; color:var(--teal); }
+    .level-badge--mid{ background:#eef1ff; color:var(--accent); }
+    .level-badge--low{ background:#ffe1ec; color:var(--rose); }
+
+    /* ═════ 완성 단계 안내 ═════ */
+    .step4-info{
+      padding:14px; background:var(--accent-soft); border-radius:8px;
+      font-size:11.5px; color:var(--ink-soft); line-height:1.6;
+    }
+    .step4-info b{ color:var(--accent); }
+    .step4-info ul{ margin:6px 0 0; padding-left:20px; }
+    .step4-info li{ margin-bottom:3px; }
+
     /* ═════ Left Sidebar (Chat) ═════ */
     .chat{
       background:var(--panel); border-right:1px solid var(--line);
@@ -522,30 +650,74 @@
   <h1 class="gnb__title">✨ 단계형 평가문항 제작 도구</h1>
   <span class="gnb__crumb">「질문하는 학교」 · <b>학생 질문 능력 계발 모델</b></span>
   <div class="gnb__spacer"></div>
+  <div class="save-ind" id="saveInd" aria-live="polite">
+    <span class="save-ind__dot" aria-hidden="true"></span>
+    <span id="saveIndText">자동 저장됨 · 방금 전</span>
+  </div>
   <div class="gnb__actions">
-    <button class="icon-btn" id="btnReset" title="초기화">↻</button>
-    <button class="icon-btn" id="btnSidebar" title="사이드바 토글">▤</button>
-    <button class="icon-btn" id="btnDrawer" title="메뉴 (네비게이션 드로어)">☰</button>
+    <button class="icon-btn" id="btnReset" title="초기화" aria-label="초기화">↻</button>
+    <button class="icon-btn" id="btnSidebar" title="사이드바 토글" aria-label="사이드바 토글">▤</button>
+    <button class="icon-btn" id="btnDrawer" title="메뉴 (네비게이션 드로어)" aria-label="네비게이션 드로어 열기">☰</button>
   </div>
 </header>
+
+<!-- ═════ 스텝바 (4단계 위저드) ═════ -->
+<nav class="stepbar" id="stepbar" aria-label="4단계 위저드 진행">
+  <button class="stepbar__item" data-step="1" aria-current="step">
+    <span class="stepbar__num">1</span><span>학년·과목</span>
+  </button>
+  <span class="stepbar__sep" aria-hidden="true">→</span>
+  <button class="stepbar__item" data-step="2">
+    <span class="stepbar__num">2</span><span>질문 만들기</span>
+  </button>
+  <span class="stepbar__sep" aria-hidden="true">→</span>
+  <button class="stepbar__item" data-step="3">
+    <span class="stepbar__num">3</span><span>평가 매트릭스</span>
+  </button>
+  <span class="stepbar__sep" aria-hidden="true">→</span>
+  <button class="stepbar__item" data-step="4">
+    <span class="stepbar__num">4</span><span>완성</span>
+  </button>
+</nav>
+
+<!-- ═════ 30초 예시 배너 ═════ -->
+<section class="demo-banner" id="demoBanner" aria-label="30초 예시">
+  <div class="demo-banner__body">
+    <p class="demo-banner__title">⏱ 30초 예시 보기</p>
+    <p class="demo-banner__desc">4학년 사회 <b>「우리 고장의 어제와 오늘」</b> · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기. 실제로 어떻게 만들어지는지 30초 안에 확인해 보세요.</p>
+  </div>
+  <div class="demo-banner__actions">
+    <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
+    <button class="demo-btn demo-btn--primary" id="btnStartFresh" aria-label="처음부터 직접 만들기 시작">✨ 직접 만들어보기</button>
+  </div>
+</section>
 
 <!-- ═════ App ═════ -->
 <div class="app">
   <!-- 왼쪽 사이드바 (Chat) -->
   <aside class="chat">
     <!-- LNB -->
-    <nav class="lnb" aria-label="Local Nav">
-      <button class="lnb__item is-on" data-tab="setup" title="단원 정보">📘</button>
-      <button class="lnb__item" data-tab="matrix" title="매트릭스 편집">🧩</button>
-      <button class="lnb__item" data-tab="techniques" title="기법 라이브러리">💡</button>
-      <div class="lnb__sep"></div>
-      <button class="lnb__item" data-tab="analysis" title="분석">📊</button>
+    <nav class="lnb" aria-label="로컬 네비게이션">
+      <button class="lnb__item is-on" data-tab="setup" title="단원 정보" aria-label="단원 정보 설정">📘</button>
+      <button class="lnb__item" data-tab="matrix" title="매트릭스 편집" aria-label="매트릭스 편집으로 이동">🧩</button>
+      <button class="lnb__item" data-tab="techniques" title="기법 라이브러리" aria-label="기법 라이브러리 열기">💡</button>
+      <div class="lnb__sep" aria-hidden="true"></div>
+      <button class="lnb__item" data-tab="analysis" title="분석" aria-label="분석 지표 보기">📊</button>
     </nav>
 
     <div class="chat__inner">
       <div class="chat__scroll">
         <h2 class="chat__title">평가문항 시작하기</h2>
-        <p class="chat__desc">단원의 <b>중요한 질문</b> 한 줄로 시작해 4국면 × 3수준 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
+        <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>중요한 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
+
+        <!-- ═══════ Step 1: 학년·과목·다양성·모델 ═══════ -->
+        <div class="step-acc is-open is-current" data-step="1">
+          <button class="step-acc__head" data-step-toggle="1" aria-expanded="true" aria-controls="step-body-1">
+            <span class="step-acc__num" aria-hidden="true">1</span>
+            <span>학년·과목 선택</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-1">
 
         <!-- 학습자 다양성 (Radio) -->
         <div class="field">
@@ -587,6 +759,18 @@
           </div>
         </div>
 
+          </div><!-- /Step 1 body -->
+        </div><!-- /Step 1 -->
+
+        <!-- ═══════ Step 2: 질문 만들기 ═══════ -->
+        <div class="step-acc" data-step="2">
+          <button class="step-acc__head" data-step-toggle="2" aria-expanded="false" aria-controls="step-body-2">
+            <span class="step-acc__num" aria-hidden="true">2</span>
+            <span>질문 만들기</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-2">
+
         <div class="field">
           <label class="field__label">단원명</label>
           <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" />
@@ -607,16 +791,28 @@
           <p class="field__hint">학년·과목 변경 시 자동 로드. 관련 성취기준을 체크하세요.</p>
         </div>
 
-        <!-- MAIL 필터 (Drop-down mega) -->
+          </div><!-- /Step 2 body -->
+        </div><!-- /Step 2 -->
+
+        <!-- ═══════ Step 3: 평가 매트릭스 ═══════ -->
+        <div class="step-acc" data-step="3">
+          <button class="step-acc__head" data-step-toggle="3" aria-expanded="false" aria-controls="step-body-3">
+            <span class="step-acc__num" aria-hidden="true">3</span>
+            <span>평가 매트릭스</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-3">
+
+        <!-- 디지털 소양 5요소 필터 -->
         <div class="field">
-          <label class="field__label">MAIL 역량 필터</label>
-          <select class="select" id="mailFilter">
+          <label class="field__label">디지털 소양 5요소 필터</label>
+          <select class="select" id="mailFilter" aria-label="디지털 소양 5요소 필터">
             <option value="all">전체 표시</option>
-            <option value="ethics">윤리·성찰만</option>
-            <option value="access">접근·사용만</option>
-            <option value="analyze">분석·평가만</option>
-            <option value="participate">참여·협력만</option>
-            <option value="create">창조만</option>
+            <option value="ethics">반성·성찰만</option>
+            <option value="access">접근·선택만</option>
+            <option value="analyze">이해·분석·평가만</option>
+            <option value="participate">공유·참여만</option>
+            <option value="create">의사소통·생산만</option>
           </select>
           <p class="field__hint">셀 미리보기가 필터링됩니다.</p>
         </div>
@@ -625,7 +821,7 @@
         <div class="cell-editor hidden" id="cellEditor">
           <div class="cell-editor__head">
             <h3 class="cell-editor__title" id="cellEditorTitle">셀 편집</h3>
-            <button class="cell-editor__close" id="cellEditorClose" title="닫기">✕</button>
+            <button class="cell-editor__close" id="cellEditorClose" title="닫기" aria-label="셀 편집기 닫기">✕</button>
           </div>
 
           <div class="field">
@@ -642,13 +838,13 @@
 
           <div class="row" style="margin-top:8px;">
             <div class="field">
-              <label class="field__label">MAIL 역량</label>
-              <select class="select" id="cellCompetency">
-                <option value="ethics">윤리·성찰</option>
-                <option value="access">접근·사용</option>
-                <option value="analyze" selected>분석·평가</option>
-                <option value="participate">참여·협력</option>
-                <option value="create">창조</option>
+              <label class="field__label">디지털 소양 요소</label>
+              <select class="select" id="cellCompetency" aria-label="디지털 소양 요소 선택">
+                <option value="ethics">반성·성찰</option>
+                <option value="access">접근·선택</option>
+                <option value="analyze" selected>이해·분석·평가</option>
+                <option value="participate">공유·참여</option>
+                <option value="create">의사소통·생산</option>
               </select>
             </div>
           </div>
@@ -662,32 +858,54 @@
           <details class="adv">
             <summary>▸ 고급 태그 · 한국 5요소 (정혜승 2022·2024)</summary>
             <div>
-              <div class="chips" id="krChips">
-                <button class="chip" data-kr="type">유형</button>
-                <button class="chip" data-kr="method">방법</button>
-                <button class="chip" data-kr="content">내용</button>
-                <button class="chip" data-kr="use">활용</button>
-                <button class="chip" data-kr="meta">메타</button>
+              <div class="chips" id="krChips" role="group" aria-label="한국 5요소 태그 선택">
+                <button class="chip" data-kr="type" aria-label="질문 유형 태그">유형</button>
+                <button class="chip" data-kr="method" aria-label="질문 방법 태그">방법</button>
+                <button class="chip" data-kr="content" aria-label="질문 내용 태그">내용</button>
+                <button class="chip" data-kr="use" aria-label="질문 활용 태그">활용</button>
+                <button class="chip" data-kr="meta" aria-label="메타 질문 태그">메타</button>
               </div>
             </div>
           </details>
+        </div>
+
+          </div><!-- /Step 3 body -->
+        </div><!-- /Step 3 -->
+
+        <!-- ═══════ Step 4: 완성 ═══════ -->
+        <div class="step-acc" data-step="4">
+          <button class="step-acc__head" data-step-toggle="4" aria-expanded="false" aria-controls="step-body-4">
+            <span class="step-acc__num" aria-hidden="true">4</span>
+            <span>완성</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-4">
+            <div class="step4-info">
+              🎉 <b>완성 단계</b>입니다.
+              <ul>
+                <li>오른쪽 캔버스의 <b>📄 평가지 미리보기</b>로 실제 A4 수행평가지 확인</li>
+                <li>하단 액션으로 <b>마크다운·JSON·구글드라이브</b> 내보내기</li>
+                <li>언제든 스텝바에서 앞 단계로 돌아가 다시 다듬기</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- 하단 액션 — 4개 · 짧은 1줄 라벨 -->
       <div class="chat__footer">
-        <div class="action-grid">
-          <button class="action-btn is-primary" id="btnAutoSeed" title="4국면 × 3수준 12셀 자동 시드">
-            <span class="action-btn__ico">✨</span><span class="action-btn__lbl">시드</span>
+        <div class="action-grid" role="group" aria-label="내보내기 액션">
+          <button class="action-btn is-primary" id="btnAutoSeed" title="4국면 × 3수준 12셀 자동 시드" aria-label="12셀 자동 시드 채우기">
+            <span class="action-btn__ico" aria-hidden="true">✨</span><span class="action-btn__lbl">시드</span>
           </button>
-          <button class="action-btn" id="btnExport" title="마크다운(.md) 파일로 저장">
-            <span class="action-btn__ico">📄</span><span class="action-btn__lbl">MD</span>
+          <button class="action-btn" id="btnExport" title="마크다운(.md) 파일로 저장" aria-label="마크다운으로 내보내기">
+            <span class="action-btn__ico" aria-hidden="true">📄</span><span class="action-btn__lbl">MD</span>
           </button>
-          <button class="action-btn" id="btnExportJson" title="현재 상태를 JSON으로 저장">
-            <span class="action-btn__ico">🧬</span><span class="action-btn__lbl">JSON</span>
+          <button class="action-btn" id="btnExportJson" title="현재 상태를 JSON으로 저장" aria-label="JSON으로 내보내기">
+            <span class="action-btn__ico" aria-hidden="true">🧬</span><span class="action-btn__lbl">JSON</span>
           </button>
-          <button class="action-btn" id="btnDrive" title="구글드라이브 새 탭 + 클립보드 복사">
-            <span class="action-btn__ico">☁️</span><span class="action-btn__lbl">Drive</span>
+          <button class="action-btn" id="btnDrive" title="구글드라이브 새 탭 + 클립보드 복사" aria-label="구글 드라이브에 저장">
+            <span class="action-btn__ico" aria-hidden="true">☁️</span><span class="action-btn__lbl">Drive</span>
           </button>
         </div>
       </div>
@@ -699,9 +917,9 @@
     <div class="canvas__toolbar">
       <div>
         <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
-        <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · MAIL 사용 <b id="mMail">0/5</b> · 개방형 <b id="mOpen">0%</b></p>
+        <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · 5요소 <b id="mMail">0/5</b> · <span title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요.">열린 질문 비율 <b id="mOpen">0%</b> <span aria-hidden="true" style="cursor:help; color:var(--muted);">ⓘ</span></span></p>
       </div>
-      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 처음으로">🔄 처음으로</button>
+      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 처음으로" aria-label="모두 처음으로 초기화">🔄 처음으로</button>
     </div>
 
     <!-- Matrix Card -->
@@ -710,20 +928,23 @@
         <h3 class="card__title">국면 × 수준</h3>
         <span class="card__sub">셀의 + 를 눌러 기법 라이브러리에서 시드를 가져오세요</span>
       </div>
-      <div class="matrix" id="matrix"></div>
+      <div class="matrix-scroll" role="region" aria-label="4국면 × 3수준 매트릭스" tabindex="0">
+        <div class="matrix" id="matrix"></div>
+      </div>
+      <div class="matrix-hint" aria-hidden="true">← 옆으로 밀어 나머지 셀 보기 →</div>
 
       <div class="bridge">
         <div class="bridge__text">
-          <b>refine 국면(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다.
+          <b>다듬기 단계(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다. <em>평가로 연결.</em>
         </div>
-        <button class="btn-bridge" id="btnConvert">📄 평가지 미리보기</button>
+        <button class="btn-bridge" id="btnConvert" aria-label="평가지 미리보기 열기">📄 평가지 미리보기</button>
       </div>
     </section>
 
     <!-- 조립된 수행평가지 (워크시트) -->
     <section class="assessment-card" id="assessmentCard">
       <div class="assessment-empty" id="assessmentEmpty">
-        refine 국면 셀을 채운 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
+        다듬기 단계 셀을 채운 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
       </div>
       <div id="assessmentBody" class="hidden"></div>
     </section>
@@ -737,15 +958,15 @@
         <div><span class="radar-card__score" id="scoreCompletion">0</span><span class="radar-card__unit">%</span></div>
       </div>
       <div class="radar-card">
-        <h3>MAIL 균형 점수</h3>
-        <p>PISA 2029 5역량</p>
-        <svg viewBox="-120 -120 240 240" id="rad-mail" aria-label="MAIL 육각 레이더"></svg>
+        <h3>디지털 소양 균형</h3>
+        <p>5요소 · 반성/접근/분석/공유/생산</p>
+        <svg viewBox="-120 -120 240 240" id="rad-mail" role="img" aria-label="디지털 소양 5요소 균형 육각 레이더"></svg>
         <div><span class="radar-card__score" id="scoreMail">0</span><span class="radar-card__unit">/100</span></div>
       </div>
       <div class="radar-card">
-        <h3>개방형 신호</h3>
+        <h3>열린 질문 비율 <span aria-hidden="true" title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요." style="cursor:help; color:var(--muted); font-weight:400;">ⓘ</span></h3>
         <p>왜/어떻게/만약/비교/평가/영향</p>
-        <svg viewBox="-120 -120 240 240" id="rad-open" aria-label="개방형 육각 레이더"></svg>
+        <svg viewBox="-120 -120 240 240" id="rad-open" role="img" aria-label="열린 질문 비율 육각 레이더"></svg>
         <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
       </div>
     </section>
@@ -763,7 +984,7 @@
         <h4>작성기</h4>
         <a href="#" data-scroll="setup">📘 단원 정보 설정</a>
         <a href="#" data-scroll="matrix">🧩 4×3 매트릭스</a>
-        <a href="#" data-scroll="analysis">📊 완성도·MAIL·개방형</a>
+        <a href="#" data-scroll="analysis">📊 완성도·5요소·열린질문</a>
         <a href="#" id="megaConvert">🔧 평가문항 변환</a>
         <a href="#" id="megaExport">📤 마크다운 내보내기</a>
       </div>
@@ -785,7 +1006,7 @@
       <div class="mega__col">
         <h4>정책 프레임</h4>
         <a href="#" onclick="return false">「질문하는 학교」 (이화여대)</a>
-        <a href="#" onclick="return false">PISA 2029 MAIL</a>
+        <a href="#" onclick="return false">디지털 소양 5요소</a>
         <a href="#" onclick="return false">정혜승 한국 5요소</a>
         <a href="#" onclick="return false">UbD GRASPS</a>
       </div>
@@ -799,7 +1020,7 @@
   <div class="tech-modal__panel">
     <div class="tech-modal__head">
       <h3 class="tech-modal__title">💡 기법 라이브러리 — 시드 선택</h3>
-      <button class="icon-btn" data-close>✕</button>
+      <button class="icon-btn" data-close aria-label="기법 라이브러리 닫기">✕</button>
     </div>
     <p class="chat__desc" id="techTargetLabel">셀에 적용할 기법을 선택하면 학생용 질문 시드가 자동 삽입됩니다.</p>
     <div class="tech-filter" id="techFilter"></div>
@@ -824,16 +1045,17 @@ const STAGES = [
   { key:'reflect',  ko:'성찰과 다음 배움',       short:'성찰' },
 ];
 const LEVELS = [
-  { key:'low',  ko:'낮음' },
-  { key:'mid',  ko:'중간' },
-  { key:'high', ko:'높음' },
+  { key:'low',  ko:'낮음', short:'하' },
+  { key:'mid',  ko:'중간', short:'중' },
+  { key:'high', ko:'높음', short:'상' },
 ];
+/** 디지털 소양 5요소 (교육부 2022 개정 · MAIL 프레임 국문 재해석) */
 const MAIL = [
-  { key:'ethics',      ko:'윤리',  cssTag:'mail-ethics' },
-  { key:'access',      ko:'접근',  cssTag:'mail-access' },
-  { key:'analyze',     ko:'분석',  cssTag:'mail-analyze' },
-  { key:'participate', ko:'참여',  cssTag:'mail-participate' },
-  { key:'create',      ko:'창조',  cssTag:'mail-create' },
+  { key:'ethics',      ko:'반성·성찰',     short:'성찰', cssTag:'mail-ethics' },
+  { key:'access',      ko:'접근·선택',     short:'접근', cssTag:'mail-access' },
+  { key:'analyze',     ko:'이해·분석·평가', short:'분석', cssTag:'mail-analyze' },
+  { key:'participate', ko:'공유·참여',     short:'공유', cssTag:'mail-participate' },
+  { key:'create',      ko:'의사소통·생산',  short:'생산', cssTag:'mail-create' },
 ];
 
 /* 기법 라이브러리 — 대표 12기법 (개념 전이 시드) */
@@ -1010,9 +1232,11 @@ const toast = (msg) => {
 function renderMatrix(){
   const wrap = $('#matrix');
   wrap.innerHTML = '';
-  // Header row (col labels)
+  // Header row (col labels · 상/중/하 병기)
   wrap.appendChild(elFromHtml(`<div></div>`));
-  LEVELS.forEach(L => wrap.appendChild(elFromHtml(`<div class="matrix__col-label">수준 · ${L.ko}</div>`)));
+  LEVELS.forEach(L => wrap.appendChild(elFromHtml(
+    `<div class="matrix__col-label"><span class="level-badge level-badge--${L.key==='high'?'high':L.key==='mid'?'mid':'low'}">${L.short}</span>${L.ko}</div>`
+  )));
 
   STAGES.forEach(S => {
     // Row label
@@ -1069,6 +1293,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','
 /* ═════════ Cell Editor ═════════ */
 function activateCell(stage, level){
   state.activeCell = cellKey(stage, level);
+  if(typeof gotoStep === 'function' && state.step !== 3) gotoStep(3);
   const editor = $('#cellEditor');
   editor.classList.remove('hidden');
   const S = STAGES.find(x=>x.key===stage); const L = LEVELS.find(x=>x.key===level);
@@ -1111,6 +1336,7 @@ function saveActiveCell(){
     upsertItem(s,l,{ question:q, competency:c, score:sc, kr });
   }
   renderMatrix();
+  if(typeof markSaved === 'function') markSaved();
 }
 
 /* ═════════ Technique Modal ═════════ */
@@ -1346,6 +1572,7 @@ function renderAchievements(){
         else state.achievements.delete(code);
         updateAchCount();
         renderAssessmentCard();
+        if(typeof markSaved === 'function') markSaved();
       });
     });
   }
@@ -1364,7 +1591,9 @@ $('#btnAutoSeed').addEventListener('click', () => {
     upsertItem(S.key, L.key, { question: seed });
   }));
   renderMatrix();
-  toast('✓ 12셀 자동 시드 완료 · 🔧 변환 버튼으로 평가지 조립');
+  if(typeof markSaved === 'function') markSaved();
+  if(typeof gotoStep === 'function') gotoStep(3);
+  toast('✓ 12셀 자동 시드 완료 · 📄 평가지 미리보기로 조립');
   setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
@@ -1377,12 +1606,17 @@ function resetAll(){
   state.importantQuestion = '';
   state.mailFilter = 'all';
   state.achievements.clear();
+  if(state.completedSteps) state.completedSteps.clear();
   $('#title').value = '';
   $('#importantQuestion').value = '';
   $('#mailFilter').value = 'all';
   $('#cellEditor').classList.add('hidden');
   renderAchievements();
   renderMatrix();
+  renderAssessmentCard();
+  if(typeof gotoStep === 'function') gotoStep(1);
+  if(typeof markSaved === 'function') markSaved();
+  const banner = $('#demoBanner'); if(banner) banner.classList.remove('is-hidden');
   toast('🔄 처음으로 초기화 완료');
   window.scrollTo({ top:0, behavior:'smooth' });
 }
@@ -1571,10 +1805,11 @@ function assessmentToText(a){
 $('#btnConvert').addEventListener('click', () => {
   const refineItems = LEVELS.map(L => getItem('refine', L.key)).filter(x => x && x.question.trim());
   if(refineItems.length === 0){
-    toast('⚠ refine 국면(더 나은 질문 만들기)에 채운 셀이 없어요');
+    toast('⚠ 다듬기 단계(더 나은 질문 만들기)에 채운 셀이 없어요');
     return;
   }
   renderAssessmentCard();
+  gotoStep(4);
   toast(`✓ ${refineItems.length}문항 수행평가지 조립 완료`);
   setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
@@ -1596,7 +1831,7 @@ $('#btnExport').addEventListener('click', () => {
       if(!it || !it.question.trim()) return;
       lines.push(`- **${L.ko}**: ${it.question}`);
       if(it.score) lines.push(`  - 채점 힌트: ${it.score}`);
-      lines.push(`  - MAIL: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · 한국 5요소: '+it.kr.join(', ') : ''}`);
+      lines.push(`  - 디지털 소양: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · 한국 5요소: '+it.kr.join(', ') : ''}`);
     });
     lines.push('');
   });
@@ -1673,9 +1908,132 @@ $$('.lnb__item').forEach(btn => btn.addEventListener('click', () => {
   }
 }));
 
+/* ═════════ 4단계 위저드 (스텝바 + 아코디언) ═════════ */
+state.step = 1;
+state.completedSteps = new Set();
+
+function gotoStep(n){
+  state.step = n;
+  document.querySelectorAll('.step-acc').forEach(el => {
+    const s = Number(el.dataset.step);
+    el.classList.toggle('is-open', s === n);
+    el.classList.toggle('is-current', s === n);
+    const head = el.querySelector('.step-acc__head');
+    if(head) head.setAttribute('aria-expanded', s === n ? 'true' : 'false');
+  });
+  document.querySelectorAll('.stepbar__item').forEach(btn => {
+    const s = Number(btn.dataset.step);
+    btn.classList.toggle('is-current', s === n);
+    if(s === n) btn.setAttribute('aria-current', 'step');
+    else btn.removeAttribute('aria-current');
+  });
+  updateStepCompletion();
+}
+
+function updateStepCompletion(){
+  const cs = state.completedSteps;
+  if(state.grade && state.subject) cs.add(1); else cs.delete(1);
+  if(state.importantQuestion.trim() || state.achievements.size > 0 || state.title.trim()) cs.add(2); else cs.delete(2);
+  const hasCell = Object.values(state.items).some(x => x.question && x.question.trim());
+  if(hasCell) cs.add(3); else cs.delete(3);
+  const hasRefine = LEVELS.some(L => { const it = state.items[`refine:${L.key}`]; return it && it.question.trim(); });
+  const bodyHtml = ($('#assessmentBody') && $('#assessmentBody').innerHTML || '').trim();
+  if(hasRefine && bodyHtml.length > 0) cs.add(4); else cs.delete(4);
+  document.querySelectorAll('.step-acc').forEach(el => {
+    const s = Number(el.dataset.step);
+    el.classList.toggle('is-done', cs.has(s));
+  });
+  document.querySelectorAll('.stepbar__item').forEach(btn => {
+    const s = Number(btn.dataset.step);
+    btn.classList.toggle('is-done', cs.has(s));
+  });
+}
+
+document.querySelectorAll('.stepbar__item').forEach(btn => {
+  btn.addEventListener('click', () => gotoStep(Number(btn.dataset.step)));
+});
+document.querySelectorAll('[data-step-toggle]').forEach(head => {
+  head.addEventListener('click', () => gotoStep(Number(head.dataset.stepToggle)));
+});
+
+/* ═════════ 자동 저장 인디케이터 ═════════ */
+let lastSaveTime = Date.now();
+function markSaved(){
+  lastSaveTime = Date.now();
+  updateSaveInd();
+  updateStepCompletion();
+}
+function updateSaveInd(){
+  const diff = Math.floor((Date.now() - lastSaveTime) / 1000);
+  let text;
+  if(diff < 5) text = '자동 저장됨 · 방금 전';
+  else if(diff < 60) text = `자동 저장됨 · ${diff}초 전`;
+  else if(diff < 3600) text = `자동 저장됨 · ${Math.floor(diff/60)}분 전`;
+  else text = '자동 저장됨 · 오래 전';
+  const el = $('#saveIndText');
+  if(el) el.textContent = text;
+}
+setInterval(updateSaveInd, 5000);
+
+// 주요 입력·변경 이벤트에 markSaved 부착
+['#title','#importantQuestion'].forEach(sel => {
+  const el = $(sel); if(el) el.addEventListener('input', markSaved);
+});
+['#grade','#subject','#model','#mailFilter'].forEach(sel => {
+  const el = $(sel); if(el) el.addEventListener('change', markSaved);
+});
+document.querySelectorAll('input[name="diversity"]').forEach(r => r.addEventListener('change', markSaved));
+
+/* ═════════ 30초 예시 배너 ═════════ */
+const DEMO_DATA = {
+  grade:'4학년', subject:'사회', diversity:'general', model:'reflect',
+  title:'우리 고장의 어제와 오늘',
+  importantQuestion:'우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?',
+  achievements:['4사03-01','4사04-04'],
+};
+if($('#btnLoadDemo')){
+  $('#btnLoadDemo').addEventListener('click', () => {
+    state.items = {};
+    state.achievements.clear();
+    Object.assign(state, {
+      grade:DEMO_DATA.grade, subject:DEMO_DATA.subject,
+      diversity:DEMO_DATA.diversity, model:DEMO_DATA.model,
+      title:DEMO_DATA.title, importantQuestion:DEMO_DATA.importantQuestion,
+    });
+    DEMO_DATA.achievements.forEach(c => state.achievements.add(c));
+    STAGES.forEach(S => LEVELS.forEach(L => {
+      const seed = SEED_BASE[S.key][L.key];
+      upsertItem(S.key, L.key, { question: seed });
+    }));
+    document.querySelector('input[name="diversity"][value="'+state.diversity+'"]').checked = true;
+    $('#model').value = state.model;
+    $('#grade').value = state.grade;
+    $('#subject').value = state.subject;
+    $('#title').value = state.title;
+    $('#importantQuestion').value = state.importantQuestion;
+    renderAchievements();
+    renderMatrix();
+    renderAssessmentCard();
+    markSaved();
+    gotoStep(4);
+    toast('✨ 30초 예시 로드 완료 · 스텝바에서 앞 단계도 확인하세요');
+    $('#demoBanner').classList.add('is-hidden');
+    setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 200);
+  });
+}
+if($('#btnStartFresh')){
+  $('#btnStartFresh').addEventListener('click', () => {
+    $('#demoBanner').classList.add('is-hidden');
+    gotoStep(1);
+    toast('✨ 처음부터 시작해 봅시다 · 1단계 학년·과목');
+  });
+}
+
 /* ═════════ 초기 렌더 ═════════ */
 renderAchievements();
 renderMatrix();
+gotoStep(1);
+updateSaveInd();
 </script>
 </body>
 </html>
