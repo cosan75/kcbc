@@ -706,9 +706,21 @@
     .footer b{ color:var(--ink-soft); font-weight:600; }
 
     /* Utility */
-    .row{ display:flex; gap:8px; }
-    .row > *{ flex:1; }
+    .row{ display:flex; gap:8px; flex-wrap:nowrap; }
+    .row > *{ flex:1; min-width:0; }
     .hidden{ display:none !important; }
+
+    /* 학년·과목 인라인 (라벨+셀렉트를 옆으로 붙여 한 줄) */
+    .row--inline{ display:flex; gap:14px; align-items:center; margin-bottom:14px; flex-wrap:nowrap; }
+    .field--inline{
+      display:flex; align-items:center; gap:6px; flex:1; min-width:0; margin-bottom:0;
+    }
+    .field--inline .field__label{
+      margin-bottom:0; white-space:nowrap; flex-shrink:0;
+    }
+    .field--inline .select{
+      flex:1; min-width:0; padding:6px 24px 6px 10px;
+    }
   </style>
 </head>
 <body>
@@ -826,18 +838,18 @@
           </select>
         </div>
 
-        <!-- 단원 & 학년/과목 -->
-        <div class="row">
-          <div class="field">
-            <label class="field__label">학년</label>
-            <select class="select" id="grade">
+        <!-- 학년·과목 인라인 한 줄 배치 -->
+        <div class="row row--inline">
+          <div class="field field--inline">
+            <label class="field__label" for="grade">학년</label>
+            <select class="select" id="grade" aria-label="학년 선택">
               <option>3학년</option><option selected>4학년</option>
               <option>5학년</option><option>6학년</option>
             </select>
           </div>
-          <div class="field">
-            <label class="field__label">과목</label>
-            <select class="select" id="subject">
+          <div class="field field--inline">
+            <label class="field__label" for="subject">과목</label>
+            <select class="select" id="subject" aria-label="과목 선택">
               <option>국어</option><option selected>사회</option>
               <option>과학</option><option>수학</option><option>영어</option>
             </select>
