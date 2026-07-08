@@ -16,8 +16,9 @@
       --shadow-sm:0 1px 2px rgba(15,18,32,.04);
       --shadow-md:0 6px 24px rgba(15,18,32,.08);
       --radius:10px; --radius-lg:14px;
-      --sidebar-w:380px;
-      --canvas-max:960px;
+      --sidebar-w:420px;
+      --canvas-max:820px;
+      --app-max:1320px;
     }
     *,*::before,*::after{ box-sizing:border-box; }
     html,body{ margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink);
@@ -61,6 +62,8 @@
       display:grid;
       grid-template-columns:var(--sidebar-w) 1fr;
       min-height:calc(100vh - 56px - 40px);
+      max-width:var(--app-max);
+      margin:0 auto;
     }
     @media (max-width:640px){
       .app{ grid-template-columns:1fr; }
@@ -708,7 +711,7 @@
     <div class="chat__inner">
       <div class="chat__scroll">
         <h2 class="chat__title">평가문항 시작하기</h2>
-        <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>중요한 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
+        <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>단원 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
 
         <!-- ═══════ Step 1: 학년·과목·다양성·모델 ═══════ -->
         <div class="step-acc is-open is-current" data-step="1">
@@ -724,7 +727,7 @@
           <label class="field__label">학습자 다양성 <span class="req">*</span></label>
           <div class="radio-group">
             <label class="radio"><input type="radio" name="diversity" value="general" checked> 🎓 일반</label>
-            <label class="radio"><input type="radio" name="diversity" value="special"> 🧩 특수교육</label>
+            <label class="radio"><input type="radio" name="diversity" value="special"> 🧩 통합</label>
             <label class="radio"><input type="radio" name="diversity" value="multicultural"> 🌏 다문화</label>
           </div>
           <p class="field__hint">토글 변경 시 시드 문구가 자동 조정됩니다.</p>
@@ -777,7 +780,7 @@
         </div>
 
         <div class="field">
-          <label class="field__label">중요한 질문 <span class="req">*</span></label>
+          <label class="field__label">단원 질문 <span class="req">*</span></label>
           <textarea class="textarea" id="importantQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?"></textarea>
         </div>
 
@@ -1535,7 +1538,7 @@ function renderRadars(){
 /* ═════════ Setup Controls ═════════ */
 $$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
   state.diversity = e.target.value; renderRadars();
-  toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'특수교육형':'다문화교육형'}`);
+  toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'통합형':'다문화교육형'}`);
 }));
 $('#model').addEventListener('change', e => { state.model = e.target.value; });
 $('#grade').addEventListener('change', e => { state.grade = e.target.value; renderAchievements(); });
@@ -1661,7 +1664,7 @@ function assembleAssessment(){
     grade: state.grade,
     subject: state.subject,
     model: state.model,
-    material: state.importantQuestion || '(중요한 질문을 입력하세요)',
+    material: state.importantQuestion || '(단원 질문을 입력하세요)',
     type,
     perScore,
     totalScore,
@@ -1788,7 +1791,7 @@ function assessmentToText(a){
   lines.push(`# ${a.title} — ${a.type} 평가문항`);
   lines.push(`${a.grade} · ${a.subject} · 총 ${a.totalScore}점`);
   lines.push('');
-  lines.push(`[중요한 질문 / 자료]`);
+  lines.push(`[단원 질문 / 자료]`);
   lines.push(a.material);
   lines.push('');
   lines.push('[하위 문항]');
@@ -1822,7 +1825,7 @@ $('#btnExport').addEventListener('click', () => {
   lines.push(`- 학년/과목: ${state.grade} · ${state.subject}`);
   lines.push(`- 적용 모델: ${state.model}`);
   lines.push(`- 학습자 다양성: ${state.diversity}`);
-  lines.push(`- 중요한 질문: ${state.importantQuestion || '(미입력)'}`);
+  lines.push(`- 단원 질문: ${state.importantQuestion || '(미입력)'}`);
   lines.push('');
   STAGES.forEach(S => {
     lines.push(`## ${S.ko}`);
@@ -1953,7 +1956,26 @@ document.querySelectorAll('.stepbar__item').forEach(btn => {
   btn.addEventListener('click', () => gotoStep(Number(btn.dataset.step)));
 });
 document.querySelectorAll('[data-step-toggle]').forEach(head => {
-  head.addEventListener('click', () => gotoStep(Number(head.dataset.stepToggle)));
+  head.addEventListener('click', () => {
+    const s = Number(head.dataset.stepToggle);
+    if(state.step === s){
+      // 이미 열려 있으면 위 화살표 클릭 → 닫기
+      state.step = 0;
+      document.querySelectorAll('.step-acc').forEach(el => {
+        el.classList.remove('is-open');
+        el.classList.remove('is-current');
+        const h = el.querySelector('.step-acc__head');
+        if(h) h.setAttribute('aria-expanded', 'false');
+      });
+      document.querySelectorAll('.stepbar__item').forEach(btn => {
+        btn.classList.remove('is-current');
+        btn.removeAttribute('aria-current');
+      });
+      updateStepCompletion();
+    } else {
+      gotoStep(s);
+    }
+  });
 });
 
 /* ═════════ 자동 저장 인디케이터 ═════════ */
