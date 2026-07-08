@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>단계형 평가문항 제작 도구 · KCBC Standalone</title>
+  <style>
+    /* ═════ Design Tokens ═════ */
+    :root{
+      --bg:#f6f7fb; --panel:#ffffff; --line:#e6e8f0; --line-soft:#eef0f7;
+      --ink:#1a1d29; --ink-soft:#4b5163; --muted:#8c93a8;
+      --brand:#111827; --brand-hover:#0d1220;
+      --accent:#3a57e8; --accent-soft:#eef1ff;
+      --ok:#2ea66c; --warn:#c98a16; --violet:#7048e8; --teal:#0e8f8a; --rose:#d6336c;
+      --tag-gray:#f1f2f6; --tag-blue:#e5edff; --tag-violet:#ede4ff; --tag-teal:#dff4f2; --tag-rose:#ffe1ec;
+      --shadow-sm:0 1px 2px rgba(15,18,32,.04);
+      --shadow-md:0 6px 24px rgba(15,18,32,.08);
+      --radius:10px; --radius-lg:14px;
+      --sidebar-w:340px;
+    }
+    *,*::before,*::after{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink);
+      font-family:"Pretendard","Apple SD Gothic Neo","Segoe UI",system-ui,sans-serif;
+      font-size:14px; line-height:1.55;
+    }
+    button{ font:inherit; color:inherit; }
+    a{ color:inherit; }
+
+    /* ═════ Layout ═════ */
+    .gnb{
+      position:sticky; top:0; z-index:40;
+      display:flex; align-items:center; gap:12px;
+      padding:10px 16px; background:var(--panel);
+      border-bottom:1px solid var(--line);
+      height:56px;
+    }
+    .gnb__back{
+      background:none; border:none; cursor:pointer;
+      display:inline-flex; align-items:center; gap:6px;
+      color:var(--ink-soft); padding:6px 8px; border-radius:8px;
+    }
+    .gnb__back:hover{ background:var(--line-soft); }
+    .gnb__title{ font-size:14px; font-weight:700; margin:0; letter-spacing:-.2px; }
+    .gnb__spacer{ flex:1; }
+    .gnb__actions{ display:flex; gap:4px; }
+    .icon-btn{
+      width:34px; height:34px; border:1px solid var(--line); background:var(--panel);
+      border-radius:8px; cursor:pointer; display:inline-grid; place-items:center;
+      color:var(--ink-soft); transition:.15s;
+    }
+    .icon-btn:hover{ background:var(--line-soft); }
+    .icon-btn.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+    .gnb__crumb{ font-size:12px; color:var(--muted); }
+    .gnb__crumb b{ color:var(--ink-soft); font-weight:600; }
+
+    .app{
+      display:grid;
+      grid-template-columns:var(--sidebar-w) 1fr;
+      min-height:calc(100vh - 56px - 40px);
+    }
+    @media (max-width:640px){
+      .app{ grid-template-columns:1fr; }
+      .chat{ position:static !important; height:auto !important; }
+    }
+
+    /* ═════ Left Sidebar (Chat) ═════ */
+    .chat{
+      background:var(--panel); border-right:1px solid var(--line);
+      display:flex; height:calc(100vh - 56px - 40px); position:sticky; top:56px;
+    }
+    .lnb{
+      width:52px; border-right:1px solid var(--line-soft);
+      display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px;
+      background:#fbfbfd;
+    }
+    .lnb__item{
+      width:36px; height:36px; border:none; background:transparent; border-radius:8px;
+      cursor:pointer; display:grid; place-items:center; font-size:16px; color:var(--ink-soft);
+    }
+    .lnb__item:hover{ background:var(--line-soft); }
+    .lnb__item.is-on{ background:var(--accent-soft); color:var(--accent); }
+    .lnb__sep{ width:24px; height:1px; background:var(--line); margin:6px 0; }
+
+    .chat__inner{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .chat__scroll{ flex:1; overflow-y:auto; padding:18px 18px 12px; }
+    .chat__title{ font-size:15px; font-weight:700; margin:0 0 4px; }
+    .chat__desc{ font-size:12px; color:var(--muted); margin:0 0 16px; }
+
+    .field{ margin-bottom:14px; }
+    .field__label{
+      display:flex; align-items:center; gap:4px;
+      font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;
+    }
+    .field__label .req{ color:var(--rose); }
+    .field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; }
+
+    .input, .select, .textarea{
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
+      background:var(--panel); color:var(--ink); font-size:13px; transition:.15s;
+    }
+    .input:focus, .select:focus, .textarea:focus{
+      outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
+    }
+    .textarea{ min-height:64px; resize:vertical; font-family:inherit; }
+    .select{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%234b5163' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"); background-repeat:no-repeat; background-position:right 10px center; background-size:12px; padding-right:28px; }
+
+    /* Radio group */
+    .radio-group{ display:flex; gap:14px; }
+    .radio{
+      display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft);
+      cursor:pointer;
+    }
+    .radio input{ accent-color:var(--teal); }
+
+    /* Multi-select chips */
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:4px;
+      padding:5px 10px; border-radius:999px; border:1px solid var(--line);
+      background:var(--panel); font-size:12px; color:var(--ink-soft); cursor:pointer;
+      transition:.15s;
+    }
+    .chip:hover{ border-color:var(--accent); color:var(--accent); }
+    .chip.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+    /* Cell editor */
+    .cell-editor{
+      margin-top:12px; padding:14px; border:1px dashed var(--accent);
+      border-radius:var(--radius); background:var(--accent-soft);
+    }
+    .cell-editor__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .cell-editor__title{ font-size:13px; font-weight:700; margin:0; }
+    .cell-editor__close{ background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:16px; }
+    .cell-editor .field{ margin-bottom:8px; }
+    .cell-editor__row{ display:flex; gap:8px; margin-top:8px; }
+    .btn-tech{
+      flex:1; padding:10px; border-radius:8px; border:1.5px solid var(--accent);
+      background:var(--panel); color:var(--accent); font-weight:700; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:6px;
+      transition:.15s; font-size:13px;
+    }
+    .btn-tech:hover{ background:var(--accent); color:#fff; }
+
+    details.adv{
+      margin-top:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel);
+    }
+    details.adv > summary{
+      cursor:pointer; padding:8px 10px; font-size:12px; color:var(--ink-soft);
+      list-style:none;
+    }
+    details.adv > summary::-webkit-details-marker{ display:none; }
+    details.adv[open] > summary{ border-bottom:1px solid var(--line); }
+    details.adv > div{ padding:8px 10px; }
+
+    /* Footer inside chat — 컴팩트 5-액션 그리드 */
+    .chat__footer{ padding:10px 12px 12px; border-top:1px solid var(--line); background:var(--panel); }
+    .action-grid{
+      display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px;
+    }
+    .action-btn{
+      padding:7px 4px; border:1px solid var(--line); border-radius:7px;
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
+      display:flex; align-items:center; justify-content:center; gap:4px;
+      transition:.15s; font-weight:600; white-space:nowrap;
+    }
+    .action-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .action-btn.is-primary{
+      background:var(--brand); color:#fff; border-color:var(--brand);
+    }
+    .action-btn.is-primary:hover{ background:var(--brand-hover); color:#fff; border-color:var(--brand-hover); }
+    .action-btn__ico{ font-size:14px; line-height:1; }
+
+    /* 평가문항 미리보기 카드 */
+    .assessment-card{ background:linear-gradient(180deg, #fbfcff, var(--panel)); border-color:#dfe4ff; }
+    .assessment-type{
+      display:inline-block; padding:1px 8px; border-radius:999px;
+      background:var(--accent-soft); color:var(--accent);
+      font-size:10.5px; font-weight:700; margin-left:6px; vertical-align:middle;
+    }
+    .btn-mini{
+      padding:5px 10px; border-radius:6px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
+    }
+    .btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
+    .assessment{ display:flex; flex-direction:column; gap:8px; }
+    .assessment__meta{ font-size:11px; color:var(--muted); }
+    .assessment__meta b{ color:var(--ink-soft); margin-right:4px; font-weight:600; }
+    .assessment__material{
+      padding:8px 10px; background:var(--tag-gray); border-radius:6px;
+      font-size:12px; color:var(--ink); line-height:1.5;
+    }
+    .assessment__label{
+      font-size:10px; color:var(--muted); font-weight:700;
+      margin-bottom:3px; letter-spacing:.5px; text-transform:uppercase;
+    }
+    .assessment__questions{ margin:2px 0 0 0; padding:0 0 0 20px; }
+    .assessment__questions li{ margin-bottom:6px; font-size:12px; line-height:1.5; }
+    .assessment__q-text{ color:var(--ink); }
+    .assessment__q-meta{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+    .assessment__rubric h4{ font-size:11px; color:var(--ink-soft); margin:4px 0 4px; font-weight:700; }
+    .assessment__rubric table{ width:100%; border-collapse:collapse; font-size:11px; }
+    .assessment__rubric th, .assessment__rubric td{
+      text-align:left; padding:5px 8px; border-top:1px solid var(--line); vertical-align:top;
+    }
+    .assessment__rubric th{ background:var(--line-soft); color:var(--ink-soft); font-weight:600; font-size:10.5px; }
+    .rubric__grade{
+      display:inline-block; padding:2px 6px; border-radius:4px;
+      font-size:10px; font-weight:700; white-space:nowrap;
+    }
+    .rubric__grade--high{ background:#dff4f2; color:var(--teal); }
+    .rubric__grade--mid{ background:#eef1ff; color:var(--accent); }
+    .rubric__grade--low{ background:#ffe1ec; color:var(--rose); }
+    .assessment-empty{ font-size:11px; color:var(--muted); text-align:center; padding:14px; }
+
+    /* ═════ Right Canvas (한 화면 최적화) ═════ */
+    .canvas{ padding:14px 18px 20px; min-width:0; display:flex; flex-direction:column; gap:10px;
+      max-height:calc(100vh - 56px - 40px); overflow-y:auto; }
+    .canvas__toolbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .canvas__title{ font-size:15px; font-weight:700; margin:0; }
+    .canvas__meta{ font-size:11px; color:var(--muted); }
+    .canvas__meta b{ color:var(--ink-soft); font-weight:600; }
+
+    .card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+      padding:12px 14px; box-shadow:var(--shadow-sm);
+    }
+    .card__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .card__title{ font-size:13px; font-weight:700; margin:0; }
+    .card__sub{ font-size:11px; color:var(--muted); }
+
+    /* Matrix (컴팩트) */
+    .matrix{
+      display:grid;
+      grid-template-columns:80px repeat(3, minmax(0,1fr));
+      gap:5px;
+    }
+    .matrix__cell{
+      border:1px solid var(--line); border-radius:8px;
+      padding:8px; min-height:62px; background:var(--panel);
+      display:flex; flex-direction:column; gap:4px; position:relative;
+      cursor:pointer; transition:.15s;
+    }
+    .matrix__cell:hover{ border-color:var(--accent); background:#fbfcff; }
+    .matrix__cell.is-active{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    .matrix__cell.is-filled{ background:#fbfbfd; }
+    .matrix__cell.is-open{ background:#f4fff9; border-color:#c8ecd6; }
+
+    .matrix__row-label{
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; color:var(--ink-soft);
+      background:var(--tag-gray); border-radius:8px;
+      writing-mode:horizontal-tb;
+      padding:4px 8px;
+    }
+    .matrix__col-label{
+      font-size:11px; color:var(--muted); text-align:center; padding-bottom:4px;
+    }
+    .matrix__cell-add{
+      position:absolute; top:6px; right:6px;
+      width:26px; height:26px; border-radius:999px; background:var(--accent-soft);
+      border:1.5px solid var(--accent); color:var(--accent);
+      display:grid; place-items:center; cursor:pointer; font-size:16px; font-weight:700;
+      transition:.15s; box-shadow:0 0 0 0 rgba(58,87,232,.25);
+    }
+    .matrix__cell-add:hover{ background:var(--accent); color:#fff; transform:scale(1.06); box-shadow:0 0 0 6px rgba(58,87,232,.15); }
+    .matrix__cell.is-filled .matrix__cell-add{ background:var(--panel); }
+
+    .matrix__cell-content{ font-size:11px; line-height:1.4; color:var(--ink); flex:1; padding-right:28px; word-break:keep-all; }
+    .matrix__cell-content.is-empty{ color:var(--muted); font-style:italic; }
+    .matrix__tag-row{ display:flex; gap:4px; flex-wrap:wrap; }
+    .matrix__mail-tag{
+      font-size:10px; padding:2px 6px; border-radius:4px;
+      font-weight:600; color:var(--ink-soft);
+    }
+    .mail-ethics{ background:var(--tag-gray); }
+    .mail-access{ background:var(--tag-blue); }
+    .mail-analyze{ background:var(--tag-violet); }
+    .mail-participate{ background:var(--tag-teal); }
+    .mail-create{ background:var(--tag-rose); }
+    .matrix__open-badge{ font-size:10px; color:var(--ok); font-weight:700; }
+
+    /* Convert bridge */
+    .bridge{
+      margin-top:10px; padding:10px 12px; background:linear-gradient(90deg, var(--tag-gray), var(--accent-soft));
+      border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .bridge__text{ font-size:11px; color:var(--ink-soft); line-height:1.4; }
+    .bridge__text b{ color:var(--ink); }
+    .btn-bridge{
+      padding:8px 14px; border-radius:8px; border:none; background:var(--ink); color:#fff;
+      font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap;
+    }
+    .btn-bridge:hover{ background:var(--brand-hover); }
+
+    /* Radars — 항상 가로 3열 */
+    .radars{
+      display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px;
+    }
+    .radar-card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+      padding:10px 8px 8px; text-align:center; box-shadow:var(--shadow-sm);
+      min-width:0;
+    }
+    .radar-card h3{ font-size:12px; margin:0 0 2px; }
+    .radar-card p{ font-size:10px; color:var(--muted); margin:0 0 4px; }
+    .radar-card svg{ width:100%; height:auto; max-width:160px; }
+    .radar-card__score{
+      display:inline-block; font-size:20px; font-weight:800; margin-top:2px;
+      color:var(--ink); line-height:1;
+    }
+    .radar-card__unit{ font-size:11px; color:var(--muted); font-weight:600; margin-left:2px; }
+
+    /* Drawer (navigation) */
+    .drawer{ position:fixed; inset:0; z-index:60; display:none; }
+    .drawer.is-on{ display:block; }
+    .drawer__scrim{ position:absolute; inset:0; background:rgba(15,18,32,.45); animation:fade .2s ease; }
+    .drawer__panel{
+      position:absolute; top:0; right:0; height:100vh; width:min(480px, 92vw);
+      background:var(--panel); box-shadow:-8px 0 24px rgba(15,18,32,.12);
+      padding:22px 24px; overflow-y:auto; animation:slideL .25s ease;
+    }
+    @keyframes fade{ from{opacity:0;} to{opacity:1;} }
+    @keyframes slideL{ from{transform:translateX(20px); opacity:.6;} to{transform:translateX(0); opacity:1;} }
+
+    .drawer h3{ font-size:14px; margin:0 0 4px; }
+    .drawer__sub{ font-size:12px; color:var(--muted); margin:0 0 16px; }
+    .mega{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .mega__col h4{ font-size:12px; color:var(--muted); margin:0 0 8px; letter-spacing:.5px; text-transform:uppercase; }
+    .mega__col a{ display:block; padding:6px 8px; border-radius:6px; text-decoration:none; color:var(--ink); font-size:13px; margin-bottom:2px; }
+    .mega__col a:hover{ background:var(--line-soft); color:var(--accent); }
+
+    /* Technique library modal */
+    .tech-modal{
+      position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center;
+    }
+    .tech-modal.is-on{ display:flex; }
+    .tech-modal__scrim{ position:absolute; inset:0; background:rgba(15,18,32,.5); }
+    .tech-modal__panel{
+      position:relative; width:min(900px, 92vw); max-height:88vh; overflow-y:auto;
+      background:var(--panel); border-radius:14px; padding:24px; box-shadow:var(--shadow-md);
+    }
+    .tech-modal__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .tech-modal__title{ font-size:16px; font-weight:700; margin:0; }
+    .tech-filter{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+    .tech-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:640px){ .tech-list{ grid-template-columns:1fr; } .mega{grid-template-columns:1fr;} }
+    .tech-card{
+      border:1px solid var(--line); border-radius:10px; padding:12px;
+      cursor:pointer; transition:.15s; background:var(--panel);
+    }
+    .tech-card:hover{ border-color:var(--accent); background:#fbfcff; }
+    .tech-card__head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .tech-card__emoji{ font-size:18px; }
+    .tech-card__ko{ font-size:13px; font-weight:700; margin:0; }
+    .tech-card__one{ font-size:11px; color:var(--muted); margin:0 0 6px; }
+    .tech-card__seed{ font-size:11px; color:var(--ink-soft); background:var(--line-soft); padding:6px 8px; border-radius:6px; }
+    .tech-card__tags{ display:flex; gap:4px; margin-top:6px; }
+    .tech-card__tag{ font-size:10px; padding:2px 6px; border-radius:4px; background:var(--tag-blue); color:var(--accent); font-weight:600; }
+
+    /* Toast */
+    .toast{
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px;
+      font-size:13px; z-index:80; box-shadow:var(--shadow-md);
+      opacity:0; transition:opacity .2s;
+    }
+    .toast.is-on{ opacity:1; }
+
+    /* Footer */
+    .footer{
+      height:40px; display:flex; align-items:center; justify-content:center;
+      font-size:11px; color:var(--muted); background:var(--panel);
+      border-top:1px solid var(--line);
+    }
+    .footer b{ color:var(--ink-soft); font-weight:600; }
+
+    /* Utility */
+    .row{ display:flex; gap:8px; }
+    .row > *{ flex:1; }
+    .hidden{ display:none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ═════ GNB ═════ -->
+<header class="gnb">
+  <button class="gnb__back" title="이전 페이지">
+    <span>←</span><span>뒤로</span>
+  </button>
+  <h1 class="gnb__title">단계형 평가문항 제작 도구</h1>
+  <span class="gnb__crumb">「질문하는 학교」 · <b>학생 질문 능력 계발 모델</b></span>
+  <div class="gnb__spacer"></div>
+  <div class="gnb__actions">
+    <button class="icon-btn" id="btnReset" title="초기화">↻</button>
+    <button class="icon-btn" id="btnSidebar" title="사이드바 토글">▤</button>
+    <button class="icon-btn" id="btnDrawer" title="메뉴 (네비게이션 드로어)">☰</button>
+  </div>
+</header>
+
+<!-- ═════ App ═════ -->
+<div class="app">
+  <!-- 왼쪽 사이드바 (Chat) -->
+  <aside class="chat">
+    <!-- LNB -->
+    <nav class="lnb" aria-label="Local Nav">
+      <button class="lnb__item is-on" data-tab="setup" title="단원 정보">📘</button>
+      <button class="lnb__item" data-tab="matrix" title="매트릭스 편집">🧩</button>
+      <button class="lnb__item" data-tab="techniques" title="기법 라이브러리">💡</button>
+      <div class="lnb__sep"></div>
+      <button class="lnb__item" data-tab="analysis" title="분석">📊</button>
+    </nav>
+
+    <div class="chat__inner">
+      <div class="chat__scroll">
+        <h2 class="chat__title">평가문항 시작하기</h2>
+        <p class="chat__desc">단원의 <b>중요한 질문</b> 한 줄로 시작해 4국면 × 3수준 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
+
+        <!-- 학습자 다양성 (Radio) -->
+        <div class="field">
+          <label class="field__label">학습자 다양성 <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio"><input type="radio" name="diversity" value="general" checked> 🎓 일반</label>
+            <label class="radio"><input type="radio" name="diversity" value="special"> 🧩 특수교육</label>
+            <label class="radio"><input type="radio" name="diversity" value="multicultural"> 🌏 다문화</label>
+          </div>
+          <p class="field__hint">토글 변경 시 시드 문구가 자동 조정됩니다.</p>
+        </div>
+
+        <!-- 적용 모델 (Drop-down) -->
+        <div class="field">
+          <label class="field__label">적용 모델 <span class="req">*</span></label>
+          <select class="select" id="model">
+            <option value="play">🎮 질문 놀이형</option>
+            <option value="experiment">🔬 실험·실습 연계형</option>
+            <option value="discuss">💬 질문 토의형</option>
+            <option value="reflect" selected>🔍 질문 성찰형</option>
+          </select>
+        </div>
+
+        <!-- 단원 & 학년/과목 -->
+        <div class="row">
+          <div class="field">
+            <label class="field__label">학년</label>
+            <select class="select" id="grade">
+              <option>3학년</option><option selected>4학년</option>
+              <option>5학년</option><option>6학년</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label">과목</label>
+            <select class="select" id="subject">
+              <option>국어</option><option selected>사회</option>
+              <option>과학</option><option>수학</option><option>도덕</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">단원명</label>
+          <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">중요한 질문 <span class="req">*</span></label>
+          <textarea class="textarea" id="importantQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?"></textarea>
+        </div>
+
+        <!-- MAIL 필터 (Drop-down mega) -->
+        <div class="field">
+          <label class="field__label">MAIL 역량 필터</label>
+          <select class="select" id="mailFilter">
+            <option value="all">전체 표시</option>
+            <option value="ethics">윤리·성찰만</option>
+            <option value="access">접근·사용만</option>
+            <option value="analyze">분석·평가만</option>
+            <option value="participate">참여·협력만</option>
+            <option value="create">창조만</option>
+          </select>
+          <p class="field__hint">셀 미리보기가 필터링됩니다.</p>
+        </div>
+
+        <!-- ═════ Cell Editor (초기 hidden) ═════ -->
+        <div class="cell-editor hidden" id="cellEditor">
+          <div class="cell-editor__head">
+            <h3 class="cell-editor__title" id="cellEditorTitle">셀 편집</h3>
+            <button class="cell-editor__close" id="cellEditorClose" title="닫기">✕</button>
+          </div>
+
+          <div class="field">
+            <label class="field__label">학생용 질문</label>
+            <textarea class="textarea" id="cellQuestion" placeholder="예: 우리 고장에는 어떤 변화가 있었나요?"></textarea>
+          </div>
+
+          <!-- ★ 기법 라이브러리 연동 강조 -->
+          <div class="cell-editor__row">
+            <button class="btn-tech" id="btnOpenTech">
+              💡 기법 라이브러리에서 시드 가져오기 <span style="opacity:.7">→</span>
+            </button>
+          </div>
+
+          <div class="row" style="margin-top:8px;">
+            <div class="field">
+              <label class="field__label">MAIL 역량</label>
+              <select class="select" id="cellCompetency">
+                <option value="ethics">윤리·성찰</option>
+                <option value="access">접근·사용</option>
+                <option value="analyze" selected>분석·평가</option>
+                <option value="participate">참여·협력</option>
+                <option value="create">창조</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label">채점 힌트</label>
+            <input class="input" id="cellScore" placeholder="예: 자료 2개 이상 근거 + 자기 해석" />
+          </div>
+
+          <!-- 한국 5요소 접이식 -->
+          <details class="adv">
+            <summary>▸ 고급 태그 · 한국 5요소 (정혜승 2022·2024)</summary>
+            <div>
+              <div class="chips" id="krChips">
+                <button class="chip" data-kr="type">유형</button>
+                <button class="chip" data-kr="method">방법</button>
+                <button class="chip" data-kr="content">내용</button>
+                <button class="chip" data-kr="use">활용</button>
+                <button class="chip" data-kr="meta">메타</button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- 하단 액션 — 4개 컴팩트 1줄 -->
+      <div class="chat__footer">
+        <div class="action-grid">
+          <button class="action-btn is-primary" id="btnAutoSeed" title="4국면 × 3수준 12셀 자동 시드">
+            <span class="action-btn__ico">✨</span><span>자동시드</span>
+          </button>
+          <button class="action-btn" id="btnExport" title="마크다운(.md) 파일로 저장">
+            <span class="action-btn__ico">📄</span><span>마크다운</span>
+          </button>
+          <button class="action-btn" id="btnExportJson" title="현재 상태를 JSON으로 저장">
+            <span class="action-btn__ico">🧬</span><span>JSON</span>
+          </button>
+          <button class="action-btn" id="btnDrive" title="구글드라이브 새 탭 + 클립보드 복사">
+            <span class="action-btn__ico">☁️</span><span>드라이브</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 오른쪽 캔버스 -->
+  <main class="canvas">
+    <div class="canvas__toolbar">
+      <div>
+        <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
+        <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · MAIL 사용 <b id="mMail">0/5</b> · 개방형 <b id="mOpen">0%</b></p>
+      </div>
+    </div>
+
+    <!-- Matrix Card -->
+    <section class="card">
+      <div class="card__head">
+        <h3 class="card__title">국면 × 수준</h3>
+        <span class="card__sub">셀의 + 를 눌러 기법 라이브러리에서 시드를 가져오세요</span>
+      </div>
+      <div class="matrix" id="matrix"></div>
+
+      <div class="bridge">
+        <div class="bridge__text">
+          <b>refine 국면(더 나은 질문 만들기)</b>의 채운 셀은 서·논술형 문항 + 3단 루브릭으로 자동 조립됩니다. <em>평가화는 국면이 아닌 다리(bridge).</em>
+        </div>
+        <button class="btn-bridge" id="btnConvert">🔧 평가문항으로 변환</button>
+      </div>
+    </section>
+
+    <!-- 조립된 평가문항 미리보기 카드 -->
+    <section class="card assessment-card" id="assessmentCard">
+      <div class="assessment-empty" id="assessmentEmpty">
+        아직 refine 국면 셀이 비어 있어요. 매트릭스의 <b>더 나은 질문 만들기</b> 행 셀에 + 를 눌러 시드를 채우면, 여기서 서·논술형 문항지가 실시간으로 조립됩니다.
+      </div>
+      <div id="assessmentBody" class="hidden"></div>
+    </section>
+
+    <!-- Radars -->
+    <section class="radars">
+      <div class="radar-card">
+        <h3>완성도</h3>
+        <p>국면·수준·다양성</p>
+        <svg viewBox="-120 -120 240 240" id="rad-completion" aria-label="완성도 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreCompletion">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>MAIL 균형 점수</h3>
+        <p>PISA 2029 5역량</p>
+        <svg viewBox="-120 -120 240 240" id="rad-mail" aria-label="MAIL 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreMail">0</span><span class="radar-card__unit">/100</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>개방형 신호</h3>
+        <p>왜/어떻게/만약/비교/평가/영향</p>
+        <svg viewBox="-120 -120 240 240" id="rad-open" aria-label="개방형 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ═════ Navigation Drawer + Mega Menu ═════ -->
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="drawer__scrim" data-close></div>
+  <nav class="drawer__panel" aria-label="Mega Menu">
+    <h3>🧭 KCBC 네비게이션</h3>
+    <p class="drawer__sub">「질문하는 학교」 → 질문 배우기 → 학생 질문 능력 계발 모델</p>
+    <div class="mega">
+      <div class="mega__col">
+        <h4>작성기</h4>
+        <a href="#" data-scroll="setup">📘 단원 정보 설정</a>
+        <a href="#" data-scroll="matrix">🧩 4×3 매트릭스</a>
+        <a href="#" data-scroll="analysis">📊 완성도·MAIL·개방형</a>
+        <a href="#" id="megaConvert">🔧 평가문항 변환</a>
+        <a href="#" id="megaExport">📤 마크다운 내보내기</a>
+      </div>
+      <div class="mega__col">
+        <h4>기법 라이브러리</h4>
+        <a href="#" data-cat="play">🎮 놀이형</a>
+        <a href="#" data-cat="experiment">🔬 실험·실습</a>
+        <a href="#" data-cat="discuss">💬 토의형</a>
+        <a href="#" data-cat="reflect">🔍 성찰형</a>
+        <a href="#" data-cat="general">🧠 창의 사고법</a>
+        <a href="#" data-cat="all">✨ 전체 보기</a>
+      </div>
+      <div class="mega__col">
+        <h4>참고 자료</h4>
+        <a href="./question-focus-worksheet.html" target="_blank">📝 질문 초점 워크시트</a>
+        <a href="./grasps-worksheet.html" target="_blank">📋 GRASPS 6요소</a>
+        <a href="./essay-assessment-dashboard-v3.html" target="_blank">📊 서·논술형 대시보드</a>
+      </div>
+      <div class="mega__col">
+        <h4>정책 프레임</h4>
+        <a href="#" onclick="return false">「질문하는 학교」 (이화여대)</a>
+        <a href="#" onclick="return false">PISA 2029 MAIL</a>
+        <a href="#" onclick="return false">정혜승 한국 5요소</a>
+        <a href="#" onclick="return false">UbD GRASPS</a>
+      </div>
+    </div>
+  </nav>
+</div>
+
+<!-- ═════ Technique Library Modal ═════ -->
+<div class="tech-modal" id="techModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="tech-modal__scrim" data-close></div>
+  <div class="tech-modal__panel">
+    <div class="tech-modal__head">
+      <h3 class="tech-modal__title">💡 기법 라이브러리 — 시드 선택</h3>
+      <button class="icon-btn" data-close>✕</button>
+    </div>
+    <p class="chat__desc" id="techTargetLabel">셀에 적용할 기법을 선택하면 학생용 질문 시드가 자동 삽입됩니다.</p>
+    <div class="tech-filter" id="techFilter"></div>
+    <div class="tech-list" id="techList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Footer -->
+<footer class="footer">
+  <span>© KCBC Builder Studio · <b>「질문하는 학교」</b> 이화여자대학교 산학협력단 · Standalone Prototype</span>
+</footer>
+
+<script>
+/* ═════════ 데이터 ═════════ */
+const STAGES = [
+  { key:'generate', ko:'자유롭게 질문 만들기', short:'생성' },
+  { key:'refine',   ko:'더 나은 질문 만들기',  short:'정교화' },
+  { key:'inquire',  ko:'질문에 답 찾기',        short:'탐구' },
+  { key:'reflect',  ko:'성찰과 다음 배움',       short:'성찰' },
+];
+const LEVELS = [
+  { key:'low',  ko:'낮음' },
+  { key:'mid',  ko:'중간' },
+  { key:'high', ko:'높음' },
+];
+const MAIL = [
+  { key:'ethics',      ko:'윤리',  cssTag:'mail-ethics' },
+  { key:'access',      ko:'접근',  cssTag:'mail-access' },
+  { key:'analyze',     ko:'분석',  cssTag:'mail-analyze' },
+  { key:'participate', ko:'참여',  cssTag:'mail-participate' },
+  { key:'create',      ko:'창조',  cssTag:'mail-create' },
+];
+
+/* 기법 라이브러리 — 대표 12기법 (개념 전이 시드) */
+const TECHS = [
+  { id:'first-letter', ko:'질문 첫 글자 뽑기', emoji:'🎲', category:'play', stages:['generate'],
+    one:'단원 핵심어의 첫 글자로 질문 시작',
+    seed:'자료에서 핵심 단어를 한 글자씩 뽑아, 그 글자로 시작하는 질문을 5개 이상 만들어 보세요. 다른 단원·생활 상황에도 적용 가능한 질문을 ★표 하세요.' },
+  { id:'auction', ko:'질문 경매', emoji:'🏷', category:'play', stages:['refine'],
+    one:'가상 화폐로 질문의 가치 평가',
+    seed:'내 질문 중 다른 학년·다른 단원에서도 통할 만큼 일반화 가능한 질문 3개를 경매에 부쳐 봅시다. 가장 가치 있는 질문은 무엇이며 왜 그렇게 생각하나요?' },
+  { id:'dice',    ko:'질문 배틀 (주사위)', emoji:'🎯', category:'play', stages:['inquire'],
+    one:'주사위 면으로 답 찾기 방법 선택',
+    seed:'주사위 6면(책·인터뷰·관찰·실험·비교·가설) 중 하나를 굴려, 그 방법으로 자기 질문에 답을 찾아 보세요. 다른 상황에도 그 방법이 통할까요?' },
+  { id:'concept-lens', ko:'개념 렌즈 바꾸기', emoji:'🔍', category:'experiment', stages:['refine','inquire'],
+    one:'다른 개념으로 자료 다시 보기',
+    seed:'같은 자료를 "원인·결과", "부분·전체", "변화·안정" 렌즈로 각각 다시 보고 질문을 하나씩 만들어 보세요.' },
+  { id:'observe-loop', ko:'관찰-질문-관찰 순환', emoji:'🔄', category:'experiment', stages:['inquire'],
+    one:'관찰 → 질문 → 재관찰의 순환',
+    seed:'첫 관찰 → 떠오른 질문 기록 → 그 질문을 확인하려 다시 관찰 → 새 질문 만들기 순환을 세 번 반복해 보세요.' },
+  { id:'socratic', ko:'소크라테스 질문법', emoji:'💬', category:'discuss', stages:['refine','reflect'],
+    one:'6종 질문으로 사고를 파고들기',
+    seed:'친구의 주장에 대해 (1)명료화 (2)근거 확인 (3)대안 관점 (4)함의 (5)메타 질문 (6)증거 질문 중 3개 이상 물어보세요.' },
+  { id:'6-hats', ko:'여섯 색깔 모자', emoji:'🎩', category:'discuss', stages:['refine'],
+    one:'6가지 사고 관점으로 다각 검토',
+    seed:'같은 질문을 사실(흰)·감정(빨)·비판(검)·긍정(노)·창의(초)·관리(파) 관점으로 각각 재작성해 봅시다.' },
+  { id:'kwl', ko:'K-W-L 차트', emoji:'📊', category:'reflect', stages:['reflect'],
+    one:'아는 것/궁금한 것/배운 것 정리',
+    seed:'수업 전에는 "아는 것(K)/궁금한 것(W)"을 채우고, 수업 후에는 "새로 배운 것(L)/더 알고 싶은 새 질문"을 추가해 보세요.' },
+  { id:'meta-log', ko:'질문 성찰 로그', emoji:'📝', category:'reflect', stages:['reflect'],
+    one:'내가 만든 질문 스스로 채점',
+    seed:'오늘 내가 만든 질문 3개를 (1)명료성 (2)답을 여는 개방성 (3)다른 상황 전이 가능성 3점 척도로 스스로 평가하고 이유를 적어 봅시다.' },
+  { id:'mind-map', ko:'마인드맵', emoji:'🧠', category:'general', stages:['generate','refine'],
+    one:'주제 중심 방사형 확장',
+    seed:'중심 개념을 가운데 두고 5개 가지를 뻗은 뒤, 각 가지에서 다시 개방형 질문(왜/어떻게/만약)을 하나씩 만들어 보세요.' },
+  { id:'lateral', ko:'수평적 읽기', emoji:'🌐', category:'general', stages:['inquire','refine'],
+    one:'같은 사건의 여러 자료 교차 확인',
+    seed:'같은 사건을 다룬 자료 2~3개를 나란히 놓고, 공통점·차이점·의문점을 각각 3개씩 뽑아 보세요.' },
+  { id:'why-5', ko:'왜냐고 5번 묻기', emoji:'❓', category:'general', stages:['refine','inquire'],
+    one:'표면 답에서 근본 원인까지',
+    seed:'첫 질문에 답한 뒤 그 답에 다시 "왜?"를 5번 이어 물어, 표면적 답 뒤의 근본 원인·개념을 드러내 보세요.' },
+];
+const CATS = [
+  { key:'all',        ko:'전체', emoji:'✨' },
+  { key:'play',       ko:'놀이형', emoji:'🎮' },
+  { key:'experiment', ko:'실험/실습', emoji:'🔬' },
+  { key:'discuss',    ko:'토의형', emoji:'💬' },
+  { key:'reflect',    ko:'성찰형', emoji:'🔍' },
+  { key:'general',    ko:'창의 사고법', emoji:'🧠' },
+];
+
+/* 학습자 다양성별 시드 오버라이드 */
+const SEED_BASE = {
+  generate:{low:'자료에서 궁금한 점을 자유롭게 3개 이상 적어 보세요.',
+            mid:'왜/어떻게로 시작하는 개방형 질문을 만들어 보세요.',
+            high:'다른 단원·생활 상황에도 통할 일반화 가능한 질문을 만들어 보세요.'},
+  refine:  {low:'내 질문을 사실/개념/전이로 분류해 보세요.',
+            mid:'질문에 개념 렌즈(원인·결과 등)를 하나 붙여 다듬어 보세요.',
+            high:'같은 질문을 3가지 개념 렌즈로 재작성하고 가장 좋은 것을 골라 이유를 쓰세요.'},
+  inquire: {low:'질문에 답하기 위해 볼 자료 2개를 정하세요.',
+            mid:'자료 근거 2개 이상으로 자기 답을 완성해 보세요.',
+            high:'서로 다른 자료 3개의 근거와 관점 차이를 비교해 자기 답을 완성하세요.'},
+  reflect: {low:'수업에서 새로 알게 된 것 하나를 적어 보세요.',
+            mid:'내 질문이 어떻게 바뀌었는지 전·후를 비교해 쓰세요.',
+            high:'오늘 배운 개념을 다른 상황에 전이해 적용할 수 있는 새 질문을 하나 만드세요.'},
+};
+const SEED_DIV = {
+  special: {
+    generate:{low:'그림 자료 하나를 보고 궁금한 점을 하나 적어 보세요.',
+              mid:'그림 속 인물이 무엇을 할지 예상하는 질문을 만들어 보세요.',
+              high:'그림 속 상황이 우리 반에서도 일어날지 상상하는 질문을 만들어 보세요.'},
+  },
+  multicultural:{
+    generate:{low:'내가 자란 곳과 자료가 비슷한 점을 하나 찾아 질문을 만들어 보세요.',
+              mid:'우리 가족의 경험과 자료를 비교해 물어볼 수 있는 질문을 만들어 보세요.',
+              high:'우리 문화와 자료 속 문화가 만나면 무엇이 달라질지 묻는 질문을 만들어 보세요.'},
+  }
+};
+const OPEN_RE = /(왜|어떻게|어떤|어디|만약|어떨까|생각|판단|비교|평가|대안|이유|영향|연결|관점)/;
+
+/* ═════════ 상태 ═════════ */
+const state = {
+  diversity:'general',
+  model:'reflect',
+  grade:'4학년',
+  subject:'사회',
+  title:'',
+  importantQuestion:'',
+  mailFilter:'all',
+  items:{},           // { "generate:mid": {question, competency, score, kr:[]} }
+  activeCell:null,    // "generate:mid"
+};
+
+/* ═════════ Helpers ═════════ */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const cellKey = (s,l) => `${s}:${l}`;
+const getItem = (s,l) => state.items[cellKey(s,l)] || null;
+const upsertItem = (s,l,patch) => {
+  const k = cellKey(s,l);
+  state.items[k] = { question:'', competency:'analyze', score:'', kr:[], ...(state.items[k]||{}), ...patch };
+};
+const removeItem = (s,l) => { delete state.items[cellKey(s,l)]; };
+const detectOpen = (t) => OPEN_RE.test(t||'');
+const toast = (msg) => {
+  const el = $('#toast'); el.textContent = msg; el.classList.add('is-on');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('is-on'), 2200);
+};
+
+/* ═════════ Render: Matrix ═════════ */
+function renderMatrix(){
+  const wrap = $('#matrix');
+  wrap.innerHTML = '';
+  // Header row (col labels)
+  wrap.appendChild(elFromHtml(`<div></div>`));
+  LEVELS.forEach(L => wrap.appendChild(elFromHtml(`<div class="matrix__col-label">수준 · ${L.ko}</div>`)));
+
+  STAGES.forEach(S => {
+    // Row label
+    wrap.appendChild(elFromHtml(`<div class="matrix__row-label">${S.ko}</div>`));
+    LEVELS.forEach(L => {
+      const it = getItem(S.key, L.key);
+      const filled = it && it.question.trim();
+      const open = filled && detectOpen(it.question);
+      const passesFilter = state.mailFilter==='all' || !it || it.competency===state.mailFilter;
+      const active = state.activeCell === cellKey(S.key, L.key);
+      const cell = elFromHtml(`
+        <div class="matrix__cell ${filled?'is-filled':''} ${open?'is-open':''} ${active?'is-active':''}"
+             data-stage="${S.key}" data-level="${L.key}">
+          <button class="matrix__cell-add" title="기법 라이브러리 열기">+</button>
+          <div class="matrix__cell-content ${filled?'':'is-empty'}">
+            ${filled ? escapeHtml(it.question.slice(0,90)) + (it.question.length>90?'…':'')
+                      : '<span>비어 있음 · <b>+</b>를 눌러 기법에서 시드 가져오기</span>'}
+          </div>
+          <div class="matrix__tag-row">
+            ${filled ? tagFor(it.competency) : ''}
+            ${open ? '<span class="matrix__open-badge">◇ 개방형</span>' : ''}
+          </div>
+        </div>
+      `);
+      if(!passesFilter) cell.style.opacity = '.35';
+      // Click cell → activate (open editor); click + → open tech modal
+      cell.addEventListener('click', (e) => {
+        if(e.target.classList.contains('matrix__cell-add')){
+          activateCell(S.key, L.key);
+          openTechModal();
+          return;
+        }
+        activateCell(S.key, L.key);
+      });
+      wrap.appendChild(cell);
+    });
+  });
+  renderCounters();
+  renderRadars();
+  renderAssessmentCard();
+}
+
+function tagFor(c){
+  const m = MAIL.find(x=>x.key===c);
+  return m ? `<span class="matrix__mail-tag ${m.cssTag}">${m.ko}</span>` : '';
+}
+function elFromHtml(html){
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstChild;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+/* ═════════ Cell Editor ═════════ */
+function activateCell(stage, level){
+  state.activeCell = cellKey(stage, level);
+  const editor = $('#cellEditor');
+  editor.classList.remove('hidden');
+  const S = STAGES.find(x=>x.key===stage); const L = LEVELS.find(x=>x.key===level);
+  $('#cellEditorTitle').innerHTML = `✎ 셀 편집 <span style="color:var(--muted); font-weight:400">${S.ko} × ${L.ko}</span>`;
+  const it = getItem(stage, level) || { question:'', competency:'analyze', score:'', kr:[] };
+  $('#cellQuestion').value = it.question;
+  $('#cellCompetency').value = it.competency;
+  $('#cellScore').value = it.score;
+  $$('#krChips .chip').forEach(c => c.classList.toggle('is-on', it.kr && it.kr.includes(c.dataset.kr)));
+  renderMatrix();
+  // LNB switch
+  $$('.lnb__item').forEach(x=>x.classList.toggle('is-on', x.dataset.tab==='matrix'));
+}
+
+$('#cellEditorClose').addEventListener('click', () => {
+  state.activeCell = null;
+  $('#cellEditor').classList.add('hidden');
+  renderMatrix();
+});
+
+['#cellQuestion','#cellCompetency','#cellScore'].forEach(sel => {
+  $(sel).addEventListener('input', () => saveActiveCell());
+  $(sel).addEventListener('change', () => saveActiveCell());
+});
+$('#krChips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  chip.classList.toggle('is-on');
+  saveActiveCell();
+});
+function saveActiveCell(){
+  if(!state.activeCell) return;
+  const [s,l] = state.activeCell.split(':');
+  const q = $('#cellQuestion').value;
+  const c = $('#cellCompetency').value;
+  const sc = $('#cellScore').value;
+  const kr = $$('#krChips .chip.is-on').map(c=>c.dataset.kr);
+  if(!q.trim() && !sc.trim() && kr.length===0){
+    removeItem(s,l);
+  } else {
+    upsertItem(s,l,{ question:q, competency:c, score:sc, kr });
+  }
+  renderMatrix();
+}
+
+/* ═════════ Technique Modal ═════════ */
+let techFilter = 'all';
+function openTechModal(){
+  const modal = $('#techModal');
+  modal.classList.add('is-on');
+  modal.setAttribute('aria-hidden','false');
+  renderTechFilter(); renderTechList();
+  const [s,l] = (state.activeCell||'').split(':');
+  if(s && l){
+    const S = STAGES.find(x=>x.key===s); const L = LEVELS.find(x=>x.key===l);
+    $('#techTargetLabel').innerHTML = `<b>${S.ko} × ${L.ko}</b> 셀에 시드 자동 삽입. 국면과 맞지 않는 기법은 흐리게 표시됩니다.`;
+  } else {
+    $('#techTargetLabel').textContent = '셀을 먼저 선택하면 시드가 자동 삽입됩니다.';
+  }
+}
+function closeTechModal(){
+  const modal = $('#techModal');
+  modal.classList.remove('is-on');
+  modal.setAttribute('aria-hidden','true');
+}
+function renderTechFilter(){
+  const wrap = $('#techFilter'); wrap.innerHTML='';
+  CATS.forEach(c => {
+    const on = c.key === techFilter;
+    const btn = elFromHtml(`<button class="chip ${on?'is-on':''}" data-cat="${c.key}">${c.emoji} ${c.ko}</button>`);
+    btn.addEventListener('click', () => { techFilter=c.key; renderTechFilter(); renderTechList(); });
+    wrap.appendChild(btn);
+  });
+}
+function renderTechList(){
+  const wrap = $('#techList'); wrap.innerHTML='';
+  const [s] = (state.activeCell||'').split(':');
+  const filtered = TECHS.filter(t => techFilter==='all' || t.category===techFilter);
+  filtered.forEach(t => {
+    const stageOk = !s || t.stages.includes(s);
+    const card = elFromHtml(`
+      <div class="tech-card" style="${stageOk?'':'opacity:.5'}">
+        <div class="tech-card__head">
+          <span class="tech-card__emoji">${t.emoji}</span>
+          <h4 class="tech-card__ko">${t.ko}</h4>
+        </div>
+        <p class="tech-card__one">${t.one}</p>
+        <div class="tech-card__seed">"${escapeHtml(t.seed.slice(0,110))}${t.seed.length>110?'…':''}"</div>
+        <div class="tech-card__tags">
+          ${t.stages.map(sg => {
+            const S = STAGES.find(x=>x.key===sg);
+            return S ? `<span class="tech-card__tag">${S.short}</span>` : '';
+          }).join('')}
+        </div>
+      </div>
+    `);
+    card.addEventListener('click', () => applyTechnique(t));
+    wrap.appendChild(card);
+  });
+}
+function applyTechnique(t){
+  if(!state.activeCell){
+    // auto-pick a suitable cell if none active
+    const s = t.stages[0]; const l = 'mid';
+    activateCell(s, l);
+  }
+  const [s,l] = state.activeCell.split(':');
+  $('#cellQuestion').value = t.seed;
+  saveActiveCell();
+  closeTechModal();
+  toast(`✓ 「${t.ko}」 시드 적용 → ${STAGES.find(x=>x.key===s).ko} × ${LEVELS.find(x=>x.key===l).ko}`);
+}
+
+$('#btnOpenTech').addEventListener('click', openTechModal);
+$('#techModal').addEventListener('click', (e) => { if(e.target.dataset.close!==undefined) closeTechModal(); });
+
+/* ═════════ Counters + Radars ═════════ */
+function renderCounters(){
+  const items = Object.values(state.items).filter(x=>x.question.trim());
+  const usedStages = new Set(items.map(x => x._stage || null));
+  // recompute stages from keys
+  const stageSet = new Set(Object.entries(state.items).filter(([,v])=>v.question.trim()).map(([k])=>k.split(':')[0]));
+  const mailSet = new Set(items.map(x => x.competency));
+  const openCount = items.filter(x => detectOpen(x.question)).length;
+  $('#mDomains').textContent = `${stageSet.size}/4`;
+  $('#mCells').textContent = `${items.length}/12`;
+  $('#mMail').textContent = `${mailSet.size}/5`;
+  $('#mOpen').textContent = items.length ? Math.round(openCount/items.length*100)+'%' : '0%';
+}
+
+/* ═════════ Hex Radars ═════════ */
+function drawHexRadar(svgId, axisLabels, values, opts){
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  const R = 90; const rings = 4; // 4 concentric hexagons
+  const N = 6; // fixed hexagon 6 axes (labels re-used cyclically if fewer)
+  const color = opts.color || '#3a57e8';
+  const fillOp = opts.fillOp ?? 0.18;
+  let out = '';
+  // Concentric hexagons (background)
+  for(let r=1; r<=rings; r++){
+    const rr = (R * r) / rings;
+    out += `<polygon points="${hexPoints(rr)}" fill="none" stroke="#e6e8f0" stroke-width="1"/>`;
+  }
+  // Axes
+  for(let i=0; i<N; i++){
+    const [x,y] = axisXY(R, i, N);
+    out += `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e6e8f0" stroke-width="1"/>`;
+  }
+  // Data polygon (values are 0..1)
+  const pts = [];
+  for(let i=0; i<N; i++){
+    const v = values[i] ?? 0;
+    const [x,y] = axisXY(R * Math.max(0.02, Math.min(1, v)), i, N);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  out += `<polygon points="${pts.join(' ')}" fill="${color}" fill-opacity="${fillOp}" stroke="${color}" stroke-width="2"/>`;
+  // Points
+  for(let i=0; i<N; i++){
+    const v = values[i] ?? 0;
+    const [x,y] = axisXY(R * Math.max(0.02, Math.min(1, v)), i, N);
+    out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`;
+  }
+  // Labels
+  for(let i=0; i<N; i++){
+    const [x,y] = axisXY(R + 18, i, N);
+    const label = axisLabels[i] ?? '';
+    out += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#8c93a8" font-weight="600">${label}</text>`;
+  }
+  svg.innerHTML = out;
+}
+function hexPoints(r){
+  const pts = [];
+  for(let i=0; i<6; i++){
+    const angle = -Math.PI/2 + i * (Math.PI/3);
+    pts.push(`${(r*Math.cos(angle)).toFixed(1)},${(r*Math.sin(angle)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+function axisXY(r, i, N){
+  const angle = -Math.PI/2 + i * (2*Math.PI/N);
+  return [r*Math.cos(angle), r*Math.sin(angle)];
+}
+
+function renderRadars(){
+  const items = Object.entries(state.items).filter(([,v])=>v.question.trim()).map(([k,v])=>{
+    const [s,l] = k.split(':'); return { ...v, stage:s, level:l };
+  });
+  const total = 12;
+  // ─── Completion (6축) ───
+  const stageFill = {};
+  STAGES.forEach(S => { stageFill[S.key] = items.filter(x=>x.stage===S.key).length / 3; });
+  const scoreHintRate = items.length ? items.filter(x=>x.score.trim()).length / items.length : 0;
+  const diversityRate = (state.diversity==='general' ? 0.5 : 1); // 특수/다문화 활성 시 1
+  const compValues = [
+    stageFill.generate, stageFill.refine, stageFill.inquire, stageFill.reflect,
+    scoreHintRate, diversityRate
+  ];
+  const compLabels = ['생성','정교화','탐구','성찰','채점힌트','다양성'];
+  drawHexRadar('rad-completion', compLabels, compValues, { color:'#3a57e8' });
+  const compScore = Math.round(compValues.reduce((a,b)=>a+b,0)/6 * 100);
+  $('#scoreCompletion').textContent = compScore;
+
+  // ─── MAIL 균형 (5축 + 총커버) ───
+  const mailCount = { ethics:0, access:0, analyze:0, participate:0, create:0 };
+  items.forEach(x => mailCount[x.competency]++);
+  const maxU = Math.max(1, ...Object.values(mailCount));
+  const mailVals = MAIL.map(m => mailCount[m.key] / maxU);
+  const usedM = Object.values(mailCount).filter(c=>c>0).length;
+  mailVals.push(usedM / 5);
+  const mailLabels = ['윤리','접근','분석','참여','창조','커버'];
+  drawHexRadar('rad-mail', mailLabels, mailVals, { color:'#7048e8' });
+  // 균형점수: 커버리지 × 60 + 표준편차 역수 × 40
+  const counts = Object.values(mailCount);
+  const mean = counts.reduce((a,b)=>a+b,0) / 5;
+  const variance = counts.reduce((s,c)=>s + (c-mean)*(c-mean), 0) / 5;
+  const evenness = mean === 0 ? 0 : Math.max(0, 1 - Math.sqrt(variance)/mean);
+  const mailScore = Math.round((usedM/5)*60 + evenness*40);
+  $('#scoreMail').textContent = mailScore;
+
+  // ─── 개방형 신호 (6축: 왜/어떻게/만약/비교/평가/영향) ───
+  const KWS = [
+    { key:'왜', re:/왜/ },
+    { key:'어떻게', re:/어떻게/ },
+    { key:'만약', re:/만약|어떨/ },
+    { key:'비교', re:/비교|차이|공통/ },
+    { key:'평가', re:/평가|판단|타당/ },
+    { key:'영향', re:/영향|결과|바뀌/ },
+  ];
+  const n = items.length || 1;
+  const openVals = KWS.map(k => items.filter(x => k.re.test(x.question)).length / n);
+  const openLabels = KWS.map(k=>k.key);
+  drawHexRadar('rad-open', openLabels, openVals, { color:'#2ea66c' });
+  const openCount = items.filter(x => detectOpen(x.question)).length;
+  const openScore = items.length ? Math.round(openCount/items.length*100) : 0;
+  $('#scoreOpen').textContent = openScore;
+}
+
+/* ═════════ Setup Controls ═════════ */
+$$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
+  state.diversity = e.target.value; renderRadars();
+  toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'특수교육형':'다문화교육형'}`);
+}));
+$('#model').addEventListener('change', e => { state.model = e.target.value; });
+$('#grade').addEventListener('change', e => { state.grade = e.target.value; });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; });
+$('#title').addEventListener('input', e => { state.title = e.target.value; });
+$('#importantQuestion').addEventListener('input', e => { state.importantQuestion = e.target.value; });
+$('#mailFilter').addEventListener('change', e => { state.mailFilter = e.target.value; renderMatrix(); });
+
+/* ═════════ 자동 시드 채우기 ═════════ */
+$('#btnAutoSeed').addEventListener('click', () => {
+  const div = state.diversity;
+  STAGES.forEach(S => LEVELS.forEach(L => {
+    const seed = (SEED_DIV[div]?.[S.key]?.[L.key]) ?? SEED_BASE[S.key][L.key];
+    upsertItem(S.key, L.key, { question: seed });
+  }));
+  renderMatrix();
+  toast('✓ 12셀 자동 시드 완료');
+});
+
+/* ═════════ 초기화 ═════════ */
+$('#btnReset').addEventListener('click', () => {
+  if(!confirm('작성 중인 매트릭스를 모두 지울까요?')) return;
+  state.items = {};
+  state.activeCell = null;
+  $('#cellEditor').classList.add('hidden');
+  renderMatrix();
+  toast('초기화 완료');
+});
+
+/* ═════════ 사이드바 토글 ═════════ */
+$('#btnSidebar').addEventListener('click', () => {
+  const root = document.documentElement;
+  const cur = root.style.getPropertyValue('--sidebar-w') || '380px';
+  root.style.setProperty('--sidebar-w', cur==='0px' ? '380px' : '0px');
+});
+
+/* ═════════ Drawer ═════════ */
+$('#btnDrawer').addEventListener('click', () => openDrawer());
+function openDrawer(){ $('#drawer').classList.add('is-on'); $('#drawer').setAttribute('aria-hidden','false'); }
+function closeDrawer(){ $('#drawer').classList.remove('is-on'); $('#drawer').setAttribute('aria-hidden','true'); }
+$('#drawer').addEventListener('click', e => {
+  if(e.target.dataset.close !== undefined) closeDrawer();
+});
+$$('#drawer [data-cat]').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  techFilter = a.dataset.cat;
+  closeDrawer(); openTechModal();
+}));
+$('#megaConvert')?.addEventListener('click', e => { e.preventDefault(); closeDrawer(); document.querySelector('.bridge').scrollIntoView({behavior:'smooth'}); });
+
+/* ═════════ 평가문항 조립 & 미리보기 ═════════ */
+function assembleAssessment(){
+  const refineItems = LEVELS.map(L => {
+    const it = getItem('refine', L.key);
+    return it && it.question.trim() ? { ...it, level:L.key } : null;
+  }).filter(Boolean);
+  if(refineItems.length === 0) return null;
+
+  const type = refineItems.length >= 2 ? '논술형' : '서술형';
+  const perScore = refineItems.length >= 3 ? 5 : (refineItems.length === 2 ? 8 : 15);
+  const totalScore = perScore * refineItems.length;
+
+  return {
+    title: state.title || '(단원명 미입력)',
+    grade: state.grade,
+    subject: state.subject,
+    model: state.model,
+    material: state.importantQuestion || '(중요한 질문을 입력하세요)',
+    type,
+    perScore,
+    totalScore,
+    subQuestions: refineItems.map((it, i) => ({
+      no: i + 1,
+      text: it.question,
+      score: perScore,
+      hint: it.score,
+      mail: it.competency,
+      level: it.level,
+      kr: it.kr || [],
+    })),
+    rubric: [
+      { level:'잘함',      criteria:'자료 2개 이상 근거 + 자기 해석 + 전이 적용 언급', score:`${Math.round(perScore * 0.9)}~${perScore}` },
+      { level:'보통',      criteria:'자료 1~2개 근거 + 부분 해석',                    score:`${Math.round(perScore * 0.5)}~${Math.round(perScore * 0.7)}` },
+      { level:'노력 요함', criteria:'표면 사실만 언급, 근거 부족',                     score:`0~${Math.round(perScore * 0.3)}` },
+    ],
+  };
+}
+
+function renderAssessmentCard(){
+  const a = assembleAssessment();
+  const empty = $('#assessmentEmpty');
+  const body = $('#assessmentBody');
+  if(!a){
+    empty.classList.remove('hidden');
+    body.classList.add('hidden');
+    body.innerHTML = '';
+    return;
+  }
+  empty.classList.add('hidden');
+  body.classList.remove('hidden');
+  const gradeClass = { '잘함':'high', '보통':'mid', '노력 요함':'low' };
+  body.innerHTML = `
+    <div class="card__head">
+      <div>
+        <h3 class="card__title">📝 조립된 평가문항 <span class="assessment-type">${a.type}</span></h3>
+        <p class="card__sub">${escapeHtml(a.grade)} · ${escapeHtml(a.subject)} · 총점 ${a.totalScore}점 (문항당 ${a.perScore}점)</p>
+      </div>
+      <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
+    </div>
+    <div class="assessment">
+      <div class="assessment__meta"><b>단원명</b>${escapeHtml(a.title)}</div>
+      <div class="assessment__material">
+        <div class="assessment__label">▶ 중요한 질문 (자료 대체)</div>
+        <div>${escapeHtml(a.material)}</div>
+      </div>
+      <ol class="assessment__questions">
+        ${a.subQuestions.map(q => `
+          <li>
+            <div class="assessment__q-text">${escapeHtml(q.text)}</div>
+            <div class="assessment__q-meta">
+              수준 <b>${LEVELS.find(x=>x.key===q.level)?.ko}</b>
+              · MAIL <b>${MAIL.find(m=>m.key===q.mail)?.ko}</b>
+              · 배점 <b>${q.score}점</b>
+              ${q.kr.length ? `· 한국 5요소 ${q.kr.join(', ')}` : ''}
+              ${q.hint ? `<br/>· 채점 힌트: ${escapeHtml(q.hint)}` : ''}
+            </div>
+          </li>
+        `).join('')}
+      </ol>
+      <div class="assessment__rubric">
+        <h4>3단 루브릭 (한국 표준)</h4>
+        <table>
+          <thead><tr><th style="width:80px">등급</th><th>기준</th><th style="width:80px">배점</th></tr></thead>
+          <tbody>
+            ${a.rubric.map(r => `
+              <tr>
+                <td><span class="rubric__grade rubric__grade--${gradeClass[r.level]}">${r.level}</span></td>
+                <td>${r.criteria}</td>
+                <td>${r.score}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  document.getElementById('btnAssessmentCopy').addEventListener('click', async () => {
+    const txt = assessmentToText(a);
+    try{
+      await navigator.clipboard.writeText(txt);
+      toast('✓ 문항+루브릭 클립보드 복사 완료');
+    }catch(e){ toast('⚠ 클립보드 복사 실패'); }
+  });
+}
+
+function assessmentToText(a){
+  const lines = [];
+  lines.push(`# ${a.title} — ${a.type} 평가문항`);
+  lines.push(`${a.grade} · ${a.subject} · 총 ${a.totalScore}점`);
+  lines.push('');
+  lines.push(`[중요한 질문 / 자료]`);
+  lines.push(a.material);
+  lines.push('');
+  lines.push('[하위 문항]');
+  a.subQuestions.forEach(q => {
+    lines.push(`${q.no}. ${q.text}  (${q.score}점)`);
+    if(q.hint) lines.push(`   · 채점 힌트: ${q.hint}`);
+  });
+  lines.push('');
+  lines.push('[3단 루브릭]');
+  a.rubric.forEach(r => lines.push(`- ${r.level} (${r.score}): ${r.criteria}`));
+  return lines.join('\n');
+}
+
+$('#btnConvert').addEventListener('click', () => {
+  const refineItems = LEVELS.map(L => getItem('refine', L.key)).filter(x => x && x.question.trim());
+  if(refineItems.length === 0){
+    toast('⚠ refine 국면에 채운 셀이 없어요');
+    renderAssessmentCard();
+    return;
+  }
+  renderAssessmentCard();
+  toast(`✓ refine ${refineItems.length}개 셀 → 평가문항지 조립 완료`);
+  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 80);
+});
+
+/* ═════════ Export MD ═════════ */
+$('#btnExport').addEventListener('click', () => {
+  const lines = [];
+  lines.push(`# ${state.title || '(단원명 미입력)'} — 단계형 평가문항`);
+  lines.push('');
+  lines.push(`- 학년/과목: ${state.grade} · ${state.subject}`);
+  lines.push(`- 적용 모델: ${state.model}`);
+  lines.push(`- 학습자 다양성: ${state.diversity}`);
+  lines.push(`- 중요한 질문: ${state.importantQuestion || '(미입력)'}`);
+  lines.push('');
+  STAGES.forEach(S => {
+    lines.push(`## ${S.ko}`);
+    LEVELS.forEach(L => {
+      const it = getItem(S.key, L.key);
+      if(!it || !it.question.trim()) return;
+      lines.push(`- **${L.ko}**: ${it.question}`);
+      if(it.score) lines.push(`  - 채점 힌트: ${it.score}`);
+      lines.push(`  - MAIL: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · 한국 5요소: '+it.kr.join(', ') : ''}`);
+    });
+    lines.push('');
+  });
+  const md = lines.join('\n');
+  const blob = new Blob([md], { type:'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `staged_${state.title || 'untitled'}.md`;
+  a.click();
+  toast('✓ 마크다운 다운로드');
+});
+
+/* ═════════ JSON 내보내기 ═════════ */
+function buildSnapshot(){
+  return {
+    tool:'KCBC Standalone · 단계형 평가문항 제작 도구',
+    version:'0.2',
+    exportedAt:new Date().toISOString(),
+    meta:{
+      diversity:state.diversity, model:state.model,
+      grade:state.grade, subject:state.subject,
+      title:state.title, importantQuestion:state.importantQuestion,
+      mailFilter:state.mailFilter,
+    },
+    items:Object.entries(state.items).map(([k,v])=>{
+      const [stage,level]=k.split(':');
+      return { stage, level, ...v };
+    }),
+  };
+}
+$('#btnExportJson').addEventListener('click', () => {
+  const json = JSON.stringify(buildSnapshot(), null, 2);
+  const blob = new Blob([json], { type:'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `staged_${state.title || 'untitled'}.json`;
+  a.click();
+  toast('✓ JSON 다운로드');
+});
+
+/* ═════════ 구글드라이브 저장 (클립보드 복사 + Drive 열기) ═════════ */
+$('#btnDrive').addEventListener('click', async () => {
+  const json = JSON.stringify(buildSnapshot(), null, 2);
+  try{
+    await navigator.clipboard.writeText(json);
+    toast('✓ JSON을 클립보드에 복사했습니다 · 새 창에서 Drive에 붙여넣으세요');
+  }catch(e){
+    // 클립보드 API 실패 시 다운로드로 폴백
+    const blob = new Blob([json], { type:'application/json;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `staged_${state.title || 'untitled'}.json`;
+    a.click();
+    toast('⚠ 클립보드 실패 → JSON 파일로 다운로드했습니다');
+  }
+  window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener');
+});
+
+/* ═════════ LNB 전환 ═════════ */
+$$('.lnb__item').forEach(btn => btn.addEventListener('click', () => {
+  $$('.lnb__item').forEach(x=>x.classList.remove('is-on'));
+  btn.classList.add('is-on');
+  const tab = btn.dataset.tab;
+  const target = {
+    setup: '.chat__title',
+    matrix: '.matrix',
+    techniques: null,
+    analysis: '.radars',
+  }[tab];
+  if(tab==='techniques'){ openTechModal(); return; }
+  if(target){
+    const el = document.querySelector(target);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}));
+
+/* ═════════ 초기 렌더 ═════════ */
+renderMatrix();
+</script>
+</body>
+</html>
