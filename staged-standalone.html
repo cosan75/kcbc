@@ -16,7 +16,8 @@
       --shadow-sm:0 1px 2px rgba(15,18,32,.04);
       --shadow-md:0 6px 24px rgba(15,18,32,.08);
       --radius:10px; --radius-lg:14px;
-      --sidebar-w:340px;
+      --sidebar-w:380px;
+      --canvas-max:960px;
     }
     *,*::before,*::after{ box-sizing:border-box; }
     html,body{ margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink);
@@ -104,11 +105,11 @@
     .textarea{ min-height:64px; resize:vertical; font-family:inherit; }
     .select{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%234b5163' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"); background-repeat:no-repeat; background-position:right 10px center; background-size:12px; padding-right:28px; }
 
-    /* Radio group */
-    .radio-group{ display:flex; gap:14px; }
+    /* Radio group — 1줄 강제 */
+    .radio-group{ display:flex; gap:10px; flex-wrap:nowrap; }
     .radio{
-      display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft);
-      cursor:pointer;
+      display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft);
+      cursor:pointer; white-space:nowrap;
     }
     .radio input{ accent-color:var(--teal); }
 
@@ -158,17 +159,18 @@
       display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px;
     }
     .action-btn{
-      padding:7px 4px; border:1px solid var(--line); border-radius:7px;
-      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
-      display:flex; align-items:center; justify-content:center; gap:4px;
-      transition:.15s; font-weight:600; white-space:nowrap;
+      padding:8px 2px; border:1px solid var(--line); border-radius:7px;
+      background:var(--panel); cursor:pointer; font-size:10.5px; color:var(--ink-soft);
+      display:flex; align-items:center; justify-content:center; gap:3px;
+      transition:.15s; font-weight:600; white-space:nowrap; overflow:hidden; min-width:0;
     }
     .action-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
     .action-btn.is-primary{
       background:var(--brand); color:#fff; border-color:var(--brand);
     }
     .action-btn.is-primary:hover{ background:var(--brand-hover); color:#fff; border-color:var(--brand-hover); }
-    .action-btn__ico{ font-size:14px; line-height:1; }
+    .action-btn__ico{ font-size:13px; line-height:1; flex-shrink:0; }
+    .action-btn__lbl{ overflow:hidden; text-overflow:ellipsis; }
 
     /* 평가문항 미리보기 카드 */
     .assessment-card{ background:linear-gradient(180deg, #fbfcff, var(--panel)); border-color:#dfe4ff; }
@@ -212,9 +214,9 @@
     .rubric__grade--low{ background:#ffe1ec; color:var(--rose); }
     .assessment-empty{ font-size:11px; color:var(--muted); text-align:center; padding:14px; }
 
-    /* ═════ Right Canvas (한 화면 최적화) ═════ */
-    .canvas{ padding:14px 18px 20px; min-width:0; display:flex; flex-direction:column; gap:10px;
-      max-height:calc(100vh - 56px - 40px); overflow-y:auto; }
+    /* ═════ Right Canvas (페이지 스크롤로 자연 이어보기 · 폭 제한) ═════ */
+    .canvas{ padding:16px 22px 24px; min-width:0; display:flex; flex-direction:column; gap:12px;
+      max-width:var(--canvas-max); width:100%; margin:0 auto; }
     .canvas__toolbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
     .canvas__title{ font-size:15px; font-weight:700; margin:0; }
     .canvas__meta{ font-size:11px; color:var(--muted); }
@@ -259,9 +261,11 @@
       position:absolute; top:6px; right:6px;
       width:26px; height:26px; border-radius:999px; background:var(--accent-soft);
       border:1.5px solid var(--accent); color:var(--accent);
-      display:grid; place-items:center; cursor:pointer; font-size:16px; font-weight:700;
-      transition:.15s; box-shadow:0 0 0 0 rgba(58,87,232,.25);
+      display:inline-flex; align-items:center; justify-content:center; padding:0;
+      cursor:pointer; transition:.15s; box-shadow:0 0 0 0 rgba(58,87,232,.25);
+      font-size:0; /* 텍스트 대신 SVG 사용 */
     }
+    .matrix__cell-add svg{ display:block; }
     .matrix__cell-add:hover{ background:var(--accent); color:#fff; transform:scale(1.06); box-shadow:0 0 0 6px rgba(58,87,232,.15); }
     .matrix__cell.is-filled .matrix__cell-add{ background:var(--panel); }
 
@@ -532,20 +536,20 @@
         </div>
       </div>
 
-      <!-- 하단 액션 — 4개 컴팩트 1줄 -->
+      <!-- 하단 액션 — 4개 · 짧은 1줄 라벨 -->
       <div class="chat__footer">
         <div class="action-grid">
           <button class="action-btn is-primary" id="btnAutoSeed" title="4국면 × 3수준 12셀 자동 시드">
-            <span class="action-btn__ico">✨</span><span>자동시드</span>
+            <span class="action-btn__ico">✨</span><span class="action-btn__lbl">시드</span>
           </button>
           <button class="action-btn" id="btnExport" title="마크다운(.md) 파일로 저장">
-            <span class="action-btn__ico">📄</span><span>마크다운</span>
+            <span class="action-btn__ico">📄</span><span class="action-btn__lbl">MD</span>
           </button>
           <button class="action-btn" id="btnExportJson" title="현재 상태를 JSON으로 저장">
-            <span class="action-btn__ico">🧬</span><span>JSON</span>
+            <span class="action-btn__ico">🧬</span><span class="action-btn__lbl">JSON</span>
           </button>
           <button class="action-btn" id="btnDrive" title="구글드라이브 새 탭 + 클립보드 복사">
-            <span class="action-btn__ico">☁️</span><span>드라이브</span>
+            <span class="action-btn__ico">☁️</span><span class="action-btn__lbl">Drive</span>
           </button>
         </div>
       </div>
@@ -819,7 +823,7 @@ function renderMatrix(){
       const cell = elFromHtml(`
         <div class="matrix__cell ${filled?'is-filled':''} ${open?'is-open':''} ${active?'is-active':''}"
              data-stage="${S.key}" data-level="${L.key}">
-          <button class="matrix__cell-add" title="기법 라이브러리 열기">+</button>
+          <button class="matrix__cell-add" title="기법 라이브러리 열기" aria-label="기법에서 시드 가져오기"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="2.2" x2="6" y2="9.8"/><line x1="2.2" y1="6" x2="9.8" y2="6"/></svg></button>
           <div class="matrix__cell-content ${filled?'':'is-empty'}">
             ${filled ? escapeHtml(it.question.slice(0,90)) + (it.question.length>90?'…':'')
                       : '<span>비어 있음 · <b>+</b>를 눌러 기법에서 시드 가져오기</span>'}
@@ -1119,7 +1123,8 @@ $('#btnAutoSeed').addEventListener('click', () => {
     upsertItem(S.key, L.key, { question: seed });
   }));
   renderMatrix();
-  toast('✓ 12셀 자동 시드 완료');
+  toast('✓ 12셀 자동 시드 완료 · 평가문항 미리보기로 이동');
+  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 120);
 });
 
 /* ═════════ 초기화 ═════════ */
