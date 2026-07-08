@@ -172,39 +172,88 @@
     .action-btn__ico{ font-size:13px; line-height:1; flex-shrink:0; }
     .action-btn__lbl{ overflow:hidden; text-overflow:ellipsis; }
 
-    /* 평가문항 미리보기 카드 */
-    .assessment-card{ background:linear-gradient(180deg, #fbfcff, var(--panel)); border-color:#dfe4ff; }
-    .assessment-type{
-      display:inline-block; padding:1px 8px; border-radius:999px;
-      background:var(--accent-soft); color:var(--accent);
-      font-size:10.5px; font-weight:700; margin-left:6px; vertical-align:middle;
+    /* 평가지(수행평가지 워크시트) — 인쇄용 스타일 */
+    .assessment-card{ background:transparent; border:none; padding:0; box-shadow:none; }
+    .assessment-empty{
+      font-size:12px; color:var(--muted); text-align:center; padding:20px;
+      background:var(--panel); border:1px dashed var(--line); border-radius:10px;
     }
     .btn-mini{
-      padding:5px 10px; border-radius:6px; border:1px solid var(--line);
-      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
+      padding:6px 12px; border-radius:6px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft); font-weight:600;
     }
     .btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
-    .assessment{ display:flex; flex-direction:column; gap:8px; }
-    .assessment__meta{ font-size:11px; color:var(--muted); }
-    .assessment__meta b{ color:var(--ink-soft); margin-right:4px; font-weight:600; }
-    .assessment__material{
-      padding:8px 10px; background:var(--tag-gray); border-radius:6px;
-      font-size:12px; color:var(--ink); line-height:1.5;
+
+    .ws__topbar{
+      display:flex; align-items:center; gap:6px; margin-bottom:12px; flex-wrap:wrap;
     }
-    .assessment__label{
-      font-size:10px; color:var(--muted); font-weight:700;
-      margin-bottom:3px; letter-spacing:.5px; text-transform:uppercase;
+    .ws__back{
+      padding:8px 14px; border-radius:8px; background:var(--ink); color:#fff;
+      border:none; cursor:pointer; font-weight:700; font-size:12px;
+      display:inline-flex; align-items:center; gap:4px;
     }
-    .assessment__questions{ margin:2px 0 0 0; padding:0 0 0 20px; }
-    .assessment__questions li{ margin-bottom:6px; font-size:12px; line-height:1.5; }
-    .assessment__q-text{ color:var(--ink); }
-    .assessment__q-meta{ font-size:10.5px; color:var(--muted); margin-top:2px; }
-    .assessment__rubric h4{ font-size:11px; color:var(--ink-soft); margin:4px 0 4px; font-weight:700; }
-    .assessment__rubric table{ width:100%; border-collapse:collapse; font-size:11px; }
-    .assessment__rubric th, .assessment__rubric td{
-      text-align:left; padding:5px 8px; border-top:1px solid var(--line); vertical-align:top;
+    .ws__back:hover{ background:var(--brand-hover); }
+
+    /* 실제 평가지 페이지 (A4 시안) */
+    .ws__page{
+      background:#fff; padding:36px 44px 28px; margin:0 auto; max-width:760px;
+      border:1px solid #d0d3dd; box-shadow:0 4px 24px rgba(15,18,32,.08);
+      color:#000; line-height:1.65;
+      font-family:"Batang","Malgun Gothic","Apple SD Gothic Neo",serif;
+      font-size:13px;
     }
-    .assessment__rubric th{ background:var(--line-soft); color:var(--ink-soft); font-weight:600; font-size:10.5px; }
+    .ws__title{
+      text-align:center; font-size:24px; font-weight:700; margin:0 0 18px;
+      text-decoration:underline; text-underline-offset:5px; letter-spacing:.5px;
+    }
+    .ws__header{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      margin-bottom:14px; gap:16px;
+    }
+    .ws__gradebox{ border-collapse:collapse; }
+    .ws__gradebox th, .ws__gradebox td{
+      border:1.5px solid #000; padding:3px 22px; text-align:center;
+      font-weight:700; font-size:13px;
+    }
+    .ws__gradebox td{ height:26px; }
+    .ws__scoreinfo{ text-align:right; font-size:13px; line-height:1.9; }
+    .ws__info{ width:100%; border-collapse:collapse; margin-bottom:0; }
+    .ws__info th, .ws__info td{
+      border:1.5px solid #000; padding:6px 10px; font-size:13px; font-weight:400;
+    }
+    .ws__info th{
+      background:#dadada; font-weight:700; width:64px;
+      text-align:center; white-space:nowrap;
+    }
+    .ws__section{
+      background:#c0c0c0; text-align:center; padding:7px;
+      border:1.5px solid #000; border-top:none; font-weight:700; font-size:14px;
+    }
+    .ws__questions{
+      border:1.5px solid #000; border-top:none; padding:20px 18px 30px;
+      min-height:520px;
+    }
+    .ws__q{ margin-bottom:24px; }
+    .ws__q-head{ padding-left:22px; text-indent:-22px; font-size:13px; line-height:1.7; }
+    .ws__q-space{ min-height:180px; }
+    .ws__pagenum{ text-align:center; margin-top:14px; font-size:12px; color:#000; }
+
+    /* 루브릭 접이식 (교사 참조) */
+    .ws__rubric-details{
+      margin-top:14px; max-width:760px; margin-left:auto; margin-right:auto;
+      background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    }
+    .ws__rubric-details > summary{
+      cursor:pointer; padding:10px 14px; font-size:12px; font-weight:600; color:var(--ink-soft);
+      list-style:none;
+    }
+    .ws__rubric-details > summary::-webkit-details-marker{ display:none; }
+    .ws__rubric-details[open] > summary{ border-bottom:1px solid var(--line); }
+    .ws__rubric-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+    .ws__rubric-table th, .ws__rubric-table td{
+      text-align:left; padding:6px 10px; border-top:1px solid var(--line); vertical-align:top;
+    }
+    .ws__rubric-table th{ background:var(--line-soft); color:var(--ink-soft); font-weight:600; font-size:11px; }
     .rubric__grade{
       display:inline-block; padding:2px 6px; border-radius:4px;
       font-size:10px; font-weight:700; white-space:nowrap;
@@ -212,7 +261,24 @@
     .rubric__grade--high{ background:#dff4f2; color:var(--teal); }
     .rubric__grade--mid{ background:#eef1ff; color:var(--accent); }
     .rubric__grade--low{ background:#ffe1ec; color:var(--rose); }
-    .assessment-empty{ font-size:11px; color:var(--muted); text-align:center; padding:14px; }
+
+    /* 뷰 스위칭 — assessment view일 땐 매트릭스/툴바/레이더 숨김 */
+    .canvas[data-view="assessment"] > .canvas__toolbar,
+    .canvas[data-view="assessment"] > .card:not(.assessment-card),
+    .canvas[data-view="assessment"] > .radars{ display:none; }
+
+    /* 인쇄 시 워크시트만 남기고 나머지 숨김 */
+    @media print{
+      body{ background:#fff; }
+      .gnb, .chat, .footer, .canvas__toolbar,
+      .canvas > .card:not(.assessment-card), .canvas > .radars,
+      .ws__topbar, .ws__rubric-details, .toast, .drawer, .tech-modal{
+        display:none !important;
+      }
+      .app{ display:block; }
+      .canvas{ max-width:none; padding:0; margin:0; }
+      .ws__page{ border:none; box-shadow:none; padding:20mm; max-width:none; }
+    }
 
     /* ═════ Right Canvas (페이지 스크롤로 자연 이어보기 · 폭 제한) ═════ */
     .canvas{ padding:16px 22px 24px; min-width:0; display:flex; flex-direction:column; gap:12px;
@@ -557,7 +623,7 @@
   </aside>
 
   <!-- 오른쪽 캔버스 -->
-  <main class="canvas">
+  <main class="canvas" data-view="matrix">
     <div class="canvas__toolbar">
       <div>
         <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
@@ -581,10 +647,10 @@
       </div>
     </section>
 
-    <!-- 조립된 평가문항 미리보기 카드 -->
-    <section class="card assessment-card" id="assessmentCard">
+    <!-- 조립된 수행평가지 (워크시트) -->
+    <section class="assessment-card" id="assessmentCard">
       <div class="assessment-empty" id="assessmentEmpty">
-        아직 refine 국면 셀이 비어 있어요. 매트릭스의 <b>더 나은 질문 만들기</b> 행 셀에 + 를 눌러 시드를 채우면, 여기서 서·논술형 문항지가 실시간으로 조립됩니다.
+        아직 <b>refine 국면</b>(더 나은 질문 만들기) 셀이 비어 있어요. 매트릭스에서 + 를 눌러 시드를 채우고 <b>🔧 평가문항으로 변환</b>을 누르면, 여기에 실제 <b>수행평가지</b>가 조립됩니다.
       </div>
       <div id="assessmentBody" class="hidden"></div>
     </section>
@@ -785,7 +851,13 @@ const state = {
   mailFilter:'all',
   items:{},           // { "generate:mid": {question, competency, score, kr:[]} }
   activeCell:null,    // "generate:mid"
+  view:'matrix',      // 'matrix' | 'assessment'
 };
+function setView(v){
+  state.view = v;
+  const canvas = document.querySelector('.canvas');
+  if(canvas) canvas.dataset.view = v;
+}
 
 /* ═════════ Helpers ═════════ */
 const $ = (sel) => document.querySelector(sel);
@@ -1122,9 +1194,10 @@ $('#btnAutoSeed').addEventListener('click', () => {
     const seed = (SEED_DIV[div]?.[S.key]?.[L.key]) ?? SEED_BASE[S.key][L.key];
     upsertItem(S.key, L.key, { question: seed });
   }));
+  setView('matrix');
   renderMatrix();
-  toast('✓ 12셀 자동 시드 완료 · 평가문항 미리보기로 이동');
-  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 120);
+  toast('✓ 12셀 자동 시드 완료 · 🔧 변환 버튼으로 평가지 조립');
+  setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
 /* ═════════ 초기화 ═════════ */
@@ -1209,51 +1282,80 @@ function renderAssessmentCard(){
   empty.classList.add('hidden');
   body.classList.remove('hidden');
   const gradeClass = { '잘함':'high', '보통':'mid', '노력 요함':'low' };
+  const subject = escapeHtml(a.subject || '수학');
+  const gradeText = escapeHtml(a.grade || '6학년');
+  const unitName = escapeHtml(a.title || '(단원명 미입력)');
+  const taskName = escapeHtml((state.importantQuestion || a.title || '평가 과제').slice(0, 60));
+
   body.innerHTML = `
-    <div class="card__head">
-      <div>
-        <h3 class="card__title">📝 조립된 평가문항 <span class="assessment-type">${a.type}</span></h3>
-        <p class="card__sub">${escapeHtml(a.grade)} · ${escapeHtml(a.subject)} · 총점 ${a.totalScore}점 (문항당 ${a.perScore}점)</p>
-      </div>
+    <div class="ws__topbar">
+      <button class="ws__back" id="btnBackToMatrix" title="매트릭스 편집으로 돌아가기">🧩 새 작성기</button>
+      <div style="flex:1"></div>
       <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
+      <button class="btn-mini" id="btnAssessmentPrint" title="인쇄">🖨 인쇄</button>
     </div>
-    <div class="assessment">
-      <div class="assessment__meta"><b>단원명</b>${escapeHtml(a.title)}</div>
-      <div class="assessment__material">
-        <div class="assessment__label">▶ 중요한 질문 (자료 대체)</div>
-        <div>${escapeHtml(a.material)}</div>
-      </div>
-      <ol class="assessment__questions">
-        ${a.subQuestions.map(q => `
-          <li>
-            <div class="assessment__q-text">${escapeHtml(q.text)}</div>
-            <div class="assessment__q-meta">
-              수준 <b>${LEVELS.find(x=>x.key===q.level)?.ko}</b>
-              · MAIL <b>${MAIL.find(m=>m.key===q.mail)?.ko}</b>
-              · 배점 <b>${q.score}점</b>
-              ${q.kr.length ? `· 한국 5요소 ${q.kr.join(', ')}` : ''}
-              ${q.hint ? `<br/>· 채점 힌트: ${escapeHtml(q.hint)}` : ''}
-            </div>
-          </li>
-        `).join('')}
-      </ol>
-      <div class="assessment__rubric">
-        <h4>3단 루브릭 (한국 표준)</h4>
-        <table>
-          <thead><tr><th style="width:80px">등급</th><th>기준</th><th style="width:80px">배점</th></tr></thead>
-          <tbody>
-            ${a.rubric.map(r => `
-              <tr>
-                <td><span class="rubric__grade rubric__grade--${gradeClass[r.level]}">${r.level}</span></td>
-                <td>${r.criteria}</td>
-                <td>${r.score}</td>
-              </tr>
-            `).join('')}
-          </tbody>
+
+    <div class="ws__page">
+      <h1 class="ws__title">${subject}과 수행평가지</h1>
+
+      <div class="ws__header">
+        <table class="ws__gradebox">
+          <thead><tr><th>잘함</th><th>보통</th><th>노력요함</th></tr></thead>
+          <tbody><tr><td></td><td></td><td></td></tr></tbody>
         </table>
+        <div class="ws__scoreinfo">
+          <div>점수: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) 점</div>
+          <div>${gradeText}&nbsp;&nbsp;&nbsp;5반&nbsp;&nbsp;&nbsp;번&nbsp;&nbsp;&nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+        </div>
       </div>
+
+      <table class="ws__info">
+        <tr>
+          <th>단원명</th><td>${unitName}</td>
+          <th>차시</th><td style="width:60px">6/11</td>
+          <th>평가일</th><td style="width:110px">년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일</td>
+        </tr>
+        <tr>
+          <th>과제명</th><td colspan="3">${taskName}</td>
+          <th>평가자</th><td>(인)</td>
+        </tr>
+      </table>
+      <div class="ws__section">활동 과제</div>
+
+      <div class="ws__questions">
+        ${a.subQuestions.map((q, i) => `
+          <div class="ws__q">
+            <div class="ws__q-head">${i+1}. ${escapeHtml(q.text)} (${q.score}점)</div>
+            <div class="ws__q-space"></div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="ws__pagenum">- 1 -</div>
     </div>
+
+    <details class="ws__rubric-details">
+      <summary>▸ 3단 루브릭 (교사 참조용 · 학생 평가지에는 인쇄되지 않음)</summary>
+      <table class="ws__rubric-table">
+        <thead><tr><th style="width:70px">등급</th><th>기준</th><th style="width:70px">배점</th></tr></thead>
+        <tbody>
+          ${a.rubric.map(r => `
+            <tr>
+              <td><span class="rubric__grade rubric__grade--${gradeClass[r.level]}">${r.level}</span></td>
+              <td>${r.criteria}</td>
+              <td>${r.score}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </details>
   `;
+
+  document.getElementById('btnBackToMatrix').addEventListener('click', () => {
+    setView('matrix');
+    toast('🧩 매트릭스 편집으로 복귀');
+    setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 80);
+  });
   document.getElementById('btnAssessmentCopy').addEventListener('click', async () => {
     const txt = assessmentToText(a);
     try{
@@ -1261,6 +1363,7 @@ function renderAssessmentCard(){
       toast('✓ 문항+루브릭 클립보드 복사 완료');
     }catch(e){ toast('⚠ 클립보드 복사 실패'); }
   });
+  document.getElementById('btnAssessmentPrint').addEventListener('click', () => window.print());
 }
 
 function assessmentToText(a){
@@ -1285,13 +1388,13 @@ function assessmentToText(a){
 $('#btnConvert').addEventListener('click', () => {
   const refineItems = LEVELS.map(L => getItem('refine', L.key)).filter(x => x && x.question.trim());
   if(refineItems.length === 0){
-    toast('⚠ refine 국면에 채운 셀이 없어요');
-    renderAssessmentCard();
+    toast('⚠ refine 국면(더 나은 질문 만들기)에 채운 셀이 없어요');
     return;
   }
   renderAssessmentCard();
-  toast(`✓ refine ${refineItems.length}개 셀 → 평가문항지 조립 완료`);
-  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 80);
+  setView('assessment');
+  toast(`✓ ${refineItems.length}문항 수행평가지 조립 완료`);
+  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
 /* ═════════ Export MD ═════════ */
