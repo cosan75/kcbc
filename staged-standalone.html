@@ -32,7 +32,8 @@
     .gnb{
       position:sticky; top:0; z-index:40;
       display:flex; align-items:center; gap:12px;
-      padding:10px 16px; background:var(--panel);
+      padding:10px max(16px, calc((100vw - var(--app-max)) / 2));
+      background:var(--panel);
       border-bottom:1px solid var(--line);
       height:56px;
     }
@@ -117,9 +118,16 @@
     .stepbar{
       position:sticky; top:56px; z-index:35; background:#fff;
       border-bottom:1px solid var(--line);
-      display:flex; align-items:center; gap:0; padding:10px 16px;
+      display:flex; align-items:center; gap:6px;
+      padding:10px max(16px, calc((100vw - var(--app-max)) / 2));
       overflow-x:auto;
     }
+    .stepbar-select{
+      padding:5px 8px; border:1px solid var(--line); border-radius:6px;
+      background:var(--panel); font-size:12px; color:var(--ink-soft);
+      cursor:pointer; margin:0 2px; font-weight:600; letter-spacing:-.2px;
+    }
+    .stepbar-select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
     .stepbar__item{
       display:inline-flex; align-items:center; gap:6px;
       padding:6px 12px; border-radius:999px; background:transparent;
@@ -149,7 +157,8 @@
     .demo-banner{
       background:linear-gradient(120deg, #eef4ff, #f7f0ff);
       border-bottom:1px solid var(--line);
-      padding:14px 20px; display:flex; align-items:center; gap:14px;
+      padding:14px max(16px, calc((100vw - var(--app-max)) / 2));
+      display:flex; align-items:center; gap:14px;
     }
     .demo-banner__body{ flex:1; min-width:0; }
     .demo-banner__title{ font-size:13px; font-weight:800; margin:0 0 2px; color:var(--ink); }
@@ -227,6 +236,62 @@
     .step4-info b{ color:var(--accent); }
     .step4-info ul{ margin:6px 0 0; padding-left:20px; }
     .step4-info li{ margin-bottom:3px; }
+
+    /* ═════ R1 · 정책 프레임 배지 (Step 1 상단) ═════ */
+    .policy-badge{
+      padding:10px 12px; background:linear-gradient(120deg, #f0f7ff, #ecfff7);
+      border-left:3px solid var(--accent); border-radius:6px;
+      font-size:11.5px; color:var(--ink-soft); line-height:1.55;
+      margin-bottom:14px;
+    }
+    .policy-badge b{ color:var(--accent); font-weight:700; }
+
+    /* ═════ R2 · 성취기준 학년군 배지 + 검증 워터마크 ═════ */
+    .ach-band-badge{
+      display:inline-block; font-size:9.5px; padding:1px 6px; border-radius:3px;
+      background:var(--line-soft); color:var(--muted); font-weight:600;
+      margin-left:6px; letter-spacing:0;
+    }
+    .ach-item__warn{
+      font-size:9px; color:var(--warn); padding:1px 4px;
+      border:1px solid var(--warn); border-radius:3px; opacity:.75;
+      margin-left:auto; flex-shrink:0; white-space:nowrap; font-weight:600;
+      align-self:flex-start; margin-top:2px;
+    }
+    .field__hint a{ color:var(--accent); text-decoration:underline; }
+
+    /* ═════ R7·R8 · 예시 & 자동시드 워터마크 ═════ */
+    .seed-warn, .demo-watermark{
+      padding:9px 12px; border-radius:8px;
+      font-size:11.5px; font-weight:600;
+      margin-bottom:10px; display:none; align-items:center; gap:6px;
+      line-height:1.4;
+    }
+    .seed-warn.is-on, .demo-watermark.is-on{ display:flex; }
+    .seed-warn{ background:#fef3c7; border:1px solid #f5c542; color:#7a5a10; }
+    .demo-watermark{ background:linear-gradient(120deg, #fef3c7, #fef9e0); border:1px solid #f5c542; color:#7a5a10; justify-content:space-between; }
+    .demo-watermark__x{
+      background:transparent; border:none; cursor:pointer; color:#7a5a10;
+      font-weight:700; font-size:14px; padding:2px 6px; border-radius:4px;
+    }
+    .demo-watermark__x:hover{ background:rgba(122,90,16,.1); }
+
+    /* ═════ R4 · 자유 모드 토글 ═════ */
+    .mode-toggle{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:5px 10px; border:1px solid var(--line); border-radius:999px;
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
+      font-weight:600; white-space:nowrap;
+    }
+    .mode-toggle input{ accent-color:var(--accent); margin:0; }
+    .mode-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+    @media (max-width:640px){ .mode-toggle{ display:none; } }
+
+    /* ═════ R5 · iOS 자동 확대 방지 폰트 16px 승격 ═════ */
+    @media (max-width:640px){
+      .input, .select, .textarea{ font-size:16px !important; }
+      .stepbar-select{ font-size:15px; }
+    }
 
     /* ═════ Left Sidebar (Chat) ═════ */
     .chat{
@@ -653,6 +718,10 @@
   <h1 class="gnb__title">✨ 단계형 평가문항 제작 도구</h1>
   <span class="gnb__crumb">「질문하는 학교」 · <b>학생 질문 능력 계발 모델</b></span>
   <div class="gnb__spacer"></div>
+  <label class="mode-toggle" title="여러 단계를 동시에 펼쳐 자유롭게 편집">
+    <input type="checkbox" id="freeMode" aria-label="자유 모드 · 여러 단계 동시 편집">
+    <span>🔓 자유 모드</span>
+  </label>
   <div class="save-ind" id="saveInd" aria-live="polite">
     <span class="save-ind__dot" aria-hidden="true"></span>
     <span id="saveIndText">자동 저장됨 · 방금 전</span>
@@ -664,22 +733,30 @@
   </div>
 </header>
 
-<!-- ═════ 스텝바 (4단계 위저드) ═════ -->
-<nav class="stepbar" id="stepbar" aria-label="4단계 위저드 진행">
-  <button class="stepbar__item" data-step="1" aria-current="step">
-    <span class="stepbar__num">1</span><span>학년·과목</span>
+<!-- ═════ 스텝바 (4단계 위저드 + 학년·과목 인라인) ═════ -->
+<nav class="stepbar" id="stepbar" role="tablist" aria-label="4단계 위저드 진행">
+  <button class="stepbar__item" data-step="1" role="tab" aria-current="step" aria-label="1단계 학년·과목 선택">
+    <span class="stepbar__num" aria-hidden="true">1</span><span>학년·과목</span>
+  </button>
+  <select class="stepbar-select" id="gradeInline" aria-label="학년 인라인 선택">
+    <option>3학년</option><option selected>4학년</option>
+    <option>5학년</option><option>6학년</option>
+  </select>
+  <select class="stepbar-select" id="subjectInline" aria-label="과목 인라인 선택">
+    <option>국어</option><option selected>사회</option>
+    <option>과학</option><option>수학</option><option>영어</option>
+  </select>
+  <span class="stepbar__sep" aria-hidden="true">→</span>
+  <button class="stepbar__item" data-step="2" role="tab" aria-label="2단계 질문 만들기">
+    <span class="stepbar__num" aria-hidden="true">2</span><span>질문 만들기</span>
   </button>
   <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="2">
-    <span class="stepbar__num">2</span><span>질문 만들기</span>
+  <button class="stepbar__item" data-step="3" role="tab" aria-label="3단계 평가 매트릭스">
+    <span class="stepbar__num" aria-hidden="true">3</span><span>평가 매트릭스</span>
   </button>
   <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="3">
-    <span class="stepbar__num">3</span><span>평가 매트릭스</span>
-  </button>
-  <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="4">
-    <span class="stepbar__num">4</span><span>완성</span>
+  <button class="stepbar__item" data-step="4" role="tab" aria-label="4단계 완성">
+    <span class="stepbar__num" aria-hidden="true">4</span><span>완성</span>
   </button>
 </nav>
 
@@ -721,6 +798,11 @@
             <span class="step-acc__caret" aria-hidden="true">▼</span>
           </button>
           <div class="step-acc__body" id="step-body-1">
+
+        <!-- R1 · 정책 프레임 배지 -->
+        <div class="policy-badge">
+          💡 이 도구는 <b>「질문하는 학교」</b> 정책의 <b>①질문 배우기 + ②질문으로 배우기</b> 영역에서, 교사가 만드는 <b>서·논술형 평가문항</b>을 지원합니다. (이화여자대학교 산학협력단, 2024)
+        </div>
 
         <!-- 학습자 다양성 (Radio) -->
         <div class="field">
@@ -787,11 +869,15 @@
         <!-- 성취기준 (학년·과목별 자동 로드) -->
         <div class="field">
           <label class="field__label">
-            성취기준 (2022 개정) <span class="req">*</span>
+            성취기준 (2022 개정)
+            <span class="ach-band-badge" id="achBandBadge">3-4학년군</span>
+            <span class="req">*</span>
             <span class="ach-count" id="achCount">선택 <b>0</b>개</span>
           </label>
           <div class="ach-list" id="achList"></div>
-          <p class="field__hint">학년·과목 변경 시 자동 로드. 관련 성취기준을 체크하세요.</p>
+          <p class="field__hint">
+            학년·과목 변경 시 자동 로드 · <a href="https://ncic.re.kr/mobile.dwn.ogf.inventoryList.do" target="_blank" rel="noopener">국가교육과정정보센터에서 원문 확인 →</a>
+          </p>
         </div>
 
           </div><!-- /Step 2 body -->
@@ -817,7 +903,9 @@
             <option value="participate">공유·참여만</option>
             <option value="create">의사소통·생산만</option>
           </select>
-          <p class="field__hint">셀 미리보기가 필터링됩니다.</p>
+          <p class="field__hint">
+            셀 미리보기가 필터링됩니다 · <span title="2022 개정 총론 · 디지털 소양 5요소 · PISA 2029 MAIL 국문 재해석" style="cursor:help; color:var(--muted);">출처 ⓘ</span>
+          </p>
         </div>
 
         <!-- ═════ Cell Editor (초기 hidden) ═════ -->
@@ -930,6 +1018,14 @@
       <div class="card__head">
         <h3 class="card__title">국면 × 수준</h3>
         <span class="card__sub">셀의 + 를 눌러 기법 라이브러리에서 시드를 가져오세요</span>
+      </div>
+      <div class="seed-warn" id="seedWarn" role="alert">
+        <span aria-hidden="true">⚠</span>
+        <span>이 시드는 <b>예시 문구</b>입니다. 반드시 학급 맥락·학생 수준에 맞춰 <b>직접 다듬어</b> 주세요.</span>
+      </div>
+      <div class="demo-watermark" id="demoWatermark" role="status">
+        <span>🎭 <b>예시 데이터</b>로 채워졌습니다 · 자기 학급 상황에 맞게 수정해 주세요</span>
+        <button class="demo-watermark__x" id="demoWatermarkClose" aria-label="예시 알림 닫기">✕</button>
       </div>
       <div class="matrix-scroll" role="region" aria-label="4국면 × 3수준 매트릭스" tabindex="0">
         <div class="matrix" id="matrix"></div>
@@ -1541,8 +1637,8 @@ $$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
   toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'통합형':'다문화교육형'}`);
 }));
 $('#model').addEventListener('change', e => { state.model = e.target.value; });
-$('#grade').addEventListener('change', e => { state.grade = e.target.value; renderAchievements(); });
-$('#subject').addEventListener('change', e => { state.subject = e.target.value; renderAchievements(); });
+$('#grade').addEventListener('change', e => syncGrade(e.target.value));
+$('#subject').addEventListener('change', e => syncSubject(e.target.value));
 $('#title').addEventListener('input', e => { state.title = e.target.value; });
 $('#importantQuestion').addEventListener('input', e => { state.importantQuestion = e.target.value; });
 $('#mailFilter').addEventListener('change', e => { state.mailFilter = e.target.value; renderMatrix(); });
@@ -1555,6 +1651,11 @@ function currentAchievements(){
 function renderAchievements(){
   const list = $('#achList');
   const items = currentAchievements();
+  // R2 · 학년군 배지 갱신
+  const badge = $('#achBandBadge');
+  if(badge){
+    badge.textContent = gradeBand(state.grade) === 'g34' ? '3-4학년군' : '5-6학년군';
+  }
   if(items.length === 0){
     list.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--muted); text-align:center;">해당 학년·과목 성취기준이 준비 중입니다.</div>`;
   } else {
@@ -1565,6 +1666,7 @@ function renderAchievements(){
           <input type="checkbox" data-code="${a.code}" ${on?'checked':''}>
           <span class="ach-item__code">${a.code}</span>
           <span class="ach-item__desc">${escapeHtml(a.desc)}</span>
+          <span class="ach-item__warn" title="이 문구는 데모용 요약입니다. 실제 배포 시 NCIC 원문과 대조하세요.">검증 필요</span>
         </label>
       `;
     }).join('');
@@ -1596,13 +1698,19 @@ $('#btnAutoSeed').addEventListener('click', () => {
   renderMatrix();
   if(typeof markSaved === 'function') markSaved();
   if(typeof gotoStep === 'function') gotoStep(3);
-  toast('✓ 12셀 자동 시드 완료 · 📄 평가지 미리보기로 조립');
+  // R8 · 자동시드 획일화 경고 배지 (8초 표시)
+  const warn = $('#seedWarn');
+  if(warn){
+    warn.classList.add('is-on');
+    setTimeout(() => warn.classList.remove('is-on'), 8000);
+  }
+  toast('✓ 12셀 자동 시드 완료 · 학급 맥락에 맞춰 다듬어 주세요');
   setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
 /* ═════════ 초기화 (처음으로) ═════════ */
 function resetAll(){
-  if(!confirm('매트릭스·평가지·단원 정보·성취기준 선택을 모두 처음으로 되돌릴까요?\n(되돌릴 수 없습니다)')) return;
+  if(!confirm('매트릭스·평가지·단원 정보·성취기준 선택·브라우저 저장본을 모두 처음으로 되돌릴까요?\n(되돌릴 수 없습니다)')) return;
   state.items = {};
   state.activeCell = null;
   state.title = '';
@@ -1614,13 +1722,21 @@ function resetAll(){
   $('#importantQuestion').value = '';
   $('#mailFilter').value = 'all';
   $('#cellEditor').classList.add('hidden');
+  // 인라인 셀렉트도 기본값으로
+  if($('#gradeInline')) $('#gradeInline').value = state.grade;
+  if($('#subjectInline')) $('#subjectInline').value = state.subject;
+  // R7 워터마크·R8 시드 경고 감추기
+  const wm = $('#demoWatermark'); if(wm) wm.classList.remove('is-on');
+  const sw = $('#seedWarn'); if(sw) sw.classList.remove('is-on');
+  // R6 localStorage 삭제
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   renderAchievements();
   renderMatrix();
   renderAssessmentCard();
   if(typeof gotoStep === 'function') gotoStep(1);
   if(typeof markSaved === 'function') markSaved();
   const banner = $('#demoBanner'); if(banner) banner.classList.remove('is-hidden');
-  toast('🔄 처음으로 초기화 완료');
+  toast('🔄 처음으로 초기화 완료 · 저장본도 삭제');
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 $('#btnReset').addEventListener('click', resetAll);
@@ -1978,9 +2094,12 @@ document.querySelectorAll('[data-step-toggle]').forEach(head => {
   });
 });
 
-/* ═════════ 자동 저장 인디케이터 ═════════ */
+/* ═════════ 자동 저장 인디케이터 (R6 · localStorage 실제 저장) ═════════ */
 let lastSaveTime = Date.now();
+let lastSaveOk = true;
 function markSaved(){
+  // localStorage에 실제 저장 시도
+  lastSaveOk = (typeof saveToLocal === 'function') ? saveToLocal() : true;
   lastSaveTime = Date.now();
   updateSaveInd();
   updateStepCompletion();
@@ -1988,12 +2107,18 @@ function markSaved(){
 function updateSaveInd(){
   const diff = Math.floor((Date.now() - lastSaveTime) / 1000);
   let text;
-  if(diff < 5) text = '자동 저장됨 · 방금 전';
+  if(!lastSaveOk) text = '⚠ 저장 실패 · 브라우저 저장소 확인';
+  else if(diff < 5) text = '자동 저장됨 · 방금 전';
   else if(diff < 60) text = `자동 저장됨 · ${diff}초 전`;
   else if(diff < 3600) text = `자동 저장됨 · ${Math.floor(diff/60)}분 전`;
   else text = '자동 저장됨 · 오래 전';
   const el = $('#saveIndText');
   if(el) el.textContent = text;
+  const ind = $('#saveInd');
+  if(ind){
+    ind.style.background = lastSaveOk ? '' : '#fef3c7';
+    ind.style.color = lastSaveOk ? '' : '#a06e0e';
+  }
 }
 setInterval(updateSaveInd, 5000);
 
@@ -2006,23 +2131,34 @@ setInterval(updateSaveInd, 5000);
 });
 document.querySelectorAll('input[name="diversity"]').forEach(r => r.addEventListener('change', markSaved));
 
-/* ═════════ 30초 예시 배너 ═════════ */
-const DEMO_DATA = {
-  grade:'4학년', subject:'사회', diversity:'general', model:'reflect',
-  title:'우리 고장의 어제와 오늘',
-  importantQuestion:'우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?',
-  achievements:['4사03-01','4사04-04'],
-};
+/* ═════════ R7 · 30초 예시 배너 (과목별 3종 로테이션) ═════════ */
+const DEMO_DATASETS = [
+  { grade:'4학년', subject:'사회', diversity:'general', model:'reflect',
+    title:'우리 고장의 어제와 오늘',
+    importantQuestion:'우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?',
+    achievements:['4사03-01','4사04-04'] },
+  { grade:'5학년', subject:'국어', diversity:'general', model:'discuss',
+    title:'주장하는 글쓰기',
+    importantQuestion:'좋은 주장은 어떻게 근거를 갖추어야 할까?',
+    achievements:['6국02-04','6국03-04'] },
+  { grade:'6학년', subject:'과학', diversity:'general', model:'experiment',
+    title:'전기의 이용',
+    importantQuestion:'우리 주변의 전기는 어떻게 안전하게 활용될까?',
+    achievements:['6과11-02'] },
+];
+let demoIdx = 0;
 if($('#btnLoadDemo')){
   $('#btnLoadDemo').addEventListener('click', () => {
+    const D = DEMO_DATASETS[demoIdx % DEMO_DATASETS.length];
+    demoIdx++;
     state.items = {};
     state.achievements.clear();
     Object.assign(state, {
-      grade:DEMO_DATA.grade, subject:DEMO_DATA.subject,
-      diversity:DEMO_DATA.diversity, model:DEMO_DATA.model,
-      title:DEMO_DATA.title, importantQuestion:DEMO_DATA.importantQuestion,
+      grade:D.grade, subject:D.subject,
+      diversity:D.diversity, model:D.model,
+      title:D.title, importantQuestion:D.importantQuestion,
     });
-    DEMO_DATA.achievements.forEach(c => state.achievements.add(c));
+    D.achievements.forEach(c => state.achievements.add(c));
     STAGES.forEach(S => LEVELS.forEach(L => {
       const seed = SEED_BASE[S.key][L.key];
       upsertItem(S.key, L.key, { question: seed });
@@ -2031,6 +2167,8 @@ if($('#btnLoadDemo')){
     $('#model').value = state.model;
     $('#grade').value = state.grade;
     $('#subject').value = state.subject;
+    $('#gradeInline').value = state.grade;
+    $('#subjectInline').value = state.subject;
     $('#title').value = state.title;
     $('#importantQuestion').value = state.importantQuestion;
     renderAchievements();
@@ -2038,7 +2176,10 @@ if($('#btnLoadDemo')){
     renderAssessmentCard();
     markSaved();
     gotoStep(4);
-    toast('✨ 30초 예시 로드 완료 · 스텝바에서 앞 단계도 확인하세요');
+    // R7 · 워터마크 배너 표시 (사용자가 명시적으로 닫을 때까지)
+    const wm = $('#demoWatermark');
+    if(wm) wm.classList.add('is-on');
+    toast(`✨ 예시 ${demoIdx}/${DEMO_DATASETS.length} 로드 완료 · ${D.subject}과 예시`);
     $('#demoBanner').classList.add('is-hidden');
     setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 200);
   });
@@ -2050,12 +2191,125 @@ if($('#btnStartFresh')){
     toast('✨ 처음부터 시작해 봅시다 · 1단계 학년·과목');
   });
 }
+// R7 · 워터마크 닫기
+if($('#demoWatermarkClose')){
+  $('#demoWatermarkClose').addEventListener('click', () => {
+    $('#demoWatermark').classList.remove('is-on');
+  });
+}
 
-/* ═════════ 초기 렌더 ═════════ */
+/* ═════════ 스텝바 인라인 셀렉트 동기화 ═════════ */
+function syncGrade(v){
+  state.grade = v;
+  const g = $('#grade'); if(g && g.value !== v) g.value = v;
+  const gi = $('#gradeInline'); if(gi && gi.value !== v) gi.value = v;
+  renderAchievements();
+  markSaved();
+}
+function syncSubject(v){
+  state.subject = v;
+  const s = $('#subject'); if(s && s.value !== v) s.value = v;
+  const si = $('#subjectInline'); if(si && si.value !== v) si.value = v;
+  renderAchievements();
+  markSaved();
+}
+if($('#gradeInline')) $('#gradeInline').addEventListener('change', e => syncGrade(e.target.value));
+if($('#subjectInline')) $('#subjectInline').addEventListener('change', e => syncSubject(e.target.value));
+
+/* ═════════ R4 · 자유 모드 (모든 스텝 동시 펼침) ═════════ */
+if($('#freeMode')){
+  $('#freeMode').addEventListener('change', e => {
+    const on = e.target.checked;
+    state.freeMode = on;
+    if(on){
+      document.querySelectorAll('.step-acc').forEach(el => {
+        el.classList.add('is-open');
+        const h = el.querySelector('.step-acc__head');
+        if(h) h.setAttribute('aria-expanded', 'true');
+      });
+      toast('🔓 자유 모드 · 여러 단계를 동시에 편집하세요');
+    } else {
+      gotoStep(state.step || 1);
+      toast('🔒 위저드 모드 복귀');
+    }
+  });
+}
+
+/* ═════════ R5 · Escape 키로 모달·드로어 닫기 ═════════ */
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  const tm = $('#techModal');
+  const dr = $('#drawer');
+  if(tm && tm.classList.contains('is-on')){ closeTechModal(); return; }
+  if(dr && dr.classList.contains('is-on')){ closeDrawer(); return; }
+});
+
+/* ═════════ R6 · localStorage 실제 저장 & 복원 ═════════ */
+const STORAGE_KEY = 'kcbc-standalone:draft:v1';
+function saveToLocal(){
+  try{
+    const data = {
+      grade:state.grade, subject:state.subject,
+      diversity:state.diversity, model:state.model,
+      title:state.title, importantQuestion:state.importantQuestion,
+      mailFilter:state.mailFilter,
+      items:state.items,
+      achievements:Array.from(state.achievements),
+      timestamp:Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  }catch(e){ return false; }
+}
+function loadFromLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+function restoreState(){
+  const data = loadFromLocal();
+  if(!data) return false;
+  if(data.grade) state.grade = data.grade;
+  if(data.subject) state.subject = data.subject;
+  if(data.diversity) state.diversity = data.diversity;
+  if(data.model) state.model = data.model;
+  if(typeof data.title === 'string') state.title = data.title;
+  if(typeof data.importantQuestion === 'string') state.importantQuestion = data.importantQuestion;
+  if(data.mailFilter) state.mailFilter = data.mailFilter;
+  if(data.items) state.items = data.items;
+  if(Array.isArray(data.achievements)) state.achievements = new Set(data.achievements);
+  if(data.timestamp) lastSaveTime = data.timestamp;
+  // UI 값 반영
+  const setVal = (sel, v) => { const el = $(sel); if(el && v != null) el.value = v; };
+  setVal('#grade', state.grade);
+  setVal('#subject', state.subject);
+  setVal('#gradeInline', state.grade);
+  setVal('#subjectInline', state.subject);
+  setVal('#model', state.model);
+  setVal('#title', state.title);
+  setVal('#importantQuestion', state.importantQuestion);
+  setVal('#mailFilter', state.mailFilter);
+  const rd = document.querySelector(`input[name="diversity"][value="${state.diversity}"]`);
+  if(rd) rd.checked = true;
+  return true;
+}
+
+// (markSaved / updateSaveInd 원본을 saveToLocal 훅 포함 형태로 수정 완료 — 재할당 삭제)
+
+/* ═════════ 초기 렌더 + localStorage 복원 ═════════ */
+const restored = restoreState();
 renderAchievements();
 renderMatrix();
+renderAssessmentCard();
 gotoStep(1);
 updateSaveInd();
+if(restored){
+  toast('💾 이전 작업을 자동으로 복원했습니다');
+  const banner = $('#demoBanner');
+  if(banner) banner.classList.add('is-hidden');
+}
 </script>
 </body>
 </html>
