@@ -813,12 +813,12 @@
   </select>
   <span class="stepbar__sep" aria-hidden="true">|</span>
   <select class="ctx__select" id="mailFilterInline" aria-label="디지털 소양 5요소 필터 선택">
-    <option value="all">🧩 전체</option>
-    <option value="ethics">반성·성찰</option>
+    <option value="ethics" selected>반성·성찰</option>
     <option value="access">접근·선택</option>
     <option value="analyze">이해·분석·평가</option>
     <option value="participate">공유·참여</option>
     <option value="create">의사소통·생산</option>
+    <option value="all">🧩 전체 보기</option>
   </select>
   <span class="stepbar__sep" aria-hidden="true">|</span>
   <span class="ctx__item" id="ctxQuestion" title="단원 질문">단원 질문 미입력</span>
@@ -1380,7 +1380,7 @@ const state = {
   subject:'사회',
   title:'',
   importantQuestion:'',
-  mailFilter:'all',
+  mailFilter:'ethics',
   items:{},           // { "generate:mid": {question, competency, score, kr:[]} }
   activeCell:null,    // "generate:mid"
   achievements:new Set(),  // 선택된 성취기준 코드 집합
@@ -1802,13 +1802,13 @@ function resetAll(){
   state.activeCell = null;
   state.title = '';
   state.importantQuestion = '';
-  state.mailFilter = 'all';
+  state.mailFilter = 'ethics';
   state.achievements.clear();
   if(state.completedSteps) state.completedSteps.clear();
   $('#title').value = '';
   $('#importantQuestion').value = '';
-  $('#mailFilter').value = 'all';
-  $('#mailFilterInline').value = 'all';
+  $('#mailFilter').value = 'ethics';
+  $('#mailFilterInline').value = 'ethics';
   $('#cellEditor').classList.add('hidden');
   // 인라인 셀렉트도 기본값으로
   if($('#gradeInline')) $('#gradeInline').value = state.grade;
