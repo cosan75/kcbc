@@ -1182,7 +1182,7 @@
         <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
         <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · 5요소 <b id="mMail">0/5</b> · <span title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요.">열린 질문 비율 <b id="mOpen">0%</b> <span aria-hidden="true" style="cursor:help; color:var(--muted);">ⓘ</span></span></p>
       </div>
-      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 처음으로" aria-label="모두 처음으로 초기화">🔄 처음으로</button>
+      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 지우고 새로 작성" aria-label="새로 작성 시작">🔄 새로 작성</button>
     </div>
 
     <!-- Matrix Card -->
@@ -1896,7 +1896,7 @@ $('#btnAutoSeed').addEventListener('click', () => {
   setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
-/* ═════════ 초기화 (처음으로) ═════════ */
+/* ═════════ 초기화 (새로 작성) ═════════ */
 function resetAll(){
   state.items = {};
   state.activeCell = null;
@@ -1924,7 +1924,7 @@ function resetAll(){
   if(typeof gotoStep === 'function') gotoStep(1);
   if(typeof markSaved === 'function') markSaved();
   const banner = $('#demoBanner'); if(banner) banner.classList.remove('is-hidden');
-  toast('🔄 처음으로 초기화 완료 · 저장본도 삭제');
+  toast('🔄 새로 작성 시작 · 저장본도 삭제');
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 $('#btnReset').addEventListener('click', resetAll);
@@ -2025,7 +2025,8 @@ function renderAssessmentCard(){
       <div style="flex:1; font-size:12px; color:var(--muted);">
         📄 수행평가지 · 교사 선택 셀 <b style="color:#1f7a4a">${a.subQuestions.length}개</b> (${cellsNote})
       </div>
-      <button class="btn-mini" id="btnEditWs" title="텍스트 수정 · 이미지 추가 · 펜 그리기">✏️ 편집</button>
+      <button class="btn-mini" id="btnEditWs" title="텍스트 수정 · 펜 그리기">✏️ 편집</button>
+      <button class="btn-mini" id="btnAddImageQuick" title="평가지에 이미지 추가">🖼 이미지 추가</button>
       <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
       <button class="btn-mini" id="btnAssessmentPrint" title="인쇄">🖨 인쇄</button>
     </div>
@@ -2187,7 +2188,11 @@ function renderAssessmentCard(){
   document.getElementById('btnEditWs').addEventListener('click', () => {
     const on = wsPage.getAttribute('contenteditable') !== 'true';
     setEditing(on);
-    if(on) toast('✏️ 편집 모드 · 텍스트 수정 + 🖼 이미지 + ✏️ 펜 (매트릭스 수정 시 재조립되어 초기화됩니다)');
+    if(on) toast('✏️ 편집 모드 · 텍스트 수정 + ✏️ 펜 (매트릭스 수정 시 재조립되어 초기화됩니다)');
+  });
+  document.getElementById('btnAddImageQuick').addEventListener('click', () => {
+    if(wsPage.getAttribute('contenteditable') !== 'true') setEditing(true);
+    imgInput.click();
   });
   body.querySelector('#wsEditDone').addEventListener('click', () => {
     setEditing(false);
@@ -2798,8 +2803,6 @@ gotoStep(1);
 updateSaveInd();
 if(restored){
   toast('💾 이전 작업을 자동으로 복원했습니다');
-  const banner = $('#demoBanner');
-  if(banner) banner.classList.add('is-hidden');
 }
 </script>
 </body>
