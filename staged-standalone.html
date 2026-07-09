@@ -358,6 +358,7 @@
     .ai-helper__keyrow.hidden{ display:none; }
     .ai-helper__keyrow input{ flex:1; min-width:180px; }
     .ai-helper__keynote{ font-size:10px; color:var(--muted); white-space:nowrap; }
+    .ai-helper__keynote a{ color:var(--accent); text-decoration:underline; }
     .ai-helper__chat{
       max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
       margin-bottom:8px;
@@ -906,7 +907,10 @@
       <div class="ai-helper__keyrow" id="aiHelperKeyRow">
         <input type="password" class="input" id="aiHelperKey" placeholder="Anthropic API 키 (sk-ant-...)" aria-label="Anthropic API 키 입력" autocomplete="off">
         <button class="btn-mini" id="aiHelperKeySave">저장</button>
-        <span class="ai-helper__keynote">🔒 이 브라우저 세션에만 저장 · 서버 전송 없음</span>
+        <span class="ai-helper__keynote">
+          🔒 이 브라우저 세션에만 저장 · 서버 전송 없음 ·
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">API 키 발급받기 ↗</a>
+        </span>
       </div>
       <div class="ai-helper__chat" id="aiHelperChat" aria-live="polite"></div>
       <div class="ai-helper__inputrow">
