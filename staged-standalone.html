@@ -331,6 +331,49 @@
     .ctx__select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
     @media (max-width:768px){ .ctx__select{ max-width:40vw; } }
 
+    /* ═════ AI 질문 도우미 (Claude API) ═════ */
+    .ai-helper{
+      display:grid; grid-template-columns:var(--sidebar-w) 1fr;
+      max-width:var(--app-max); margin:0 auto;
+      border-bottom:1px solid var(--line); background:#fff;
+    }
+    .ai-helper__inner{ grid-column:2; min-width:0; width:100%;
+      padding:0 calc((100% - var(--canvas-max)) / 2 + 22px) 0 22px; }
+    @media (max-width:640px){
+      .ai-helper{ grid-template-columns:1fr; }
+      .ai-helper__inner{ grid-column:1; padding:0 12px; }
+    }
+    .ai-helper__toggle{
+      width:100%; border:none; background:transparent; cursor:pointer;
+      display:flex; align-items:center; gap:8px; padding:10px 4px;
+      font-size:12.5px; font-weight:700; color:var(--ink-soft);
+    }
+    .ai-helper__toggle:hover{ color:var(--accent); }
+    .ai-helper__hint{ font-size:11px; font-weight:400; color:var(--muted); }
+    .ai-helper__caret{ margin-left:auto; transition:.15s; color:var(--muted); }
+    .ai-helper.is-open .ai-helper__caret{ transform:rotate(180deg); }
+    .ai-helper__panel{ padding:0 4px 12px; }
+    .ai-helper__panel.hidden{ display:none; }
+    .ai-helper__keyrow{ display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .ai-helper__keyrow.hidden{ display:none; }
+    .ai-helper__keyrow input{ flex:1; min-width:180px; }
+    .ai-helper__keynote{ font-size:10px; color:var(--muted); white-space:nowrap; }
+    .ai-helper__chat{
+      max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
+      margin-bottom:8px;
+    }
+    .ai-msg{ max-width:88%; padding:8px 11px; border-radius:10px; font-size:12px; line-height:1.55; white-space:pre-wrap; word-break:keep-all; }
+    .ai-msg--user{ align-self:flex-end; background:var(--accent-soft); color:var(--ink); border-bottom-right-radius:2px; }
+    .ai-msg--ai{ align-self:flex-start; background:var(--line-soft); color:var(--ink); border-bottom-left-radius:2px; }
+    .ai-msg--error{ align-self:flex-start; background:#fef3c7; color:#7a5a10; }
+    .ai-msg--loading{ align-self:flex-start; background:var(--line-soft); color:var(--muted); font-style:italic; }
+    .ai-helper__inputrow{ display:flex; gap:6px; align-items:flex-end; }
+    .ai-helper__inputrow textarea{ flex:1; min-height:34px; max-height:90px; resize:vertical; }
+    .ai-helper__send{ flex-shrink:0; background:var(--ink); color:#fff; border-color:var(--ink); }
+    .ai-helper__send:hover{ background:var(--brand-hover); }
+    .ai-helper__send:disabled{ opacity:.5; cursor:not-allowed; }
+    .ai-helper__keychange{ font-size:10px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:0; }
+
     /* ═════ 셀 편집기 · 단원질문/성취기준 컨텍스트 + 평가지 반영 체크 ═════ */
     .cell-editor__ctx{
       padding:8px 10px; background:var(--panel); border:1px solid var(--line);
@@ -499,6 +542,14 @@
     .action-btn.is-primary:hover{ background:var(--brand-hover); color:#fff; border-color:var(--brand-hover); }
     .action-btn__ico{ font-size:13px; line-height:1; flex-shrink:0; }
     .action-btn__lbl{ overflow:hidden; text-overflow:ellipsis; }
+    .action-desc{
+      margin:6px 0 0; padding:0; list-style:none;
+      display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px;
+    }
+    .action-desc li{
+      font-size:9.5px; color:var(--muted); text-align:center; line-height:1.35;
+      word-break:keep-all;
+    }
 
     /* 평가지(수행평가지 워크시트) — 인쇄용 스타일 */
     .assessment-card{ background:transparent; border:none; padding:0; box-shadow:none; }
@@ -685,7 +736,7 @@
 
     /* Convert bridge */
     .bridge{
-      margin-top:10px; padding:10px 12px; background:linear-gradient(90deg, var(--tag-gray), var(--accent-soft));
+      margin-top:4px; padding:12px 14px; background:linear-gradient(90deg, var(--tag-gray), var(--accent-soft));
       border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
     }
     .bridge__text{ font-size:11px; color:var(--ink-soft); line-height:1.4; }
@@ -841,6 +892,30 @@
   <span class="stepbar__sep" aria-hidden="true">|</span>
   <span class="ctx__item" id="ctxAch" title="선택된 성취기준">성취기준 미선택</span>
 </nav>
+
+<!-- ═════ AI 질문 도우미 (Claude API) ═════ -->
+<section class="ai-helper" id="aiHelper" aria-label="AI 질문 도우미">
+  <div class="ai-helper__inner">
+    <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
+      <span aria-hidden="true">💬</span>
+      <span>AI 질문 도우미</span>
+      <span class="ai-helper__hint">단원 질문·발문 아이디어가 궁금하면 바로 물어보세요</span>
+      <span class="ai-helper__caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="ai-helper__panel hidden" id="aiHelperPanel">
+      <div class="ai-helper__keyrow" id="aiHelperKeyRow">
+        <input type="password" class="input" id="aiHelperKey" placeholder="Anthropic API 키 (sk-ant-...)" aria-label="Anthropic API 키 입력" autocomplete="off">
+        <button class="btn-mini" id="aiHelperKeySave">저장</button>
+        <span class="ai-helper__keynote">🔒 이 브라우저 세션에만 저장 · 서버 전송 없음</span>
+      </div>
+      <div class="ai-helper__chat" id="aiHelperChat" aria-live="polite"></div>
+      <div class="ai-helper__inputrow">
+        <textarea class="textarea" id="aiHelperInput" rows="1" placeholder="예: 3학년 사회 눈높이에 맞는 개방형 질문 예시를 들어줘"></textarea>
+        <button class="btn-mini ai-helper__send" id="aiHelperSend" aria-label="질문 전송">➤ 질문하기</button>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ═════ 30초 예시 배너 ═════ -->
 <section class="demo-banner" id="demoBanner" aria-label="30초 예시">
@@ -1091,6 +1166,12 @@
             <span class="action-btn__ico" aria-hidden="true">☁️</span><span class="action-btn__lbl">Drive</span>
           </button>
         </div>
+        <ul class="action-desc" aria-hidden="true">
+          <li>12셀 예시 문구 채우기</li>
+          <li>.md 파일 저장</li>
+          <li>전체 데이터 저장</li>
+          <li>새 탭+복사</li>
+        </ul>
       </div>
     </div>
   </aside>
@@ -1123,19 +1204,12 @@
         <div class="matrix" id="matrix"></div>
       </div>
       <div class="matrix-hint" aria-hidden="true">← 옆으로 밀어 나머지 셀 보기 →</div>
-
-      <div class="bridge">
-        <div class="bridge__text">
-          <b>다듬기 단계(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다. <em>평가로 연결.</em>
-        </div>
-        <button class="btn-bridge" id="btnConvert" aria-label="평가지 미리보기 열기">📄 평가지 미리보기</button>
-      </div>
     </section>
 
     <!-- 조립된 수행평가지 (워크시트) -->
     <section class="assessment-card" id="assessmentCard">
       <div class="assessment-empty" id="assessmentEmpty">
-        셀을 채우고 셀 편집에서 <b>📄 평가지에 반영</b>을 체크한 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다. (선택 없으면 다듬기 단계 자동 반영)
+        셀을 채우고 셀 편집에서 <b>📄 평가지에 반영</b>을 체크한 뒤 아래 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
       </div>
       <div id="assessmentBody" class="hidden"></div>
     </section>
@@ -1161,6 +1235,14 @@
         <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
       </div>
     </section>
+
+    <!-- 다듬기 단계 → 평가지 브릿지 (페이지 맨 아래) -->
+    <div class="bridge">
+      <div class="bridge__text">
+        <b>다듬기 단계(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다.
+      </div>
+      <button class="btn-bridge" id="btnConvert" aria-label="평가지 미리보기 열기">📄 평가지 미리보기</button>
+    </div>
   </main>
 </div>
 
@@ -1798,9 +1880,11 @@ $('#btnAutoSeed').addEventListener('click', () => {
   const div = state.diversity;
   STAGES.forEach(S => LEVELS.forEach(L => {
     const seed = (SEED_DIV[div]?.[S.key]?.[L.key]) ?? SEED_BASE[S.key][L.key];
-    upsertItem(S.key, L.key, { question: seed });
+    // 다듬기(refine) 국면 셀은 평가지에 기본 반영되도록 명시적으로 체크
+    upsertItem(S.key, L.key, { question: seed, included: S.key === 'refine' });
   }));
   renderMatrix();
+  renderAssessmentCard();
   if(typeof markSaved === 'function') markSaved();
   if(typeof gotoStep === 'function') gotoStep(3);
   // R8 · 자동시드 획일화 경고 배지 (8초 표시)
@@ -1872,19 +1956,10 @@ $('#megaConvert')?.addEventListener('click', e => { e.preventDefault(); closeDra
 function assembleAssessment(){
   const STAGE_ORDER = ['generate','refine','inquire','reflect'];
   const LEVEL_ORDER = ['low','mid','high'];
-  // ① 교사가 "평가지에 반영"으로 체크한 셀만 수집 (모든 국면 허용)
+  // 교사가 "평가지에 반영"으로 명시적으로 체크한 셀만 수집 (모든 국면 허용, 자동 폴백 없음)
   let sel = Object.entries(state.items)
     .filter(([,v]) => v.included && v.question && v.question.trim())
     .map(([k,v]) => { const [s,l] = k.split(':'); return { ...v, stage:s, level:l }; });
-  let fromSelection = true;
-  // ② 선택 셀이 없으면 다듬기 단계(refine) 행으로 폴백
-  if(sel.length === 0){
-    fromSelection = false;
-    sel = LEVELS.map(L => {
-      const it = getItem('refine', L.key);
-      return it && it.question.trim() ? { ...it, stage:'refine', level:L.key } : null;
-    }).filter(Boolean);
-  }
   if(sel.length === 0) return null;
   sel.sort((a,b) =>
     (STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage)) ||
@@ -1903,7 +1978,6 @@ function assembleAssessment(){
     type,
     perScore,
     totalScore,
-    fromSelection,
     subQuestions: sel.map((it, i) => ({
       no: i + 1,
       text: it.question,
@@ -1950,8 +2024,7 @@ function renderAssessmentCard(){
   body.innerHTML = `
     <div class="ws__topbar">
       <div style="flex:1; font-size:12px; color:var(--muted);">
-        📄 수행평가지 · 반영 셀 <b>${a.subQuestions.length}개</b> (${cellsNote})
-        · ${a.fromSelection ? '<b style="color:#1f7a4a">교사 선택 셀</b>' : '다듬기 단계 자동 <span style="color:var(--warn)">(셀 편집에서 "📄 평가지에 반영" 체크 시 직접 선택)</span>'}
+        📄 수행평가지 · 교사 선택 셀 <b style="color:#1f7a4a">${a.subQuestions.length}개</b> (${cellsNote})
       </div>
       <button class="btn-mini" id="btnEditWs" title="텍스트 수정 · 이미지 추가 · 펜 그리기">✏️ 편집</button>
       <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
@@ -2177,12 +2250,12 @@ function assessmentToText(a){
 $('#btnConvert').addEventListener('click', () => {
   const a = assembleAssessment();
   if(!a){
-    toast('⚠ 평가지에 반영할 셀이 없어요 · 셀을 채우고 "📄 평가지에 반영"을 체크하거나 다듬기 단계를 채워주세요');
+    toast('⚠ 평가지에 반영할 셀이 없어요 · 셀 편집에서 "📄 평가지에 반영"을 체크해 주세요');
     return;
   }
   renderAssessmentCard();
   gotoStep(4);
-  toast(`✓ ${a.subQuestions.length}문항 수행평가지 조립 완료${a.fromSelection ? ' · 교사 선택 셀' : ' · 다듬기 단계 자동'}`);
+  toast(`✓ ${a.subQuestions.length}문항 수행평가지 조립 완료 · 교사 선택 셀`);
   setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
@@ -2432,7 +2505,7 @@ if($('#btnLoadDemo')){
     D.achievements.forEach(c => state.achievements.add(c));
     STAGES.forEach(S => LEVELS.forEach(L => {
       const seed = SEED_BASE[S.key][L.key];
-      upsertItem(S.key, L.key, { question: seed });
+      upsertItem(S.key, L.key, { question: seed, included: S.key === 'refine' });
     }));
     document.querySelector('input[name="diversity"][value="'+state.diversity+'"]').checked = true;
     $('#model').value = state.model;
@@ -2577,6 +2650,129 @@ function restoreState(){
 }
 
 // (markSaved / updateSaveInd 원본을 saveToLocal 훅 포함 형태로 수정 완료 — 재할당 삭제)
+
+/* ═════════ AI 질문 도우미 (Claude API 직접 호출) ═════════ */
+const AI_KEY_STORAGE = 'kcbc:ai-key-anthropic';
+const AI_MODEL = 'claude-sonnet-5';
+let aiChatHistory = []; // [{role:'user'|'assistant', content:string}]
+
+function aiGetKey(){
+  try{ return sessionStorage.getItem(AI_KEY_STORAGE) || ''; }catch(e){ return ''; }
+}
+function aiSetKey(k){
+  try{ sessionStorage.setItem(AI_KEY_STORAGE, k); }catch(e){}
+}
+function aiUpdateKeyRowVisibility(){
+  const row = $('#aiHelperKeyRow');
+  if(!row) return;
+  row.classList.toggle('hidden', !!aiGetKey());
+}
+function aiBuildSystemPrompt(){
+  const codes = Array.from(state.achievements);
+  const achLines = codes.map(c => {
+    const item = currentAchievements().find(a => a.code === c);
+    return item ? `[${item.code}] ${item.desc}` : c;
+  }).join('\n');
+  return [
+    '당신은 대한민국 초등학교 교사의 서·논술형 평가문항 제작을 돕는 도우미입니다.',
+    '「질문하는 학교」 정책 프레임과 2022 개정 교육과정 맥락에서, 암기 확인이 아닌 사고(비교·추론·근거 제시)를 평가하는',
+    '생활 맥락 발문 아이디어를 제안하세요. 답은 간결하게, 예시 위주로, 한국어로 답하세요.',
+    '',
+    `현재 작성 중: ${state.grade} ${state.subject} · 적용 모델: ${state.model}`,
+    `단원명: ${state.title || '(미입력)'}`,
+    `단원 질문: ${state.importantQuestion || '(미입력)'}`,
+    achLines ? `선택된 성취기준:\n${achLines}` : '성취기준: (미선택)',
+  ].join('\n');
+}
+function aiAppendMsg(role, text){
+  const chat = $('#aiHelperChat');
+  const cls = role === 'user' ? 'ai-msg--user' : role === 'error' ? 'ai-msg--error' : 'ai-msg--ai';
+  const el = elFromHtml(`<div class="ai-msg ${cls}">${escapeHtml(text)}</div>`);
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+function aiAppendLoading(){
+  const chat = $('#aiHelperChat');
+  const el = elFromHtml(`<div class="ai-msg ai-msg--loading">생각하는 중…</div>`);
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+async function aiSend(){
+  const input = $('#aiHelperInput');
+  const q = input.value.trim();
+  if(!q) return;
+  const key = aiGetKey();
+  if(!key){
+    toast('⚠ Anthropic API 키를 먼저 입력해 주세요');
+    aiUpdateKeyRowVisibility();
+    $('#aiHelperKey').focus();
+    return;
+  }
+  aiAppendMsg('user', q);
+  aiChatHistory.push({ role:'user', content:q });
+  input.value = '';
+  const sendBtn = $('#aiHelperSend');
+  sendBtn.disabled = true;
+  const loadingEl = aiAppendLoading();
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key': key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: 700,
+        system: aiBuildSystemPrompt(),
+        messages: aiChatHistory.slice(-8),
+      }),
+    });
+    const data = await res.json();
+    loadingEl.remove();
+    if(!res.ok){
+      const msg = data?.error?.message || `요청 실패 (HTTP ${res.status})`;
+      aiAppendMsg('error', `⚠ ${msg}`);
+      return;
+    }
+    const text = (data.content || []).map(b => b.text || '').join('').trim() || '(응답 없음)';
+    aiAppendMsg('assistant', text);
+    aiChatHistory.push({ role:'assistant', content:text });
+  }catch(e){
+    loadingEl.remove();
+    aiAppendMsg('error', '⚠ 네트워크 오류 · API 키와 연결 상태를 확인해 주세요');
+  }finally{
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+if($('#aiHelperToggle')){
+  $('#aiHelperToggle').addEventListener('click', () => {
+    const helper = $('#aiHelper');
+    const panel = $('#aiHelperPanel');
+    const open = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !open);
+    helper.classList.toggle('is-open', open);
+    $('#aiHelperToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open){ aiUpdateKeyRowVisibility(); $('#aiHelperKey').value = ''; }
+  });
+  $('#aiHelperKeySave').addEventListener('click', () => {
+    const v = $('#aiHelperKey').value.trim();
+    if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+    aiSetKey(v);
+    aiUpdateKeyRowVisibility();
+    toast('✓ API 키 저장 완료 (이 브라우저 세션 동안만 유지)');
+  });
+  $('#aiHelperSend').addEventListener('click', aiSend);
+  $('#aiHelperInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); aiSend(); }
+  });
+}
 
 /* ═════════ 초기 렌더 + localStorage 복원 ═════════ */
 const restored = restoreState();
