@@ -118,9 +118,10 @@
     .stepbar{
       position:sticky; top:56px; z-index:35; background:#fff;
       border-bottom:1px solid var(--line);
-      display:flex; align-items:center; gap:6px;
-      padding:10px max(16px, calc((100vw - var(--app-max)) / 2));
+      display:flex; align-items:center; gap:8px;
+      padding:9px max(16px, calc((100vw - var(--app-max)) / 2));
       overflow-x:auto;
+      scrollbar-width:thin;
     }
     .stepbar-select{
       padding:5px 8px; border:1px solid var(--line); border-radius:6px;
@@ -297,9 +298,19 @@
     .ctx__item{
       font-size:12px; color:var(--ink-soft); font-weight:600;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      max-width:38vw;
+      max-width:32vw;
     }
     .ctx__item--grade{ color:var(--accent); flex-shrink:0; }
+    .ctx__select{
+      appearance:none; -webkit-appearance:none;
+      padding:5px 22px 5px 10px; border:1px solid var(--line); border-radius:999px;
+      background:var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%234b5163' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 7px center;
+      background-size:10px; font-size:11.5px; font-weight:600; color:var(--ink-soft);
+      cursor:pointer; flex-shrink:0; max-width:34vw; text-overflow:ellipsis;
+    }
+    .ctx__select:hover{ border-color:var(--accent); color:var(--accent); }
+    .ctx__select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    @media (max-width:768px){ .ctx__select{ max-width:40vw; } }
 
     /* ═════ 셀 편집기 · 단원질문/성취기준 컨텍스트 + 평가지 반영 체크 ═════ */
     .cell-editor__ctx{
@@ -788,9 +799,25 @@
   </div>
 </header>
 
-<!-- ═════ 컨텍스트 바 (학년·과목 / 단원 질문 / 성취기준) ═════ -->
+<!-- ═════ 컨텍스트 바 (학년·과목 / 모델 / 5요소 / 단원 질문 / 성취기준) ═════ -->
 <nav class="stepbar" id="contextBar" aria-label="작성 정보 요약">
   <span class="ctx__item ctx__item--grade" id="ctxGrade">4학년 · 사회</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <select class="ctx__select" id="modelInline" aria-label="적용 모델 선택">
+    <option value="play">🎮 놀이형</option>
+    <option value="experiment">🔬 실험·실습</option>
+    <option value="discuss">💬 토의형</option>
+    <option value="reflect" selected>🔍 성찰형</option>
+  </select>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <select class="ctx__select" id="mailFilterInline" aria-label="디지털 소양 5요소 필터 선택">
+    <option value="all">디지털 소양 · 전체</option>
+    <option value="ethics">반성·성찰</option>
+    <option value="access">접근·선택</option>
+    <option value="analyze">이해·분석·평가</option>
+    <option value="participate">공유·참여</option>
+    <option value="create">의사소통·생산</option>
+  </select>
   <span class="stepbar__sep" aria-hidden="true">|</span>
   <span class="ctx__item" id="ctxQuestion" title="단원 질문">단원 질문 미입력</span>
   <span class="stepbar__sep" aria-hidden="true">|</span>
@@ -1695,12 +1722,12 @@ $$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
   state.diversity = e.target.value; renderRadars();
   toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'통합형':'다문화교육형'}`);
 }));
-$('#model').addEventListener('change', e => { state.model = e.target.value; });
+$('#model').addEventListener('change', e => syncModel(e.target.value));
 $('#grade').addEventListener('change', e => syncGrade(e.target.value));
 $('#subject').addEventListener('change', e => syncSubject(e.target.value));
 $('#title').addEventListener('input', e => { state.title = e.target.value; });
 $('#importantQuestion').addEventListener('input', e => { state.importantQuestion = e.target.value; });
-$('#mailFilter').addEventListener('change', e => { state.mailFilter = e.target.value; renderMatrix(); });
+$('#mailFilter').addEventListener('change', e => syncMailFilter(e.target.value));
 
 /* ═════════ 성취기준 렌더링 ═════════ */
 function currentAchievements(){
@@ -1779,6 +1806,7 @@ function resetAll(){
   $('#title').value = '';
   $('#importantQuestion').value = '';
   $('#mailFilter').value = 'all';
+  $('#mailFilterInline').value = 'all';
   $('#cellEditor').classList.add('hidden');
   // 인라인 셀렉트도 기본값으로
   if($('#gradeInline')) $('#gradeInline').value = state.grade;
@@ -2389,6 +2417,7 @@ if($('#btnLoadDemo')){
     }));
     document.querySelector('input[name="diversity"][value="'+state.diversity+'"]').checked = true;
     $('#model').value = state.model;
+    $('#modelInline').value = state.model;
     $('#grade').value = state.grade;
     $('#subject').value = state.subject;
     $('#title').value = state.title;
@@ -2428,8 +2457,23 @@ function syncSubject(v){
   renderAchievements();
   markSaved();
 }
+function syncModel(v){
+  state.model = v;
+  const m = $('#model'); if(m && m.value !== v) m.value = v;
+  const mi = $('#modelInline'); if(mi && mi.value !== v) mi.value = v;
+  markSaved();
+}
+function syncMailFilter(v){
+  state.mailFilter = v;
+  const f = $('#mailFilter'); if(f && f.value !== v) f.value = v;
+  const fi = $('#mailFilterInline'); if(fi && fi.value !== v) fi.value = v;
+  renderMatrix();
+  markSaved();
+}
 if($('#gradeInline')) $('#gradeInline').addEventListener('change', e => syncGrade(e.target.value));
 if($('#subjectInline')) $('#subjectInline').addEventListener('change', e => syncSubject(e.target.value));
+if($('#modelInline')) $('#modelInline').addEventListener('change', e => syncModel(e.target.value));
+if($('#mailFilterInline')) $('#mailFilterInline').addEventListener('change', e => syncMailFilter(e.target.value));
 
 /* ═════════ R4 · 자유 모드 (모든 스텝 동시 펼침) ═════════ */
 if($('#freeMode')){
@@ -2503,9 +2547,11 @@ function restoreState(){
   setVal('#gradeInline', state.grade);
   setVal('#subjectInline', state.subject);
   setVal('#model', state.model);
+  setVal('#modelInline', state.model);
   setVal('#title', state.title);
   setVal('#importantQuestion', state.importantQuestion);
   setVal('#mailFilter', state.mailFilter);
+  setVal('#mailFilterInline', state.mailFilter);
   const rd = document.querySelector(`input[name="diversity"][value="${state.diversity}"]`);
   if(rd) rd.checked = true;
   return true;
