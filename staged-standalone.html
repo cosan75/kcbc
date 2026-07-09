@@ -157,31 +157,38 @@
     }
 
     /* ═════ 30초 예시 배너 ═════ */
-    /* 30초 예시(좌) + AI 질문 도우미(우) 한 줄 */
+    /* AI 질문 도우미 토글 행 (우측 정렬, 캔버스와 정렬 기준 공유) */
     .top-row{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      display:flex; align-items:center; justify-content:flex-end; gap:10px;
     }
+    /* 30초 예시 — 사이드바(왼쪽 창) 최상단, 1열 유지 */
     .demo-banner__inline{
-      display:flex; align-items:center; gap:8px; min-width:0; flex-shrink:1;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      min-width:0; margin-bottom:14px; padding:10px 12px; border-radius:8px;
+      background:linear-gradient(120deg, #eef4ff, #f7f0ff); border:1px solid var(--line);
     }
     .demo-banner__inline.is-hidden{ display:none; }
     .demo-banner__title{
-      font-size:12.5px; font-weight:700; margin:0; color:var(--ink);
+      font-size:11.5px; font-weight:700; margin:0; color:var(--ink); min-width:0;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .demo-btn{
-      padding:8px 14px; border-radius:8px; border:none; cursor:pointer;
-      font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0;
+      padding:7px 12px; border-radius:8px; border:none; cursor:pointer;
+      font-size:11.5px; font-weight:700; white-space:nowrap; flex-shrink:0;
     }
     .demo-btn--primary{ background:var(--ink); color:#fff; }
     .demo-btn--primary:hover{ background:var(--brand-hover); }
     .demo-btn--ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); background:var(--panel); }
     .demo-btn--ghost:hover{ border-color:var(--accent); color:var(--accent); }
-    @media (max-width:640px){
-      .top-row{ gap:6px; }
-      .demo-banner__title{ display:none; }
+
+    /* G2 · 빠른 질문 버튼 3개 */
+    .ai-quick-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+    .ai-quick-btn{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--accent);
+      background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:700;
+      cursor:pointer; white-space:nowrap;
     }
-    @media (max-width:900px){ .ai-helper__hint{ display:none; } }
+    .ai-quick-btn:hover{ background:var(--accent); color:#fff; }
 
     /* ═════ 사이드바 4단계 아코디언 ═════ */
     .step-acc{
@@ -888,10 +895,6 @@
 <section class="ai-helper" id="aiHelper" aria-label="30초 예시 및 AI 질문 도우미">
   <div class="ai-helper__inner">
     <div class="top-row">
-      <div class="demo-banner__inline" id="demoBanner">
-        <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
-        <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
-      </div>
       <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
         <span aria-hidden="true">💬</span>
         <span>AI 질문 도우미</span>
@@ -907,6 +910,11 @@
           🔒 이 브라우저 세션에만 저장 · 서버 전송 없음 ·
           <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">API 키 발급받기 ↗</a>
         </span>
+      </div>
+      <div class="ai-quick-row" role="group" aria-label="빠른 질문">
+        <button class="ai-quick-btn" data-quick="align" title="성취기준 정렬">📐 성취기준 정렬</button>
+        <button class="ai-quick-btn" data-quick="rubric" title="채점기준표 제안">📋 채점기준표</button>
+        <button class="ai-quick-btn" data-quick="open" title="개방성 높이기">✨ 개방성 높이기</button>
       </div>
       <div class="ai-helper__chat" id="aiHelperChat" aria-live="polite"></div>
       <div class="ai-helper__inputrow">
@@ -932,6 +940,10 @@
 
     <div class="chat__inner">
       <div class="chat__scroll">
+        <div class="demo-banner__inline" id="demoBanner">
+          <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
+          <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
+        </div>
         <h2 class="chat__title">평가문항 시작하기</h2>
         <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>단원 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
 
@@ -2758,6 +2770,21 @@ if($('#aiHelperToggle')){
   $('#aiHelperSend').addEventListener('click', aiSend);
   $('#aiHelperInput').addEventListener('keydown', e => {
     if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); aiSend(); }
+  });
+
+  // G2 · 빠른 질문 버튼 3개
+  const AI_QUICK_PROMPTS = {
+    align: '이 문항이 선택된 성취기준의 어떤 행동 동사(~할 수 있다, ~이해한다 등)를 측정하나요? 부족한 부분은?',
+    rubric: '이 문항의 3수준(잘함/보통/노력 요함) 채점기준을 만들어 주세요. 수준별로 무엇이 달라져야 하는지 명확하게.',
+    open: '이 문항을 더 개방형(학생의 다양한 사고와 표현을 허용하는)으로 바꿀 수 있을까요?',
+  };
+  $$('.ai-quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = $('#aiHelperPanel');
+      if(panel.classList.contains('hidden')) $('#aiHelperToggle').click();
+      $('#aiHelperInput').value = AI_QUICK_PROMPTS[btn.dataset.quick] || '';
+      aiSend();
+    });
   });
 }
 
