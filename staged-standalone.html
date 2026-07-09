@@ -156,11 +156,6 @@
       font-size:0; user-select:none;
     }
 
-    /* ═════ 30초 예시 배너 ═════ */
-    /* AI 질문 도우미 토글 행 (우측 정렬, 캔버스와 정렬 기준 공유) */
-    .top-row{
-      display:flex; align-items:center; justify-content:flex-start; gap:10px;
-    }
     /* 30초 예시 — 사이드바(왼쪽 창) 최상단, 1열 유지 */
     .demo-banner__inline{
       display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -323,31 +318,27 @@
     .ctx__select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
     @media (max-width:768px){ .ctx__select{ max-width:40vw; } }
 
-    /* ═════ AI 질문 도우미 (Claude API) — 사이드바 구분 없이 전체 폭 1열 ═════ */
-    .ai-helper{
-      border-bottom:1px solid var(--line);
-      background:linear-gradient(120deg, #eef4ff, #f7f0ff);
-    }
-    .ai-helper__inner{
-      max-width:var(--app-max); margin:0 auto; width:100%;
-      padding:6px max(16px, calc((100vw - var(--app-max)) / 2));
-    }
-    @media (max-width:640px){
-      .ai-helper__inner{ padding:0 12px; }
-    }
+    /* ═════ AI 질문 도우미 (Claude API) — 토글은 컨텍스트 바 안, 패널만 아래 펼침 ═════ */
     .ai-helper__toggle{
       flex-shrink:0; border:none; background:transparent; cursor:pointer;
-      display:flex; align-items:center; gap:8px; padding:10px 4px;
-      font-size:12.5px; font-weight:700; color:var(--ink-soft);
-      white-space:nowrap;
+      display:inline-flex; align-items:center; gap:5px; padding:4px 10px;
+      font-size:12px; font-weight:700; color:var(--accent); white-space:nowrap;
+      border-radius:999px; background:var(--accent-soft);
     }
-    .ai-helper__toggle:hover{ color:var(--accent); }
-    .ai-helper__hint{ font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
-    .ai-helper__caret{ transition:.15s; color:var(--muted); }
-    .ai-helper.is-open .ai-helper__caret{ transform:rotate(180deg); }
+    .ai-helper__toggle:hover{ background:var(--accent); color:#fff; }
+    .ai-helper__caret{ transition:.15s; color:inherit; display:inline-block; }
+    #aiHelperToggle[aria-expanded="true"] .ai-helper__caret{ transform:rotate(180deg); }
+    /* 패널 섹션 — 닫혀 있을 때는 공간을 차지하지 않음 */
+    .ai-helper{ }
+    .ai-helper__inner{
+      max-width:var(--app-max); margin:0 auto; width:100%;
+      padding:0 max(16px, calc((100vw - var(--app-max)) / 2));
+    }
+    @media (max-width:640px){ .ai-helper__inner{ padding:0 12px; } }
     .ai-helper__panel{
-      padding:10px 10px 12px; margin:0 -4px 6px; background:var(--panel);
+      padding:10px 10px 12px; margin:8px 0; background:var(--panel);
       border-radius:10px; border:1px solid var(--line);
+      box-shadow:var(--shadow-md);
     }
     .ai-helper__panel.hidden{ display:none; }
     .ai-helper__keyrow{ display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
@@ -888,19 +879,17 @@
   <span class="ctx__item" id="ctxQuestion" title="단원 질문">단원 질문 미입력</span>
   <span class="stepbar__sep" aria-hidden="true">|</span>
   <span class="ctx__item" id="ctxAch" title="선택된 성취기준">성취기준 미선택</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
+    <span aria-hidden="true">💬</span>
+    <span>AI 질문 도우미</span>
+    <span class="ai-helper__caret" aria-hidden="true">▾</span>
+  </button>
 </nav>
 
-<!-- ═════ 30초 예시 + AI 질문 도우미 (한 줄 배치) ═════ -->
-<section class="ai-helper" id="aiHelper" aria-label="30초 예시 및 AI 질문 도우미">
+<!-- ═════ AI 질문 도우미 패널 ═════ -->
+<section class="ai-helper" id="aiHelper" aria-label="AI 질문 도우미">
   <div class="ai-helper__inner">
-    <div class="top-row">
-      <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
-        <span aria-hidden="true">💬</span>
-        <span>AI 질문 도우미</span>
-        <span class="ai-helper__hint">단원 질문·발문 아이디어를 물어보세요</span>
-        <span class="ai-helper__caret" aria-hidden="true">▾</span>
-      </button>
-    </div>
     <div class="ai-helper__panel hidden" id="aiHelperPanel">
       <div class="ai-helper__keyrow" id="aiHelperKeyRow">
         <input type="password" class="input" id="aiHelperKey" placeholder="Anthropic API 키 (sk-ant-...)" aria-label="Anthropic API 키 입력" autocomplete="off">
