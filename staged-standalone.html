@@ -156,25 +156,29 @@
       font-size:0; user-select:none;
     }
 
-    /* 30초 예시 — 사이드바(왼쪽 창) 최상단, 1열 유지 */
+    /* 30초 예시 + 새로 작성 — 캔버스 툴바 우측, 한 줄 */
+    .canvas__toolbar-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .demo-banner__inline{
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      min-width:0; margin-bottom:14px; padding:10px 12px; border-radius:8px;
+      display:flex; align-items:center; gap:8px; min-width:0;
+      padding:7px 10px; border-radius:8px;
       background:linear-gradient(120deg, #eef4ff, #f7f0ff); border:1px solid var(--line);
     }
     .demo-banner__inline.is-hidden{ display:none; }
     .demo-banner__title{
-      font-size:11.5px; font-weight:700; margin:0; color:var(--ink); min-width:0;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      font-size:11px; font-weight:700; margin:0; color:var(--ink); min-width:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;
     }
     .demo-btn{
-      padding:7px 12px; border-radius:8px; border:none; cursor:pointer;
-      font-size:11.5px; font-weight:700; white-space:nowrap; flex-shrink:0;
+      padding:6px 11px; border-radius:8px; border:none; cursor:pointer;
+      font-size:11px; font-weight:700; white-space:nowrap; flex-shrink:0;
     }
     .demo-btn--primary{ background:var(--ink); color:#fff; }
     .demo-btn--primary:hover{ background:var(--brand-hover); }
     .demo-btn--ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); background:var(--panel); }
     .demo-btn--ghost:hover{ border-color:var(--accent); color:var(--accent); }
+    @media (max-width:768px){
+      .demo-banner__title{ display:none; }
+    }
 
     /* G2 · 빠른 질문 버튼 3개 */
     .ai-quick-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
@@ -928,10 +932,6 @@
 
     <div class="chat__inner">
       <div class="chat__scroll">
-        <div class="demo-banner__inline" id="demoBanner">
-          <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
-          <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
-        </div>
         <h2 class="chat__title">평가문항 시작하기</h2>
         <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>단원 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
 
@@ -1170,7 +1170,13 @@
         <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
         <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · 5요소 <b id="mMail">0/5</b> · <span title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요.">열린 질문 비율 <b id="mOpen">0%</b> <span aria-hidden="true" style="cursor:help; color:var(--muted);">ⓘ</span></span></p>
       </div>
-      <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 지우고 새로 작성" aria-label="새로 작성 시작">🔄 새로 작성</button>
+      <div class="canvas__toolbar-actions">
+        <div class="demo-banner__inline" id="demoBanner">
+          <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
+          <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
+        </div>
+        <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 지우고 새로 작성" aria-label="새로 작성 시작">🔄 새로 작성</button>
+      </div>
     </div>
 
     <!-- Matrix Card -->
