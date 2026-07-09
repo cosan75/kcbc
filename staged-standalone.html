@@ -165,9 +165,9 @@
     }
     .demo-banner__inner{
       grid-column:2; min-width:0; width:100%;
-      max-width:var(--canvas-max); margin:0 auto;
-      padding:14px 22px;
       display:flex; align-items:center; gap:14px;
+      /* 좌측은 캔버스와 같은 22px, 우측은 캔버스 중앙정렬 박스의 실제 콘텐츠 우측단과 동일한 지점까지 계산 */
+      padding:14px calc((100% - var(--canvas-max)) / 2 + 22px) 14px 22px;
     }
     .demo-banner__body{ flex:1; min-width:0; }
     .demo-banner__title{ font-size:13px; font-weight:800; margin:0 0 2px; color:var(--ink); }
@@ -185,7 +185,7 @@
     @media (max-width:640px){
       .demo-banner{ grid-template-columns:1fr; }
       .demo-banner__inner{
-        grid-column:1; max-width:none;
+        grid-column:1;
         flex-direction:column; align-items:stretch; padding:12px; gap:10px;
       }
       .demo-banner__desc{ font-size:11px; }
