@@ -293,6 +293,48 @@
       .stepbar-select{ font-size:15px; }
     }
 
+    /* ═════ 컨텍스트 바 (학년과목·단원질문·성취기준) ═════ */
+    .ctx__item{
+      font-size:12px; color:var(--ink-soft); font-weight:600;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width:38vw;
+    }
+    .ctx__item--grade{ color:var(--accent); flex-shrink:0; }
+
+    /* ═════ 셀 편집기 · 단원질문/성취기준 컨텍스트 + 평가지 반영 체크 ═════ */
+    .cell-editor__ctx{
+      padding:8px 10px; background:var(--panel); border:1px solid var(--line);
+      border-radius:8px; font-size:11px; color:var(--ink-soft);
+      margin-bottom:10px; line-height:1.7; word-break:keep-all;
+    }
+    .cell-editor__ctx b{ color:var(--ink); margin-right:4px; }
+    .cell-include{
+      display:flex; align-items:center; gap:6px; padding:8px 10px;
+      background:#f0fff7; border:1px solid #b7ebcd; border-radius:8px;
+      font-size:12px; font-weight:700; color:#1f7a4a; cursor:pointer;
+      margin-top:8px;
+    }
+    .cell-include input{ accent-color:#2ea66c; margin:0; }
+    .matrix__inc-badge{
+      font-size:9.5px; padding:2px 5px; border-radius:4px;
+      background:#dff4e8; color:#1f7a4a; font-weight:700;
+    }
+
+    /* ═════ 평가지 편집기 (텍스트 → 이미지 → 펜, 3단계) ═════ */
+    .ws__page{ position:relative; }
+    .ws__page.is-editing{ outline:2px dashed var(--accent); outline-offset:4px; }
+    .ws__draw{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+    .ws__draw.is-pen{ pointer-events:auto; cursor:crosshair; }
+    .ws-editor-bar{
+      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+      max-width:760px; margin:0 auto 8px;
+      padding:8px 10px; background:var(--accent-soft);
+      border:1px solid var(--accent); border-radius:8px;
+    }
+    .ws-editor-bar input[type="color"]{
+      width:30px; height:26px; border:none; background:none; cursor:pointer; padding:0;
+    }
+
     /* ═════ Left Sidebar (Chat) ═════ */
     .chat{
       background:var(--panel); border-right:1px solid var(--line);
@@ -533,6 +575,7 @@
       body{ background:#fff; }
       .gnb, .chat, .footer, .canvas__toolbar,
       .canvas > .card:not(.assessment-card), .canvas > .radars,
+      .stepbar, .demo-banner, .seed-warn, .demo-watermark, .ws-editor-bar,
       .ws__topbar, .ws__rubric-details, .toast, .drawer, .tech-modal{
         display:none !important;
       }
@@ -745,31 +788,13 @@
   </div>
 </header>
 
-<!-- ═════ 스텝바 (4단계 위저드 + 학년·과목 인라인) ═════ -->
-<nav class="stepbar" id="stepbar" role="tablist" aria-label="4단계 위저드 진행">
-  <button class="stepbar__item" data-step="1" role="tab" aria-current="step" aria-label="1단계 학년·과목 선택">
-    <span class="stepbar__num" aria-hidden="true">1</span><span>학년·과목</span>
-  </button>
-  <select class="stepbar-select" id="gradeInline" aria-label="학년 인라인 선택">
-    <option>3학년</option><option selected>4학년</option>
-    <option>5학년</option><option>6학년</option>
-  </select>
-  <select class="stepbar-select" id="subjectInline" aria-label="과목 인라인 선택">
-    <option>국어</option><option selected>사회</option>
-    <option>과학</option><option>수학</option><option>영어</option>
-  </select>
-  <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="2" role="tab" aria-label="2단계 질문 만들기">
-    <span class="stepbar__num" aria-hidden="true">2</span><span>질문 만들기</span>
-  </button>
-  <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="3" role="tab" aria-label="3단계 평가 매트릭스">
-    <span class="stepbar__num" aria-hidden="true">3</span><span>평가 매트릭스</span>
-  </button>
-  <span class="stepbar__sep" aria-hidden="true">→</span>
-  <button class="stepbar__item" data-step="4" role="tab" aria-label="4단계 완성">
-    <span class="stepbar__num" aria-hidden="true">4</span><span>완성</span>
-  </button>
+<!-- ═════ 컨텍스트 바 (학년·과목 / 단원 질문 / 성취기준) ═════ -->
+<nav class="stepbar" id="contextBar" aria-label="작성 정보 요약">
+  <span class="ctx__item ctx__item--grade" id="ctxGrade">4학년 · 사회</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <span class="ctx__item" id="ctxQuestion" title="단원 질문">단원 질문 미입력</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <span class="ctx__item" id="ctxAch" title="선택된 성취기준">성취기준 미선택</span>
 </nav>
 
 <!-- ═════ 30초 예시 배너 ═════ -->
@@ -779,8 +804,7 @@
     <p class="demo-banner__desc">4학년 사회 <b>「우리 고장의 어제와 오늘」</b> · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기. 실제로 어떻게 만들어지는지 30초 안에 확인해 보세요.</p>
   </div>
   <div class="demo-banner__actions">
-    <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
-    <button class="demo-btn demo-btn--primary" id="btnStartFresh" aria-label="처음부터 직접 만들기 시작">✨ 직접 만들어보기</button>
+    <button class="demo-btn demo-btn--primary" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
   </div>
 </section>
 
@@ -927,9 +951,13 @@
             <button class="cell-editor__close" id="cellEditorClose" title="닫기" aria-label="셀 편집기 닫기">✕</button>
           </div>
 
+          <!-- 단원질문·성취기준 연동 컨텍스트 -->
+          <div class="cell-editor__ctx" id="cellCtx"></div>
+
           <div class="field">
             <label class="field__label">학생용 질문</label>
-            <textarea class="textarea" id="cellQuestion" placeholder="예: 우리 고장에는 어떤 변화가 있었나요?"></textarea>
+            <textarea class="textarea" id="cellQuestion" placeholder="예: 놀이터 시설이 고장 나 위험합니다. 어느 기관에 도움을 요청해야 할지 쓰고, 그 이유를 설명해 보세요."></textarea>
+            <p class="field__hint">좋은 발문 = <b>생활 속 상황 + 판단·근거 요구</b> · "~란 무엇인가?"(암기 확인)는 피하세요.</p>
           </div>
 
           <!-- ★ 기법 라이브러리 연동 강조 -->
@@ -957,11 +985,17 @@
             <input class="input" id="cellScore" placeholder="예: 자료 2개 이상 근거 + 자기 해석" />
           </div>
 
-          <!-- 한국 5요소 접이식 -->
+          <!-- 평가지 반영 선택 -->
+          <label class="cell-include">
+            <input type="checkbox" id="cellInclude" aria-label="이 셀을 평가지에 반영">
+            📄 이 셀을 평가지에 반영
+          </label>
+
+          <!-- KCBC 5요소 접이식 -->
           <details class="adv">
-            <summary>▸ 고급 태그 · 한국 5요소 (정혜승 2022·2024)</summary>
+            <summary>▸ 고급 태그 · KCBC 5요소 (정혜승 2022·2024)</summary>
             <div>
-              <div class="chips" id="krChips" role="group" aria-label="한국 5요소 태그 선택">
+              <div class="chips" id="krChips" role="group" aria-label="KCBC 5요소 태그 선택">
                 <button class="chip" data-kr="type" aria-label="질문 유형 태그">유형</button>
                 <button class="chip" data-kr="method" aria-label="질문 방법 태그">방법</button>
                 <button class="chip" data-kr="content" aria-label="질문 내용 태그">내용</button>
@@ -1055,7 +1089,7 @@
     <!-- 조립된 수행평가지 (워크시트) -->
     <section class="assessment-card" id="assessmentCard">
       <div class="assessment-empty" id="assessmentEmpty">
-        다듬기 단계 셀을 채운 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
+        셀을 채우고 셀 편집에서 <b>📄 평가지에 반영</b>을 체크한 뒤 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다. (선택 없으면 다듬기 단계 자동 반영)
       </div>
       <div id="assessmentBody" class="hidden"></div>
     </section>
@@ -1118,7 +1152,7 @@
         <h4>정책 프레임</h4>
         <a href="#" onclick="return false">「질문하는 학교」 (이화여대)</a>
         <a href="#" onclick="return false">디지털 소양 5요소</a>
-        <a href="#" onclick="return false">정혜승 한국 5요소</a>
+        <a href="#" onclick="return false">정혜승 KCBC 5요소</a>
         <a href="#" onclick="return false">UbD GRASPS</a>
       </div>
     </div>
@@ -1368,7 +1402,8 @@ function renderMatrix(){
           </div>
           <div class="matrix__tag-row">
             ${filled ? tagFor(it.competency) : ''}
-            ${open ? '<span class="matrix__open-badge">◇ 개방형</span>' : ''}
+            ${filled && it.included ? '<span class="matrix__inc-badge">📄 평가지</span>' : ''}
+            ${open ? '<span class="matrix__open-badge">◇ 열린 질문</span>' : ''}
           </div>
         </div>
       `);
@@ -1409,11 +1444,21 @@ function activateCell(stage, level){
   editor.classList.remove('hidden');
   const S = STAGES.find(x=>x.key===stage); const L = LEVELS.find(x=>x.key===level);
   $('#cellEditorTitle').innerHTML = `✎ 셀 편집 <span style="color:var(--muted); font-weight:400">${S.ko} × ${L.ko}</span>`;
-  const it = getItem(stage, level) || { question:'', competency:'analyze', score:'', kr:[] };
+  const it = getItem(stage, level) || { question:'', competency:'analyze', score:'', kr:[], included:false };
   $('#cellQuestion').value = it.question;
   $('#cellCompetency').value = it.competency;
   $('#cellScore').value = it.score;
+  $('#cellInclude').checked = !!it.included;
   $$('#krChips .chip').forEach(c => c.classList.toggle('is-on', it.kr && it.kr.includes(c.dataset.kr)));
+  // 단원질문·성취기준 연동 표시
+  const ctxEl = $('#cellCtx');
+  if(ctxEl){
+    const q = (state.importantQuestion || '').trim();
+    const codes = Array.from(state.achievements);
+    ctxEl.innerHTML =
+      `<div><b>단원 질문</b> ${q ? escapeHtml(q) : '<span style="color:var(--muted)">미입력 · 2단계에서 입력하세요</span>'}</div>` +
+      `<div><b>성취기준</b> ${codes.length ? codes.map(c=>`<span class="ach-item__code">${c}</span>`).join(' ') : '<span style="color:var(--muted)">미선택</span>'}</div>`;
+  }
   renderMatrix();
   // LNB switch
   $$('.lnb__item').forEach(x=>x.classList.toggle('is-on', x.dataset.tab==='matrix'));
@@ -1425,7 +1470,7 @@ $('#cellEditorClose').addEventListener('click', () => {
   renderMatrix();
 });
 
-['#cellQuestion','#cellCompetency','#cellScore'].forEach(sel => {
+['#cellQuestion','#cellCompetency','#cellScore','#cellInclude'].forEach(sel => {
   $(sel).addEventListener('input', () => saveActiveCell());
   $(sel).addEventListener('change', () => saveActiveCell());
 });
@@ -1440,11 +1485,12 @@ function saveActiveCell(){
   const q = $('#cellQuestion').value;
   const c = $('#cellCompetency').value;
   const sc = $('#cellScore').value;
+  const inc = $('#cellInclude').checked;
   const kr = $$('#krChips .chip.is-on').map(c=>c.dataset.kr);
-  if(!q.trim() && !sc.trim() && kr.length===0){
+  if(!q.trim() && !sc.trim() && kr.length===0 && !inc){
     removeItem(s,l);
   } else {
-    upsertItem(s,l,{ question:q, competency:c, score:sc, kr });
+    upsertItem(s,l,{ question:q, competency:c, score:sc, kr, included:inc });
   }
   renderMatrix();
   if(typeof markSaved === 'function') markSaved();
@@ -1460,7 +1506,8 @@ function openTechModal(){
   const [s,l] = (state.activeCell||'').split(':');
   if(s && l){
     const S = STAGES.find(x=>x.key===s); const L = LEVELS.find(x=>x.key===l);
-    $('#techTargetLabel').innerHTML = `<b>${S.ko} × ${L.ko}</b> 셀에 시드 자동 삽입. 국면과 맞지 않는 기법은 흐리게 표시됩니다.`;
+    const uq = (state.importantQuestion || '').trim();
+    $('#techTargetLabel').innerHTML = `<b>${S.ko} × ${L.ko}</b> 셀에 시드 자동 삽입${uq ? ` · 단원 질문: <b>${escapeHtml(uq.slice(0,42))}${uq.length>42?'…':''}</b>` : ''} · 국면과 맞지 않는 기법은 흐리게 표시됩니다.`;
   } else {
     $('#techTargetLabel').textContent = '셀을 먼저 선택하면 시드가 자동 삽입됩니다.';
   }
@@ -1722,7 +1769,6 @@ $('#btnAutoSeed').addEventListener('click', () => {
 
 /* ═════════ 초기화 (처음으로) ═════════ */
 function resetAll(){
-  if(!confirm('매트릭스·평가지·단원 정보·성취기준 선택·브라우저 저장본을 모두 처음으로 되돌릴까요?\n(되돌릴 수 없습니다)')) return;
   state.items = {};
   state.activeCell = null;
   state.title = '';
@@ -1777,15 +1823,29 @@ $('#megaConvert')?.addEventListener('click', e => { e.preventDefault(); closeDra
 
 /* ═════════ 평가문항 조립 & 미리보기 ═════════ */
 function assembleAssessment(){
-  const refineItems = LEVELS.map(L => {
-    const it = getItem('refine', L.key);
-    return it && it.question.trim() ? { ...it, level:L.key } : null;
-  }).filter(Boolean);
-  if(refineItems.length === 0) return null;
+  const STAGE_ORDER = ['generate','refine','inquire','reflect'];
+  const LEVEL_ORDER = ['low','mid','high'];
+  // ① 교사가 "평가지에 반영"으로 체크한 셀만 수집 (모든 국면 허용)
+  let sel = Object.entries(state.items)
+    .filter(([,v]) => v.included && v.question && v.question.trim())
+    .map(([k,v]) => { const [s,l] = k.split(':'); return { ...v, stage:s, level:l }; });
+  let fromSelection = true;
+  // ② 선택 셀이 없으면 다듬기 단계(refine) 행으로 폴백
+  if(sel.length === 0){
+    fromSelection = false;
+    sel = LEVELS.map(L => {
+      const it = getItem('refine', L.key);
+      return it && it.question.trim() ? { ...it, stage:'refine', level:L.key } : null;
+    }).filter(Boolean);
+  }
+  if(sel.length === 0) return null;
+  sel.sort((a,b) =>
+    (STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage)) ||
+    (LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level)));
 
-  const type = refineItems.length >= 2 ? '논술형' : '서술형';
-  const perScore = refineItems.length >= 3 ? 5 : (refineItems.length === 2 ? 8 : 15);
-  const totalScore = perScore * refineItems.length;
+  const type = sel.length >= 2 ? '논술형' : '서술형';
+  const perScore = sel.length >= 3 ? 5 : (sel.length === 2 ? 8 : 15);
+  const totalScore = perScore * sel.length;
 
   return {
     title: state.title || '(단원명 미입력)',
@@ -1796,19 +1856,22 @@ function assembleAssessment(){
     type,
     perScore,
     totalScore,
-    subQuestions: refineItems.map((it, i) => ({
+    fromSelection,
+    subQuestions: sel.map((it, i) => ({
       no: i + 1,
       text: it.question,
       score: perScore,
       hint: it.score,
       mail: it.competency,
+      stage: it.stage,
       level: it.level,
       kr: it.kr || [],
     })),
+    // 분석적 루브릭 (평가요소 × 3수준) — 교육부·시도교육청 서·논술형 가이드 반영
     rubric: [
-      { level:'잘함',      criteria:'자료 2개 이상 근거 + 자기 해석 + 전이 적용 언급', score:`${Math.round(perScore * 0.9)}~${perScore}` },
-      { level:'보통',      criteria:'자료 1~2개 근거 + 부분 해석',                    score:`${Math.round(perScore * 0.5)}~${Math.round(perScore * 0.7)}` },
-      { level:'노력 요함', criteria:'표면 사실만 언급, 근거 부족',                     score:`0~${Math.round(perScore * 0.3)}` },
+      { element:'개념 이해', high:'핵심 개념을 정확한 용어로 사용해 설명함', mid:'개념을 부분적으로 사용함', low:'개념 사용이 없거나 부정확함' },
+      { element:'근거 제시', high:'자료·경험 2개 이상을 근거로 연결함',     mid:'근거 1개를 제시함',        low:'근거 없이 주장만 씀' },
+      { element:'생활 적용', high:'새로운 생활 상황에 적용·전이함',         mid:'배운 상황 안에서만 설명함', low:'적용 시도가 없음' },
     ],
   };
 }
@@ -1831,11 +1894,80 @@ function renderAssessmentCard(){
   const unitName = escapeHtml(a.title || '(단원명 미입력)');
   const taskName = escapeHtml((state.importantQuestion || a.title || '평가 과제').slice(0, 60));
 
+  // 반영 셀 요약 (국면×수준)
+  const cellsNote = a.subQuestions.map(q => {
+    const S = STAGES.find(s=>s.key===q.stage); const L = LEVELS.find(l=>l.key===q.level);
+    return `${S ? S.short : q.stage}×${L ? L.short : q.level}`;
+  }).join(', ');
+
   body.innerHTML = `
     <div class="ws__topbar">
-      <div style="flex:1; font-size:12px; color:var(--muted);">📄 조립된 수행평가지 · 아래 A4 시안으로 미리보기 (교사 참조용 루브릭은 하단 접이식)</div>
+      <div style="flex:1; font-size:12px; color:var(--muted);">
+        📄 수행평가지 · 반영 셀 <b>${a.subQuestions.length}개</b> (${cellsNote})
+        · ${a.fromSelection ? '<b style="color:#1f7a4a">교사 선택 셀</b>' : '다듬기 단계 자동 <span style="color:var(--warn)">(셀 편집에서 "📄 평가지에 반영" 체크 시 직접 선택)</span>'}
+      </div>
+      <button class="btn-mini" id="btnEditWs" title="텍스트 수정 · 이미지 추가 · 펜 그리기">✏️ 편집</button>
       <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
       <button class="btn-mini" id="btnAssessmentPrint" title="인쇄">🖨 인쇄</button>
+    </div>
+
+    <details class="ws__rubric-details" open>
+      <summary>▸ 분석적 루브릭 (평가요소 × 3수준 · 교사 참조용, 학생 평가지에는 인쇄되지 않음)</summary>
+      <table class="ws__rubric-table">
+        <thead>
+          <tr>
+            <th style="width:80px">평가요소</th>
+            <th><span class="rubric__grade rubric__grade--high">잘함</span></th>
+            <th><span class="rubric__grade rubric__grade--mid">보통</span></th>
+            <th><span class="rubric__grade rubric__grade--low">노력 요함</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${a.rubric.map(r => `
+            <tr>
+              <td><b>${r.element}</b></td>
+              <td>${r.high}</td>
+              <td>${r.mid}</td>
+              <td>${r.low}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </details>
+
+    <details class="ws__rubric-details">
+      <summary>▸ 문항 품질 점검표 (교육부·시도교육청 서·논술형 가이드 공통)</summary>
+      <table class="ws__rubric-table">
+        <tbody>
+          ${[
+            '성취기준과 일치하는가',
+            '암기가 아닌 사고(비교·추론·근거 제시)를 평가하는가',
+            '생활 속 실제 맥락이 있는가',
+            '발문이 명확한가 (여러 해석 방지)',
+            '여러 가지 합리적인 답을 허용하는가',
+            '관찰 가능한 채점 기준이 있는가',
+            '학생 수준(구체적 사례·경험 중심)에 적절한가',
+          ].map((t,i) => `
+            <tr>
+              <td style="width:30px"><input type="checkbox" aria-label="${t}"></td>
+              <td>${t}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </details>
+
+    <div class="ws-editor-bar hidden" id="wsEditorBar" role="toolbar" aria-label="평가지 편집 도구">
+      <button class="btn-mini" id="wsAddImage" aria-label="이미지 추가">🖼 이미지</button>
+      <input type="file" id="wsImgInput" accept="image/*" style="display:none">
+      <button class="btn-mini" id="wsDrawToggle" aria-pressed="false" aria-label="펜 그리기 토글">✏️ 펜</button>
+      <input type="color" id="wsPenColor" value="#d6336c" title="펜 색상" aria-label="펜 색상">
+      <select class="stepbar-select" id="wsPenSize" aria-label="펜 굵기">
+        <option value="2">가는 펜</option><option value="4" selected>보통 펜</option><option value="8">굵은 펜</option>
+      </select>
+      <button class="btn-mini" id="wsDrawClear" aria-label="그림 지우기">🧹 그림 지우기</button>
+      <span style="flex:1"></span>
+      <button class="btn-mini" id="wsEditDone" aria-label="편집 완료">✅ 편집 완료</button>
     </div>
 
     <div class="ws__page">
@@ -1848,7 +1980,7 @@ function renderAssessmentCard(){
         </table>
         <div class="ws__scoreinfo">
           <div>점수: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) 점</div>
-          <div>${gradeText}&nbsp;&nbsp;&nbsp;5반&nbsp;&nbsp;&nbsp;번&nbsp;&nbsp;&nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+          <div>${gradeText}&nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;&nbsp;)반&nbsp;&nbsp;&nbsp;번&nbsp;&nbsp;&nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
         </div>
       </div>
 
@@ -1886,22 +2018,6 @@ function renderAssessmentCard(){
 
       <div class="ws__pagenum">- 1 -</div>
     </div>
-
-    <details class="ws__rubric-details">
-      <summary>▸ 3단 루브릭 (교사 참조용 · 학생 평가지에는 인쇄되지 않음)</summary>
-      <table class="ws__rubric-table">
-        <thead><tr><th style="width:70px">등급</th><th>기준</th><th style="width:70px">배점</th></tr></thead>
-        <tbody>
-          ${a.rubric.map(r => `
-            <tr>
-              <td><span class="rubric__grade rubric__grade--${gradeClass[r.level]}">${r.level}</span></td>
-              <td>${r.criteria}</td>
-              <td>${r.score}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </details>
   `;
 
   document.getElementById('btnAssessmentCopy').addEventListener('click', async () => {
@@ -1912,6 +2028,82 @@ function renderAssessmentCard(){
     }catch(e){ toast('⚠ 클립보드 복사 실패'); }
   });
   document.getElementById('btnAssessmentPrint').addEventListener('click', () => window.print());
+
+  // ── 평가지 편집기 3단계: ① 텍스트(contenteditable) ② 이미지 삽입 ③ 펜 그리기 ──
+  const wsPage = body.querySelector('.ws__page');
+  const editorBar = body.querySelector('#wsEditorBar');
+  const imgInput = body.querySelector('#wsImgInput');
+  const drawBtn = body.querySelector('#wsDrawToggle');
+  let drawCanvas = null;
+
+  function ensureCanvas(){
+    if(drawCanvas) return drawCanvas;
+    drawCanvas = document.createElement('canvas');
+    drawCanvas.className = 'ws__draw';
+    drawCanvas.width = wsPage.clientWidth;
+    drawCanvas.height = wsPage.clientHeight;
+    wsPage.appendChild(drawCanvas);
+    const ctx = drawCanvas.getContext('2d');
+    let last = null;
+    const pos = e => { const r = drawCanvas.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; };
+    drawCanvas.addEventListener('pointerdown', e => { last = pos(e); drawCanvas.setPointerCapture(e.pointerId); });
+    drawCanvas.addEventListener('pointermove', e => {
+      if(!last) return;
+      const p = pos(e);
+      ctx.strokeStyle = body.querySelector('#wsPenColor').value;
+      ctx.lineWidth = Number(body.querySelector('#wsPenSize').value);
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      last = p;
+    });
+    drawCanvas.addEventListener('pointerup', () => { last = null; });
+    return drawCanvas;
+  }
+  function setEditing(on){
+    wsPage.setAttribute('contenteditable', on ? 'true' : 'false');
+    wsPage.classList.toggle('is-editing', on);
+    editorBar.classList.toggle('hidden', !on);
+    if(!on && drawCanvas){ drawCanvas.classList.remove('is-pen'); drawBtn.setAttribute('aria-pressed','false'); }
+  }
+  document.getElementById('btnEditWs').addEventListener('click', () => {
+    const on = wsPage.getAttribute('contenteditable') !== 'true';
+    setEditing(on);
+    if(on) toast('✏️ 편집 모드 · 텍스트 수정 + 🖼 이미지 + ✏️ 펜 (매트릭스 수정 시 재조립되어 초기화됩니다)');
+  });
+  body.querySelector('#wsEditDone').addEventListener('click', () => {
+    setEditing(false);
+    toast('✅ 편집 완료 · 🖨 인쇄로 출력하세요');
+  });
+  body.querySelector('#wsAddImage').addEventListener('click', () => imgInput.click());
+  imgInput.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = document.createElement('img');
+      img.src = reader.result;
+      img.style.maxWidth = '55%'; img.style.display = 'block'; img.style.margin = '8px auto';
+      const selObj = window.getSelection();
+      if(selObj.rangeCount && wsPage.contains(selObj.anchorNode)){
+        selObj.getRangeAt(0).insertNode(img);
+      } else {
+        (wsPage.querySelector('.ws__q-space') || wsPage).appendChild(img);
+      }
+      toast('🖼 이미지 삽입 완료');
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+  drawBtn.addEventListener('click', () => {
+    const canvas = ensureCanvas();
+    const on = !canvas.classList.contains('is-pen');
+    canvas.classList.toggle('is-pen', on);
+    drawBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    toast(on ? '✏️ 펜 모드 · 평가지 위에 자유롭게 그리세요' : '펜 모드 해제 · 텍스트 편집 가능');
+  });
+  body.querySelector('#wsDrawClear').addEventListener('click', () => {
+    if(drawCanvas) drawCanvas.getContext('2d').clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  });
 }
 
 function assessmentToText(a){
@@ -1928,20 +2120,22 @@ function assessmentToText(a){
     if(q.hint) lines.push(`   · 채점 힌트: ${q.hint}`);
   });
   lines.push('');
-  lines.push('[3단 루브릭]');
-  a.rubric.forEach(r => lines.push(`- ${r.level} (${r.score}): ${r.criteria}`));
+  lines.push('[분석적 루브릭 (평가요소 × 3수준)]');
+  a.rubric.forEach(r => {
+    lines.push(`- ${r.element}: 잘함=${r.high} / 보통=${r.mid} / 노력 요함=${r.low}`);
+  });
   return lines.join('\n');
 }
 
 $('#btnConvert').addEventListener('click', () => {
-  const refineItems = LEVELS.map(L => getItem('refine', L.key)).filter(x => x && x.question.trim());
-  if(refineItems.length === 0){
-    toast('⚠ 다듬기 단계(더 나은 질문 만들기)에 채운 셀이 없어요');
+  const a = assembleAssessment();
+  if(!a){
+    toast('⚠ 평가지에 반영할 셀이 없어요 · 셀을 채우고 "📄 평가지에 반영"을 체크하거나 다듬기 단계를 채워주세요');
     return;
   }
   renderAssessmentCard();
   gotoStep(4);
-  toast(`✓ ${refineItems.length}문항 수행평가지 조립 완료`);
+  toast(`✓ ${a.subQuestions.length}문항 수행평가지 조립 완료${a.fromSelection ? ' · 교사 선택 셀' : ' · 다듬기 단계 자동'}`);
   setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 });
 
@@ -1962,7 +2156,7 @@ $('#btnExport').addEventListener('click', () => {
       if(!it || !it.question.trim()) return;
       lines.push(`- **${L.ko}**: ${it.question}`);
       if(it.score) lines.push(`  - 채점 힌트: ${it.score}`);
-      lines.push(`  - 디지털 소양: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · 한국 5요소: '+it.kr.join(', ') : ''}`);
+      lines.push(`  - 디지털 소양: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · KCBC 5요소: '+it.kr.join(', ') : ''}`);
     });
     lines.push('');
   });
@@ -2115,6 +2309,24 @@ function markSaved(){
   lastSaveTime = Date.now();
   updateSaveInd();
   updateStepCompletion();
+  updateContextBar();
+}
+
+/* ═════════ 컨텍스트 바 갱신 (학년과목·단원질문·성취기준) ═════════ */
+function updateContextBar(){
+  const g = $('#ctxGrade'), q = $('#ctxQuestion'), a = $('#ctxAch');
+  if(g) g.textContent = `${state.grade} · ${state.subject}`;
+  if(q){
+    const t = (state.importantQuestion || '').trim();
+    q.textContent = t || '단원 질문 미입력';
+    q.title = t || '2단계에서 단원 질문을 입력하세요';
+    q.style.color = t ? '' : 'var(--muted)';
+  }
+  if(a){
+    const codes = Array.from(state.achievements);
+    a.textContent = codes.length ? `성취기준 ${codes.length}개 · ${codes.join(' ')}` : '성취기준 미선택';
+    a.style.color = codes.length ? '' : 'var(--muted)';
+  }
 }
 function updateSaveInd(){
   const diff = Math.floor((Date.now() - lastSaveTime) / 1000);
@@ -2179,8 +2391,6 @@ if($('#btnLoadDemo')){
     $('#model').value = state.model;
     $('#grade').value = state.grade;
     $('#subject').value = state.subject;
-    $('#gradeInline').value = state.grade;
-    $('#subjectInline').value = state.subject;
     $('#title').value = state.title;
     $('#importantQuestion').value = state.importantQuestion;
     renderAchievements();
@@ -2194,13 +2404,6 @@ if($('#btnLoadDemo')){
     toast(`✨ 예시 ${demoIdx}/${DEMO_DATASETS.length} 로드 완료 · ${D.subject}과 예시`);
     $('#demoBanner').classList.add('is-hidden');
     setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 200);
-  });
-}
-if($('#btnStartFresh')){
-  $('#btnStartFresh').addEventListener('click', () => {
-    $('#demoBanner').classList.add('is-hidden');
-    gotoStep(1);
-    toast('✨ 처음부터 시작해 봅시다 · 1단계 학년·과목');
   });
 }
 // R7 · 워터마크 닫기
@@ -2315,6 +2518,7 @@ const restored = restoreState();
 renderAchievements();
 renderMatrix();
 renderAssessmentCard();
+updateContextBar();
 gotoStep(1);
 updateSaveInd();
 if(restored){
