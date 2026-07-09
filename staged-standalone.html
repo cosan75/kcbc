@@ -157,46 +157,31 @@
     }
 
     /* ═════ 30초 예시 배너 ═════ */
-    .demo-banner{
-      background:linear-gradient(120deg, #eef4ff, #f7f0ff);
-      border-bottom:1px solid var(--line);
-      display:grid; grid-template-columns:var(--sidebar-w) 1fr;
-      max-width:var(--app-max); margin:0 auto;
+    /* 30초 예시(좌) + AI 질문 도우미(우) 한 줄 */
+    .top-row{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
     }
-    .demo-banner__inner{
-      grid-column:2; min-width:0; width:100%;
-      display:flex; align-items:center; gap:10px;
-      /* 좌측은 캔버스와 같은 22px, 우측은 캔버스 중앙정렬 박스의 실제 콘텐츠 우측단과 동일한 지점까지 계산 */
-      padding:12px calc((100% - var(--canvas-max)) / 2 + 22px) 12px 22px;
+    .demo-banner__inline{
+      display:flex; align-items:center; gap:8px; min-width:0; flex-shrink:1;
     }
-    /* 좌측 투명 스페이서 = 우측 버튼 영역과 같은 flex:1 → 그 사이 텍스트가 광학적으로 정중앙 */
-    .demo-banner__spacer{ flex:1; min-width:0; }
-    .demo-banner__body{
-      flex:0 1 auto; min-width:0; text-align:center;
-    }
+    .demo-banner__inline.is-hidden{ display:none; }
     .demo-banner__title{
       font-size:12.5px; font-weight:700; margin:0; color:var(--ink);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .demo-banner__desc{ display:none; }
-    .demo-banner__actions{ flex:1; display:flex; justify-content:flex-end; gap:6px; min-width:0; }
     .demo-btn{
       padding:8px 14px; border-radius:8px; border:none; cursor:pointer;
-      font-size:12px; font-weight:700; white-space:nowrap;
+      font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0;
     }
     .demo-btn--primary{ background:var(--ink); color:#fff; }
     .demo-btn--primary:hover{ background:var(--brand-hover); }
     .demo-btn--ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); background:var(--panel); }
     .demo-btn--ghost:hover{ border-color:var(--accent); color:var(--accent); }
-    .demo-banner.is-hidden{ display:none; }
     @media (max-width:640px){
-      .demo-banner{ grid-template-columns:1fr; }
-      .demo-banner__inner{
-        grid-column:1; padding:10px 12px; gap:8px;
-      }
-      .demo-banner__spacer{ flex:0 0 0; width:0; }
-      .demo-banner__title{ font-size:11.5px; }
+      .top-row{ gap:6px; }
+      .demo-banner__title{ display:none; }
     }
+    @media (max-width:900px){ .ai-helper__hint{ display:none; } }
 
     /* ═════ 사이드바 4단계 아코디언 ═════ */
     .step-acc{
@@ -335,24 +320,29 @@
     .ai-helper{
       display:grid; grid-template-columns:var(--sidebar-w) 1fr;
       max-width:var(--app-max); margin:0 auto;
-      border-bottom:1px solid var(--line); background:#fff;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(120deg, #eef4ff, #f7f0ff);
     }
     .ai-helper__inner{ grid-column:2; min-width:0; width:100%;
-      padding:0 calc((100% - var(--canvas-max)) / 2 + 22px) 0 22px; }
+      padding:6px calc((100% - var(--canvas-max)) / 2 + 22px) 6px 22px; }
     @media (max-width:640px){
       .ai-helper{ grid-template-columns:1fr; }
       .ai-helper__inner{ grid-column:1; padding:0 12px; }
     }
     .ai-helper__toggle{
-      width:100%; border:none; background:transparent; cursor:pointer;
+      flex-shrink:0; border:none; background:transparent; cursor:pointer;
       display:flex; align-items:center; gap:8px; padding:10px 4px;
       font-size:12.5px; font-weight:700; color:var(--ink-soft);
+      white-space:nowrap;
     }
     .ai-helper__toggle:hover{ color:var(--accent); }
-    .ai-helper__hint{ font-size:11px; font-weight:400; color:var(--muted); }
-    .ai-helper__caret{ margin-left:auto; transition:.15s; color:var(--muted); }
+    .ai-helper__hint{ font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
+    .ai-helper__caret{ transition:.15s; color:var(--muted); }
     .ai-helper.is-open .ai-helper__caret{ transform:rotate(180deg); }
-    .ai-helper__panel{ padding:0 4px 12px; }
+    .ai-helper__panel{
+      padding:10px 10px 12px; margin:0 -4px 6px; background:var(--panel);
+      border-radius:10px; border:1px solid var(--line);
+    }
     .ai-helper__panel.hidden{ display:none; }
     .ai-helper__keyrow{ display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
     .ai-helper__keyrow.hidden{ display:none; }
@@ -894,15 +884,21 @@
   <span class="ctx__item" id="ctxAch" title="선택된 성취기준">성취기준 미선택</span>
 </nav>
 
-<!-- ═════ AI 질문 도우미 (Claude API) ═════ -->
-<section class="ai-helper" id="aiHelper" aria-label="AI 질문 도우미">
+<!-- ═════ 30초 예시 + AI 질문 도우미 (한 줄 배치) ═════ -->
+<section class="ai-helper" id="aiHelper" aria-label="30초 예시 및 AI 질문 도우미">
   <div class="ai-helper__inner">
-    <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
-      <span aria-hidden="true">💬</span>
-      <span>AI 질문 도우미</span>
-      <span class="ai-helper__hint">단원 질문·발문 아이디어가 궁금하면 바로 물어보세요</span>
-      <span class="ai-helper__caret" aria-hidden="true">▾</span>
-    </button>
+    <div class="top-row">
+      <div class="demo-banner__inline" id="demoBanner">
+        <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
+        <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
+      </div>
+      <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
+        <span aria-hidden="true">💬</span>
+        <span>AI 질문 도우미</span>
+        <span class="ai-helper__hint">단원 질문·발문 아이디어를 물어보세요</span>
+        <span class="ai-helper__caret" aria-hidden="true">▾</span>
+      </button>
+    </div>
     <div class="ai-helper__panel hidden" id="aiHelperPanel">
       <div class="ai-helper__keyrow" id="aiHelperKeyRow">
         <input type="password" class="input" id="aiHelperKey" placeholder="Anthropic API 키 (sk-ant-...)" aria-label="Anthropic API 키 입력" autocomplete="off">
@@ -917,19 +913,6 @@
         <textarea class="textarea" id="aiHelperInput" rows="1" placeholder="예: 3학년 사회 눈높이에 맞는 개방형 질문 예시를 들어줘"></textarea>
         <button class="btn-mini ai-helper__send" id="aiHelperSend" aria-label="질문 전송">➤ 질문하기</button>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════ 30초 예시 배너 ═════ -->
-<section class="demo-banner" id="demoBanner" aria-label="30초 예시">
-  <div class="demo-banner__inner">
-    <div class="demo-banner__spacer" aria-hidden="true"></div>
-    <div class="demo-banner__body">
-      <p class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</p>
-    </div>
-    <div class="demo-banner__actions">
-      <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
     </div>
   </div>
 </section>
