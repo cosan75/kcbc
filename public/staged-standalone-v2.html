@@ -837,28 +837,17 @@
 
     /* ═══════════════════════════════════════════════════════════
        V2 LAYER — 여기부터 v2에서 추가된 층위입니다 (v1 대비 diff 지점)
-       ① 성취기준 프레임(직접 입력 + 행동 동사 검사) + 저작 모드 토글
-       ② 우측 스티키 AI 코치 패널 (교사 문항 코치 / 학생 질문 컨설턴트)
+       ① 성취기준 프레임(직접 입력 + 행동 동사 검사) + 저작 모드 토글 (왼쪽 정렬)
+       ② AI 코치 팝업 (우하단 FAB → 열림, 교사 문항 코치 / 학생 질문 컨설턴트)
        ③ 질문 변형 렌즈 4종 (셀 편집기)
        ═══════════════════════════════════════════════════════════ */
-    :root{ --app-max:1620px; --coach-w:350px;
+    :root{
       --coach:#1a5f80; --coach-soft:#e8f4fb; --coach-line:#a8d8f0;
       --lens-bg:#fff3e0; --lens-line:#ffd699; --lens-ink:#b36b00; }
     .v2-badge{
       display:inline-block; font-size:10px; font-weight:800; vertical-align:super;
       padding:1px 6px; border-radius:999px; background:#1a5f80; color:#fff; letter-spacing:0;
     }
-    /* 3열 레이아웃: 사이드바 | 캔버스 | 코치 */
-    .app{ grid-template-columns:var(--sidebar-w) 1fr var(--coach-w); }
-    @media (max-width:1280px){
-      .app{ grid-template-columns:var(--sidebar-w) 1fr; }
-      .coach-panel{ grid-column:1 / -1; position:static !important; height:460px !important; }
-    }
-    @media (max-width:640px){
-      .app{ grid-template-columns:1fr; }
-      .coach-panel{ grid-column:auto; }
-    }
-
     /* ① 성취기준 프레임 */
     .v2-std{ background:transparent; }
     .v2-std__inner{
@@ -873,7 +862,7 @@
       border-bottom:1px solid var(--line-soft);
       display:flex; align-items:center; gap:8px; flex-wrap:wrap;
     }
-    .v2-std__body{ padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:start; }
+    .v2-std__body{ padding:12px 14px; display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start; justify-content:start; }
     @media (max-width:900px){ .v2-std__body{ grid-template-columns:1fr; } }
     .v2-verb-flag{
       display:none; margin-top:6px; padding:6px 10px; border-radius:7px;
@@ -893,16 +882,43 @@
     .v2-author-btn.is-on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
     .v2-author-btn.is-on small{ color:var(--accent); opacity:.75; }
 
-    /* ② AI 코치 패널 (스티키 3열) */
+    /* ② AI 코치 팝업 (우하단 FAB로 열고 닫는 오버레이) */
+    .coach-fab{
+      position:fixed; right:20px; bottom:20px; z-index:76;
+      width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+      background:var(--coach); color:#fff; font-size:22px;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 20px rgba(26,95,128,.35); transition:.15s;
+    }
+    .coach-fab:hover{ transform:scale(1.06); }
+    .coach-fab.is-hidden{ display:none; }
+    .coach-fab__badge{
+      position:absolute; top:1px; right:1px; width:10px; height:10px; border-radius:50%;
+      background:#e0433a; border:2px solid #fff; display:none;
+    }
+    .coach-fab__badge.is-on{ display:block; }
     .coach-panel{
-      background:var(--panel); border-left:1px solid var(--line);
-      display:flex; flex-direction:column;
-      height:calc(100vh - 56px - 40px); position:sticky; top:56px; overflow:hidden;
+      position:fixed; right:20px; bottom:88px; z-index:77;
+      width:min(390px, calc(100vw - 32px)); height:min(620px, calc(100vh - 130px));
+      background:var(--panel); border:1px solid var(--coach-line); border-radius:16px;
+      box-shadow:var(--shadow-md);
+      display:none; flex-direction:column; overflow:hidden;
+    }
+    .coach-panel.is-open{ display:flex; animation:coachPopIn .16s ease; }
+    @keyframes coachPopIn{ from{ opacity:0; transform:translateY(8px) scale(.98); } to{ opacity:1; transform:none; } }
+    @media (max-width:640px){
+      .coach-panel{ right:8px; left:8px; bottom:78px; width:auto; height:min(74vh, 560px); }
     }
     .coach-header{
       background:var(--coach); color:#fff; padding:10px 12px; font-weight:800; font-size:13px;
       display:flex; justify-content:space-between; align-items:center; gap:8px; flex-shrink:0;
     }
+    .coach-header__close{
+      background:rgba(255,255,255,.15); border:none; color:#fff; cursor:pointer;
+      width:24px; height:24px; border-radius:50%; font-size:13px; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .coach-header__close:hover{ background:rgba(255,255,255,.3); }
     .coach-status{ font-size:10.5px; opacity:.85; font-weight:600; white-space:nowrap; }
     .coach-mode-toggle{ display:flex; padding:8px 10px 0; gap:6px; flex-shrink:0; }
     .coach-mode-btn{
@@ -967,7 +983,7 @@
 
     /* 인쇄 시 v2 요소 숨김 */
     @media print{
-      .v2-std, .coach-panel{ display:none !important; }
+      .v2-std, .coach-panel, .coach-fab{ display:none !important; }
     }
   </style>
 </head>
@@ -1029,17 +1045,9 @@
     <div class="card v2-std__card">
       <div class="v2-std__head">
         📌 성취기준 (필수) · AI 코치 모드 선택 <span class="v2-badge">v2</span>
-        <span style="font-weight:500; color:var(--muted); font-size:11px;">성취기준이 우측 AI 코치의 모든 피드백에 자동 포함됩니다</span>
+        <span style="font-weight:500; color:var(--muted); font-size:11px;">성취기준이 💬 AI 코치의 모든 피드백에 자동 포함됩니다</span>
       </div>
       <div class="v2-std__body">
-        <div class="field" style="margin-bottom:0;">
-          <label class="field__label" for="standardCustom">🎯 성취기준 직접 입력
-            <span style="font-weight:500; color:var(--muted);">(2단계 목록 선택과 병행 가능)</span>
-          </label>
-          <textarea class="textarea" id="standardCustom" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
-          <div class="v2-verb-flag" id="verbFlag" role="status"></div>
-          <p class="field__hint">행동 동사(이해한다·설명할 수 있다)가 포함돼야 합니다</p>
-        </div>
         <div class="v2-author-toggle" role="group" aria-label="저작 모드 선택">
           <button class="v2-author-btn is-on" id="modeTeacher">
             🖊 교사 아이디어로 시작 <small>저자 모드 — 내 아이디어에서 출발해 코치와 정교화</small>
@@ -1047,6 +1055,14 @@
           <button class="v2-author-btn" id="modeLibrary">
             📚 라이브러리 참고 <small>편집 모드 — 빈 셀 클릭 시 기법 시드 먼저 제안</small>
           </button>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label" for="standardCustom">🎯 성취기준 직접 입력
+            <span style="font-weight:500; color:var(--muted);">(2단계 목록 선택과 병행 가능)</span>
+          </label>
+          <textarea class="textarea" id="standardCustom" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
+          <div class="v2-verb-flag" id="verbFlag" role="status"></div>
+          <p class="field__hint">행동 동사(이해한다·설명할 수 있다)가 포함돼야 합니다</p>
         </div>
       </div>
     </div>
@@ -1413,13 +1429,17 @@
       <button class="btn-bridge" id="btnConvert" aria-label="평가지 미리보기 열기">📄 평가지 미리보기</button>
     </div>
   </main>
+</div>
 
-  <!-- ═════ V2 · AI 코치 패널 (우측 스티키 · 이중 모드) ═════ -->
-  <aside class="coach-panel" id="coachPanel" aria-label="AI 코치 패널">
-    <div class="coach-header">
-      <span>💬 AI 코치</span>
-      <span class="coach-status" id="coachStatus">교사 문항 피드백</span>
-    </div>
+<!-- ═════ V2 · AI 코치 팝업 (우하단 FAB로 열고 닫는 이중 모드) ═════ -->
+<button class="coach-fab" id="coachFab" aria-label="AI 코치 열기/닫기" aria-expanded="false" aria-controls="coachPanel">
+  💬<span class="coach-fab__badge" id="coachFabBadge" aria-hidden="true"></span>
+</button>
+<aside class="coach-panel" id="coachPanel" aria-label="AI 코치 패널" aria-hidden="true">
+  <div class="coach-header">
+    <span>💬 AI 코치 <span class="coach-status" id="coachStatus">교사 문항 피드백</span></span>
+    <button class="coach-header__close" id="coachClose" aria-label="AI 코치 닫기">✕</button>
+  </div>
 
     <div class="coach-mode-toggle" role="group" aria-label="코치 모드 선택">
       <button class="coach-mode-btn is-on" id="coachModeTeacher">🖊 교사 문항 코치</button>
@@ -1459,8 +1479,7 @@
       <textarea id="coachInput" rows="1" placeholder="자유롭게 질문하세요… (Enter 전송)" aria-label="코치에게 질문 입력"></textarea>
       <button id="coachSend" title="전송" aria-label="질문 전송">↑</button>
     </div>
-  </aside>
-</div>
+</aside>
 
 <!-- ═════ Navigation Drawer + Mega Menu ═════ -->
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true">
@@ -3122,6 +3141,28 @@ $$('.lens-buttons .lens').forEach(btn => btn.addEventListener('click', () => {
 const V2_COACH_MODEL = 'claude-sonnet-5';
 let v2ChatHistory = { teacher:[], student:[] };
 
+/* AI 코치 팝업 열기/닫기 (우하단 FAB) */
+function v2OpenCoach(){
+  $('#coachPanel').classList.add('is-open');
+  $('#coachPanel').setAttribute('aria-hidden', 'false');
+  $('#coachFab').setAttribute('aria-expanded', 'true');
+  $('#coachFabBadge').classList.remove('is-on');
+}
+function v2CloseCoach(){
+  $('#coachPanel').classList.remove('is-open');
+  $('#coachPanel').setAttribute('aria-hidden', 'true');
+  $('#coachFab').setAttribute('aria-expanded', 'false');
+}
+function v2ToggleCoach(){
+  if($('#coachPanel').classList.contains('is-open')) v2CloseCoach();
+  else v2OpenCoach();
+}
+$('#coachFab').addEventListener('click', v2ToggleCoach);
+$('#coachClose').addEventListener('click', v2CloseCoach);
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && $('#coachPanel').classList.contains('is-open')) v2CloseCoach();
+});
+
 function v2UpdateKeyRow(){
   $('#coachKeyRow').classList.toggle('hidden', !!aiGetKey());
 }
@@ -3248,6 +3289,9 @@ function v2AddMsg(role, text){
   const chat = $('#coachChat');
   chat.appendChild(el);
   chat.scrollTop = chat.scrollHeight;
+  if((role === 'ai' || role === 'error') && !$('#coachPanel').classList.contains('is-open')){
+    $('#coachFabBadge').classList.add('is-on');
+  }
   return el;
 }
 
@@ -3334,6 +3378,7 @@ $('#btnCoachCell').addEventListener('click', () => {
     return;
   }
   v2SetCoachMode('teacher');
+  v2OpenCoach();
   v2SendToClaude(v2QuickPrompt('정렬'), '📐 셀 문항 피드백 요청');
 });
 
