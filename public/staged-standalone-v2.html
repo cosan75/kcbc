@@ -851,7 +851,7 @@
     /* ① 성취기준 프레임 */
     .v2-std{ background:transparent; }
     .v2-std__inner{
-      max-width:var(--app-max); margin:10px auto 0; width:100%;
+      width:100%; margin:10px 0 0;
       padding:0 max(16px, calc((100vw - var(--app-max)) / 2));
     }
     @media (max-width:640px){ .v2-std__inner{ padding:0 12px; } }
@@ -971,6 +971,37 @@
     }
     .coach-inputrow button:disabled{ opacity:.5; cursor:not-allowed; }
 
+    /* ②-b 좌측 메뉴 팝업 (v1 LNB 아이콘 대체) */
+    .lnb{ display:none !important; }
+    .v2-lnb-fab{
+      position:fixed; left:16px; top:66px; z-index:74;
+      width:42px; height:42px; border-radius:11px; border:1px solid var(--line);
+      background:var(--panel); color:var(--ink-soft); font-size:17px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:var(--shadow-md); transition:.15s;
+    }
+    .v2-lnb-fab:hover{ border-color:var(--accent); color:var(--accent); }
+    .v2-lnb-fab[aria-expanded="true"]{ background:var(--ink); color:#fff; border-color:var(--ink); }
+    .v2-lnb-popup{
+      position:fixed; left:16px; top:112px; z-index:75;
+      width:210px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      box-shadow:var(--shadow-md); padding:6px;
+      display:none; flex-direction:column; gap:2px;
+    }
+    .v2-lnb-popup.is-open{ display:flex; animation:coachPopIn .14s ease; }
+    .v2-lnb-popup__item{
+      display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px;
+      border:none; background:transparent; cursor:pointer; font-size:12.5px; color:var(--ink-soft);
+      text-align:left; width:100%; font-weight:600; font-family:inherit;
+    }
+    .v2-lnb-popup__item:hover{ background:var(--line-soft); color:var(--accent); }
+    .v2-lnb-popup__item.is-on{ background:var(--accent-soft); color:var(--accent); }
+    .v2-lnb-popup__sep{ height:1px; background:var(--line); margin:4px 2px; }
+    @media (max-width:640px){
+      .v2-lnb-fab{ left:10px; top:62px; }
+      .v2-lnb-popup{ left:10px; top:108px; }
+    }
+
     /* ③ 질문 변형 렌즈 */
     .lens-toolbar{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--lens-line); }
     .lens-toolbar > label{ font-size:11.5px; font-weight:700; color:var(--lens-ink); }
@@ -983,7 +1014,7 @@
 
     /* 인쇄 시 v2 요소 숨김 */
     @media print{
-      .v2-std, .coach-panel, .coach-fab{ display:none !important; }
+      .v2-std, .coach-panel, .coach-fab, .v2-lnb-fab, .v2-lnb-popup{ display:none !important; }
     }
   </style>
 </head>
@@ -1008,6 +1039,16 @@
     <button class="icon-btn" id="btnDrawer" title="메뉴 (네비게이션 드로어)" aria-label="네비게이션 드로어 열기">☰</button>
   </div>
 </header>
+
+<!-- ═════ V2 · 좌측 메뉴 팝업 (v1 LNB 아이콘 대체 트리거 · 제목줄 밑 왼쪽끝) ═════ -->
+<button class="v2-lnb-fab" id="lnbFab" aria-label="메뉴 열기" aria-expanded="false" aria-controls="lnbPopup" title="메뉴">☰</button>
+<div class="v2-lnb-popup" id="lnbPopup" role="menu" aria-label="작성기 메뉴">
+  <button class="v2-lnb-popup__item is-on" data-lnb-tab="setup" role="menuitem">📘 단원 정보</button>
+  <button class="v2-lnb-popup__item" data-lnb-tab="matrix" role="menuitem">🧩 매트릭스 편집</button>
+  <button class="v2-lnb-popup__item" data-lnb-tab="techniques" role="menuitem">💡 기법 라이브러리</button>
+  <div class="v2-lnb-popup__sep" aria-hidden="true"></div>
+  <button class="v2-lnb-popup__item" data-lnb-tab="analysis" role="menuitem">📊 분석</button>
+</div>
 
 <!-- ═════ 컨텍스트 바 (학년·과목 / 모델 / 5요소 / 단원 질문 / 성취기준) ═════ -->
 <nav class="stepbar" id="contextBar" aria-label="작성 정보 요약">
@@ -3159,8 +3200,35 @@ function v2ToggleCoach(){
 }
 $('#coachFab').addEventListener('click', v2ToggleCoach);
 $('#coachClose').addEventListener('click', v2CloseCoach);
+
+/* ── 좌측 메뉴 팝업 (v1 LNB 아이콘 대체) ── */
+function v2CloseLnbPopup(){
+  $('#lnbPopup').classList.remove('is-open');
+  $('#lnbFab').setAttribute('aria-expanded', 'false');
+}
+$('#lnbFab').addEventListener('click', () => {
+  const open = !$('#lnbPopup').classList.contains('is-open');
+  $('#lnbPopup').classList.toggle('is-open', open);
+  $('#lnbFab').setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+$$('.v2-lnb-popup__item').forEach(btn => btn.addEventListener('click', () => {
+  const tab = btn.dataset.lnbTab;
+  const orig = document.querySelector(`.lnb__item[data-tab="${tab}"]`);
+  if(orig) orig.click(); // v1의 기존 스크롤·모달 로직을 그대로 재사용
+  $$('.v2-lnb-popup__item').forEach(b => b.classList.toggle('is-on', b === btn));
+  v2CloseLnbPopup();
+}));
+document.addEventListener('click', e => {
+  const pop = $('#lnbPopup'), fab = $('#lnbFab');
+  if(pop.classList.contains('is-open') && !pop.contains(e.target) && e.target !== fab){
+    v2CloseLnbPopup();
+  }
+});
+
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape' && $('#coachPanel').classList.contains('is-open')) v2CloseCoach();
+  if(e.key !== 'Escape') return;
+  if($('#coachPanel').classList.contains('is-open')) v2CloseCoach();
+  if($('#lnbPopup').classList.contains('is-open')) v2CloseLnbPopup();
 });
 
 function v2UpdateKeyRow(){
