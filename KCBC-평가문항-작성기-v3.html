@@ -1,0 +1,1551 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KCBC 평가문항 작성기 v3</title>
+<style>
+:root{
+  --bg:#f6f7fb; --panel:#ffffff; --line:#e6e8f0; --line-soft:#eef0f7;
+  --ink:#1a1d29; --ink-soft:#4b5163; --muted:#8c93a8;
+  --brand:#111827; --brand-hover:#0d1220;
+  --accent:#3a57e8; --accent-soft:#eef1ff;
+  --ok:#2ea66c; --warn:#c98a16; --rose:#d6336c;
+  --coach:#1a5f80; --coach-soft:#e8f4fb; --coach-line:#a8d8f0;
+  --postit:#fff9db; --postit-line:#f0e2a0;
+  --stamp:#c92a2a;
+  --shadow-sm:0 1px 2px rgba(15,18,32,.05);
+  --shadow-md:0 6px 24px rgba(15,18,32,.10);
+  --radius:10px; --radius-lg:14px;
+  --app-max:1180px;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Segoe UI",system-ui,sans-serif;
+  font-size:14px; line-height:1.55;
+}
+button{ font:inherit; color:inherit; }
+.hidden{ display:none !important; }
+
+/* ═════ 헤더: 로고 + 탭3개 + ⋯메뉴 (사이드바 없음) ═════ */
+.gnb{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:6px;
+  padding:0 max(16px, calc((100vw - var(--app-max)) / 2));
+  background:var(--panel); border-bottom:1px solid var(--line); height:54px;
+}
+.gnb__title{
+  font-size:13.5px; font-weight:800; margin:0; letter-spacing:-.3px;
+  padding:7px 14px; border-radius:999px; flex-shrink:0; border:none;
+  background:linear-gradient(120deg,#fce4ff 0%,#fff2d9 45%,#d8f4e9 100%);
+  color:#3d3f5c; white-space:nowrap; cursor:pointer; font-family:inherit;
+}
+.gnb__title:hover{ filter:brightness(0.97); }
+.tabbar{ display:flex; gap:2px; margin-left:10px; }
+.tab-btn{
+  display:flex; align-items:center; gap:6px; padding:8px 14px; border:none; background:transparent;
+  border-radius:8px; cursor:pointer; font-size:13px; font-weight:700; color:var(--ink-soft);
+  white-space:nowrap; position:relative;
+}
+.tab-btn:hover{ background:var(--line-soft); }
+.tab-btn.is-on{ background:var(--accent-soft); color:var(--accent); }
+.tab-badge{
+  display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px;
+  padding:0 4px; border-radius:999px; background:var(--stamp); color:#fff; font-size:10px; font-weight:800;
+}
+.tab-badge.is-zero{ background:var(--line); color:var(--muted); }
+.gnb__spacer{ flex:1; }
+.more-menu{ position:relative; flex-shrink:0; }
+.more-btn{
+  width:34px; height:34px; border:1px solid var(--line); background:var(--panel); border-radius:8px;
+  cursor:pointer; color:var(--ink-soft); font-size:16px;
+}
+.more-btn:hover{ background:var(--line-soft); }
+.more-pop{
+  position:absolute; right:0; top:42px; width:220px; background:var(--panel);
+  border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-md); padding:6px;
+  display:none; z-index:50;
+}
+.more-pop.is-open{ display:block; }
+.more-pop a{
+  display:block; padding:9px 10px; border-radius:8px; text-decoration:none; color:var(--ink-soft);
+  font-size:12.5px; font-weight:600;
+}
+.more-pop a:hover{ background:var(--line-soft); color:var(--accent); }
+@media (max-width:640px){
+  .gnb__title{ font-size:11.5px; padding:6px 10px; }
+  .tab-btn span.tab-label{ display:none; }
+  .tab-btn{ padding:8px 10px; }
+}
+
+/* ═════ 작업 영역 (전체 폭, 사이드바 없음) ═════ */
+.wrap{ max-width:var(--app-max); margin:0 auto; padding:18px 16px 40px; }
+.panel{ display:none; flex-direction:column; gap:14px; }
+.panel.is-on{ display:flex; }
+
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:16px 18px; box-shadow:var(--shadow-sm);
+}
+.card__title{ font-size:14px; font-weight:800; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+.card__hint{ font-size:11px; color:var(--muted); font-weight:500; margin-left:auto; }
+
+.field{ margin-bottom:13px; }
+.field:last-child{ margin-bottom:0; }
+.field__label{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+.field__label .req{ color:var(--rose); }
+.field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; line-height:1.5; }
+.input,.select,.textarea{
+  width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px;
+  background:var(--panel); color:var(--ink); font-size:13.5px; font-family:inherit;
+}
+.input:focus,.select:focus,.textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.textarea{ min-height:56px; resize:vertical; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; }
+.row > *{ flex:1; min-width:140px; }
+
+.verb-flag{ display:none; margin-top:6px; padding:6px 10px; border-radius:7px; font-size:11px; font-weight:600; }
+.verb-flag.is-on{ display:block; background:#fef3c7; border:1px solid #f5c542; color:#7a5a10; }
+.verb-flag--ok{ background:#eaf7ef; border:1px solid #b7ebcd; color:#1f7a4a; }
+.phase-hint{
+  display:none; margin-top:6px; padding:6px 10px; border-radius:7px; font-size:11px; font-weight:600;
+  background:var(--accent-soft); color:var(--accent);
+}
+.phase-hint.is-on{ display:block; }
+.concept-badge{
+  font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;
+  background:#fff3e0; color:#b36b00; border:1px solid #ffd699; margin-left:2px;
+}
+.concept-badge.is-empty{ background:var(--line-soft); color:var(--muted); border-color:var(--line); }
+.concept-badge.is-none{ background:#fef3c7; color:#a06e0e; border-color:#f5c542; }
+
+.ach-list{ max-height:180px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; padding:5px; background:var(--panel); }
+.ach-item{ display:flex; gap:7px; padding:6px; border-radius:6px; align-items:flex-start; cursor:pointer; }
+.ach-item:hover{ background:var(--line-soft); }
+.ach-item input{ margin-top:3px; accent-color:var(--accent); flex-shrink:0; }
+.ach-item__code{ font-size:9.5px; padding:2px 5px; border-radius:4px; background:var(--accent-soft); color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+.ach-item__desc{ font-size:11.5px; color:var(--ink-soft); line-height:1.45; word-break:keep-all; }
+.ach-count{ font-size:10.5px; color:var(--muted); font-weight:600; margin-left:auto; }
+.ach-count b{ color:var(--accent); }
+
+/* ═════ 매트릭스 = 질문 보드 (가로:국면 4 / 세로:SOLO 3) ═════ */
+.board-topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.board-hint{ font-size:11.5px; color:var(--muted); margin:0; }
+.radars{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin-top:4px; }
+@media (max-width:720px){ .radars{ grid-template-columns:1fr; } }
+.radar-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:12px 10px 10px; text-align:center; box-shadow:var(--shadow-sm);
+}
+.radar-card h3{ font-size:12.5px; margin:0 0 2px; }
+.radar-card p{ font-size:10px; color:var(--muted); margin:0 0 4px; }
+.radar-card svg{ width:100%; height:auto; max-width:170px; }
+.radar-card__score{ display:inline-block; font-size:21px; font-weight:800; margin-top:2px; color:var(--ink); line-height:1; }
+.radar-card__unit{ font-size:11px; color:var(--muted); font-weight:600; margin-left:2px; }
+.board-scroll{ overflow-x:auto; }
+.board{ display:grid; grid-template-columns:104px repeat(4, minmax(190px,1fr)); gap:10px; min-width:900px; }
+.board__corner{}
+.board__col-head{
+  font-size:12px; font-weight:800; color:var(--ink-soft); text-align:center;
+  padding:8px 6px; position:relative;
+}
+.board__col-head .arrow{
+  position:absolute; right:-11px; top:50%; transform:translateY(-50%);
+  color:var(--muted); font-size:13px;
+}
+.board__col-head:last-child .arrow{ display:none; }
+.board__row-head{
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:12px; font-weight:800; color:var(--ink-soft); background:var(--tag-gray,var(--line-soft));
+  border-radius:10px; padding:8px 6px; writing-mode:horizontal-tb; line-height:1.3;
+}
+.board-cell{
+  min-height:110px; border-radius:12px; padding:12px; cursor:pointer; position:relative;
+  display:flex; flex-direction:column; gap:6px; transition:.15s; border:1.5px dashed var(--line);
+  background:var(--panel);
+}
+.board-cell:hover{ border-color:var(--accent); }
+.board-cell.is-filled{
+  border-style:solid; border-color:var(--postit-line); background:var(--postit);
+  box-shadow:2px 3px 8px rgba(0,0,0,.06);
+}
+.board-cell:nth-child(4n+2).is-filled{ transform:rotate(-.6deg); }
+.board-cell:nth-child(4n+4).is-filled{ transform:rotate(.6deg); }
+.board-cell.is-active{ outline:3px solid var(--accent); outline-offset:1px; }
+.board-cell__ghost{ font-size:11.5px; color:var(--muted); font-style:italic; line-height:1.5; }
+.board-cell__q{ font-size:12px; line-height:1.5; color:var(--ink); word-break:keep-all; }
+.board-cell__chips{ display:flex; gap:4px; flex-wrap:wrap; margin-top:auto; }
+.chip-mini{ font-size:9.5px; padding:2px 6px; border-radius:4px; font-weight:700; background:var(--accent-soft); color:var(--accent); }
+.chip-mini--seed{ background:#fff3e0; color:#b36b00; }
+.stamp{
+  position:absolute; top:6px; right:8px; width:44px; height:44px; border-radius:50%;
+  border:2px solid var(--stamp); color:var(--stamp); display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; transform:rotate(-14deg); background:rgba(255,255,255,.6);
+  letter-spacing:-.5px; text-align:center; line-height:1.1; pointer-events:none;
+}
+@media (max-width:900px){
+  .board{ grid-template-columns:80px repeat(4, minmax(170px,1fr)); }
+}
+
+/* ═════ 셀 편집 모달 ═════ */
+.modal{ position:fixed; inset:0; z-index:70; display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
+.modal.is-on{ display:flex; }
+.modal__scrim{ position:fixed; inset:0; background:rgba(15,18,32,.5); }
+.modal__panel{
+  position:relative; width:min(560px,100%); background:var(--panel); border-radius:16px;
+  box-shadow:var(--shadow-md); padding:20px; z-index:1;
+}
+.modal__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.modal__title{ font-size:14.5px; font-weight:800; margin:0; }
+.modal__close{ background:none; border:none; cursor:pointer; font-size:17px; color:var(--ink-soft); }
+.required-row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+.check-include{
+  display:flex; align-items:center; gap:7px; padding:10px 12px; border-radius:9px; cursor:pointer;
+  background:#f0fff7; border:1.5px solid #b7ebcd; font-size:12.5px; font-weight:800; color:#1f7a4a;
+}
+.check-include input{ accent-color:#2ea66c; width:16px; height:16px; }
+details.adv{ margin-top:12px; border:1px solid var(--line); border-radius:10px; }
+details.adv > summary{ cursor:pointer; padding:9px 12px; font-size:12px; font-weight:700; color:var(--ink-soft); list-style:none; display:flex; align-items:center; gap:6px; }
+details.adv > summary::-webkit-details-marker{ display:none; }
+details.adv > summary::before{ content:'▸'; transition:.15s; }
+details.adv[open] > summary::before{ transform:rotate(90deg); }
+details.adv[open] > summary{ border-bottom:1px solid var(--line); }
+details.adv > .adv-body{ padding:12px; display:flex; flex-direction:column; gap:11px; }
+.radio-row{ display:flex; gap:12px; }
+.radio-row label{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft); cursor:pointer; }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip{ padding:5px 10px; border-radius:999px; border:1px solid var(--line); background:var(--panel); font-size:11.5px; color:var(--ink-soft); cursor:pointer; }
+.chip.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.img-drop{
+  border:1.5px dashed var(--line); border-radius:10px; padding:14px; text-align:center; cursor:pointer;
+  font-size:11.5px; color:var(--muted);
+}
+.img-drop:hover{ border-color:var(--accent); color:var(--accent); }
+.img-preview{ margin-top:8px; max-width:100%; max-height:160px; border:1px solid var(--line); border-radius:8px; display:block; }
+.btn-tech{
+  padding:9px 14px; border-radius:8px; border:1.5px solid var(--accent); background:var(--panel);
+  color:var(--accent); font-weight:700; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; gap:5px;
+}
+.btn-tech:hover{ background:var(--accent); color:#fff; }
+.btn-mini{ padding:7px 12px; border-radius:7px; border:1px solid var(--line); background:var(--panel); cursor:pointer; font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+.btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
+.btn-danger-mini{ padding:6px 10px; border-radius:7px; border:1px solid var(--rose); background:#fff5f8; color:var(--rose); cursor:pointer; font-size:11px; font-weight:700; }
+
+/* ═════ 기법 라이브러리 모달 ═════ */
+.tech-filter{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.tech-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; }
+@media (max-width:640px){ .tech-list{ grid-template-columns:1fr; } }
+.tech-card{ border:1px solid var(--line); border-radius:10px; padding:11px; cursor:pointer; }
+.tech-card:hover{ border-color:var(--accent); background:#fbfcff; }
+.tech-card__head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.tech-card__ko{ font-size:12.5px; font-weight:700; margin:0; }
+.tech-card__seed{ font-size:11px; color:var(--ink-soft); background:var(--line-soft); padding:6px 8px; border-radius:6px; }
+
+/* ═════ 완성 탭 ═════ */
+.select-summary{
+  padding:16px 18px; border-radius:14px; background:linear-gradient(120deg,#eefaf3,#eef1ff);
+  border:1px solid #cdeedb;
+}
+.select-summary__main{ font-size:14.5px; font-weight:800; color:var(--ink); }
+.select-summary__main b{ color:var(--ok); font-size:18px; }
+.select-summary__dist{ margin-top:8px; font-size:11.5px; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px; }
+.dist-chip{ padding:3px 9px; border-radius:999px; background:var(--panel); border:1px solid var(--line); font-weight:600; }
+
+.export-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.btn-primary-lg{
+  padding:12px 20px; border-radius:10px; border:none; background:var(--brand); color:#fff;
+  font-weight:800; cursor:pointer; font-size:13.5px; display:inline-flex; align-items:center; gap:8px;
+}
+.btn-primary-lg:hover{ background:var(--brand-hover); }
+.export-dd{ position:relative; }
+.export-dd__menu{
+  position:absolute; left:0; top:44px; width:200px; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; box-shadow:var(--shadow-md); padding:6px; display:none; z-index:20;
+}
+.export-dd__menu.is-open{ display:block; }
+.export-dd__menu button{
+  display:flex; width:100%; align-items:center; gap:8px; padding:9px 10px; border:none; background:none;
+  cursor:pointer; font-size:12.5px; color:var(--ink-soft); border-radius:8px; text-align:left;
+}
+.export-dd__menu button:hover{ background:var(--line-soft); color:var(--accent); }
+
+.ws-warn-badge{
+  display:inline-flex; align-items:center; gap:3px; font-size:9.5px; font-weight:800; color:#a06e0e;
+  background:#fef3c7; border:1px solid #f5c542; border-radius:5px; padding:1px 6px; margin-left:6px;
+  cursor:default;
+}
+
+/* ═════ 평가지 (목표 서식: 시험지형 흑백 인쇄용) ═════ */
+.ws-wrap{ background:#e8e9ee; border-radius:14px; padding:20px; margin-top:14px; }
+.ws-toolbar{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  max-width:760px; margin:0 auto 14px; padding:9px 12px;
+  background:var(--accent-soft); border:1px solid var(--accent); border-radius:10px;
+}
+.ws-toolbar .select{ width:auto; padding:6px 24px 6px 8px; font-size:12px; }
+.ws-toolbar input[type="color"]{ width:30px; height:28px; border:none; background:none; cursor:pointer; padding:0; }
+.ws-toolbar__spacer{ flex:1; }
+.ws-toolbar #wsDrawToggle.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.ws-draw-canvas{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+.ws-draw-canvas.is-pen{ pointer-events:auto; cursor:crosshair; }
+.ws-page{
+  font-family:'Batang','바탕','Nanum Myeongjo',serif; color:#000; background:#fff;
+  line-height:1.7; max-width:760px; margin:0 auto 20px; padding:40px 24px 60px; font-size:15px;
+  position:relative;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+}
+.ws-h1{ text-align:center; font-size:22px; font-weight:700; letter-spacing:.35em; text-decoration:underline; text-underline-offset:6px; margin-bottom:18px; }
+.ws-name{ text-align:right; font-size:14px; margin-bottom:6px; }
+table.ws-head{ width:100%; border-collapse:collapse; font-size:14px; }
+.ws-head th,.ws-head td{ border:1.5px solid #000; padding:6px 10px; }
+.ws-head th{ width:74px; font-weight:700; text-align:center; background:#fff; }
+.ws-head td.date{ text-align:center; }
+.ws-sec-title{ border:1.5px solid #000; border-top:none; text-align:center; font-weight:700; padding:6px; font-size:15px; }
+.ws-body-box{ border:1.5px solid #000; border-top:none; padding:20px 22px 28px; }
+.ws-scenario{ margin-bottom:6px; }
+.ws-q{ margin-top:22px; position:relative; }
+.ws-q:first-child{ margin-top:0; }
+.ws-q-title{ font-weight:700; outline:none; }
+.ws-q-title[contenteditable]:hover{ background:#fffbe6; }
+.ws-starter{ margin-top:8px; font-size:14px; outline:none; }
+.ws-lines{ margin-top:12px; }
+.ws-lines i{ display:block; height:36px; border-bottom:1px solid #000; }
+.ws-drawbox{ margin-top:12px; min-height:150px; border:1px solid #000; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; }
+.ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
+table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+.ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
+.ws-rubric th{ text-align:center; font-weight:700; }
+.ws-rubric td.c{ text-align:center; width:90px; }
+.ws-pagenum{ text-align:center; margin-top:30px; font-size:13px; }
+.ws-teacher{ margin-top:0; }
+.ws-teacher h1{ letter-spacing:.15em; }
+.ws-tsec{ margin-top:18px; }
+.ws-tsec h3{ font-size:15px; font-weight:700; }
+.ws-tsec p{ margin-top:4px; font-size:14px; outline:none; }
+table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px; }
+.ws-map th,.ws-map td{ border:1px solid #000; padding:6px 9px; }
+.ws-map th{ text-align:center; font-weight:700; }
+.ws-map td[contenteditable]{ outline:none; }
+.ws-map td[contenteditable]:hover{ background:#fffbe6; }
+.ws-warn{ border:1px solid #000; padding:8px 12px; margin-top:8px; font-size:13.5px; }
+.ws-fb i{ display:block; height:32px; border-bottom:1px solid #000; }
+
+/* ═════ 우하단 AI 코치 팝업 (v2 계승) ═════ */
+.coach-fab{
+  position:fixed; right:20px; bottom:20px; z-index:76; width:56px; height:56px; border-radius:50%;
+  border:none; cursor:pointer; background:var(--coach); color:#fff; font-size:22px;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(26,95,128,.35);
+}
+.coach-fab:hover{ transform:scale(1.06); }
+.coach-fab__badge{ position:absolute; top:1px; right:1px; width:10px; height:10px; border-radius:50%; background:#e0433a; border:2px solid #fff; display:none; }
+.coach-fab__badge.is-on{ display:block; }
+.coach-panel{
+  position:fixed; right:20px; bottom:88px; z-index:77; width:min(390px, calc(100vw - 32px));
+  height:min(600px, calc(100vh - 130px)); background:var(--panel); border:1px solid var(--coach-line);
+  border-radius:16px; box-shadow:var(--shadow-md); display:none; flex-direction:column; overflow:hidden;
+}
+.coach-panel.is-open{ display:flex; }
+@media (max-width:640px){ .coach-panel{ right:8px; left:8px; bottom:78px; width:auto; height:min(74vh,560px); } }
+.coach-header{ background:var(--coach); color:#fff; padding:10px 12px; font-weight:800; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-shrink:0; }
+.coach-header__close{ background:rgba(255,255,255,.15); border:none; color:#fff; cursor:pointer; width:24px; height:24px; border-radius:50%; font-size:13px; flex-shrink:0; }
+.coach-keyrow{ display:flex; align-items:center; gap:6px; padding:8px 10px 0; flex-wrap:wrap; flex-shrink:0; }
+.coach-keyrow.hidden{ display:none; }
+.coach-keyrow input{ flex:1; min-width:130px; font-size:12px; padding:7px 9px; }
+.coach-keynote{ font-size:9.5px; color:var(--muted); line-height:1.4; width:100%; }
+.coach-keynote a{ color:var(--accent); }
+.coach-chat{ flex:1; overflow-y:auto; padding:10px 12px; background:#fafdff; display:flex; flex-direction:column; gap:9px; margin-top:8px; }
+.cmsg{ max-width:92%; padding:9px 11px; border-radius:10px; font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:keep-all; }
+.cmsg--ai{ background:var(--panel); border:1px solid var(--coach-line); align-self:flex-start; }
+.cmsg--user{ background:#2e86b8; color:#fff; align-self:flex-end; }
+.cmsg--error{ background:#fef3c7; color:#7a5a10; align-self:flex-start; }
+.cmsg--loading{ background:var(--line-soft); color:var(--muted); font-style:italic; align-self:flex-start; }
+.cmsg__apply{ display:inline-block; margin-top:7px; padding:4px 10px; border-radius:7px; border:1px solid var(--coach); background:var(--coach-soft); color:var(--coach); font-size:11px; font-weight:700; cursor:pointer; }
+.coach-quick{ display:flex; flex-wrap:wrap; gap:6px; padding:9px 10px; border-top:1px solid var(--coach-line); flex-shrink:0; }
+.coach-quick-btn{ font-size:11px; padding:5px 10px; border:1px solid var(--coach-line); background:#d6eeff; color:var(--coach); border-radius:12px; cursor:pointer; font-weight:700; }
+.coach-inputrow{ display:flex; gap:7px; padding:9px 10px; border-top:1px solid var(--coach-line); flex-shrink:0; }
+.coach-inputrow textarea{ flex:1; border:1px solid var(--coach-line); border-radius:8px; padding:7px 9px; font-family:inherit; font-size:12px; resize:none; min-height:34px; max-height:90px; }
+.coach-inputrow button{ background:#2e86b8; color:#fff; border:none; border-radius:8px; cursor:pointer; padding:0 14px; font-weight:800; font-size:14px; flex-shrink:0; }
+
+/* ═════ 푸터 ═════ */
+.footer{ text-align:center; padding:16px; font-size:11px; color:var(--muted); }
+.footer button{ background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; text-decoration:underline; padding:0; }
+.info-pop{
+  position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center; padding:20px;
+}
+.info-pop.is-on{ display:flex; }
+.info-pop__scrim{ position:fixed; inset:0; background:rgba(15,18,32,.5); }
+.info-pop__panel{ position:relative; width:min(420px,100%); background:var(--panel); border-radius:14px; padding:20px; z-index:1; }
+.info-pop__panel h3{ margin:0 0 10px; font-size:14px; }
+.info-pop__panel ul{ margin:0; padding-left:18px; font-size:12.5px; color:var(--ink-soft); line-height:1.9; }
+
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
+  padding:10px 18px; border-radius:8px; font-size:13px; z-index:90; box-shadow:var(--shadow-md);
+  opacity:0; transition:opacity .2s; pointer-events:none; max-width:90vw; text-align:center;
+}
+.toast.is-on{ opacity:1; }
+
+.save-ind{ font-size:10.5px; color:var(--ok); font-weight:600; white-space:nowrap; flex-shrink:0; margin-right:4px; }
+
+@media print{
+  body *{ visibility:hidden; }
+  #printArea, #printArea *{ visibility:visible; }
+  #printArea{ position:absolute; left:0; top:0; width:100%; }
+  .ws-wrap{ background:#fff; padding:0; }
+  .ws-page{ box-shadow:none; margin:0 auto; }
+  .ws-warn-badge{ display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="gnb">
+  <button class="gnb__title" id="btnHome" title="처음으로 돌아가기">✏️ KCBC 평가문항 작성기 <span style="font-size:9px;vertical-align:super;">v3</span></button>
+  <nav class="tabbar" role="tablist">
+    <button class="tab-btn is-on" data-tab="setup" role="tab">📘 <span class="tab-label">단원 정보</span></button>
+    <button class="tab-btn" data-tab="board" role="tab">🧩 <span class="tab-label">매트릭스</span></button>
+    <button class="tab-btn" data-tab="done" role="tab">🧾 <span class="tab-label">완성</span> <span class="tab-badge is-zero" id="doneBadge">0</span></button>
+  </nav>
+  <div class="gnb__spacer"></div>
+  <span class="save-ind" id="saveInd">● 자동 저장됨</span>
+  <div class="more-menu">
+    <button class="more-btn" id="moreBtn" aria-label="더보기 메뉴" aria-expanded="false">⋯</button>
+    <div class="more-pop" id="morePop" role="menu">
+      <a href="./question-focus-worksheet.html" target="_blank">📝 질문 초점 워크시트</a>
+      <a href="./grasps-worksheet.html" target="_blank">📋 GRASPS 6요소</a>
+      <a href="./essay-assessment-dashboard-v3.html" target="_blank">📊 서·논술형 대시보드</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ═════ 탭 1: 단원 정보 ═════ -->
+  <section class="panel is-on" id="panel-setup">
+    <div class="card">
+      <h2 class="card__title">📘 단원 정보</h2>
+      <div class="row">
+        <div class="field"><label class="field__label">학년</label>
+          <select class="select" id="grade"><option>3학년</option><option selected>4학년</option><option>5학년</option><option>6학년</option></select>
+        </div>
+        <div class="field"><label class="field__label">과목</label>
+          <select class="select" id="subject"><option>국어</option><option selected>사회</option><option>과학</option><option>수학</option><option>영어</option></select>
+        </div>
+      </div>
+      <div class="field"><label class="field__label" for="title">단원명</label>
+        <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" />
+      </div>
+      <div class="field"><label class="field__label" for="unitQuestion">핵심 질문 (단원 질문)</label>
+        <textarea class="textarea" id="unitQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?" style="min-height:44px"></textarea>
+      </div>
+      <div class="field"><label class="field__label" for="scenario">🎬 과제 상황 <span class="concept-badge" id="conceptBadge">개념어: —</span></label>
+        <textarea class="textarea" id="scenario" placeholder="예: 너는 우리 학교 기상 관측 도우미입니다. 계절마다 그림자 길이가 달라지는 까닭을 궁금해하는 1학년 동생에게 설명하는 자료를 만들어 봅시다." style="min-height:56px"></textarea>
+        <p class="field__hint">개념어는 핵심 질문에서 자동으로 뽑았어요 — 과제 상황을 이 개념과 연결해 쓰면 문항의 맥락이 살아납니다. (선택 입력 · 넣으면 평가지 첫 문장으로 반영됩니다)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card__title">🎯 성취기준 <span class="card__hint">선택 <b id="achCount" style="color:var(--accent)">0</b>개</span></h2>
+      <div class="ach-list" id="achList"></div>
+      <div class="phase-hint" id="phaseHint"></div>
+      <div class="field" style="margin-top:12px;">
+        <label class="field__label">직접 입력 <span style="font-weight:500;color:var(--muted)">(목록 병행 가능)</span></label>
+        <textarea class="textarea" id="standardCustom" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
+        <div class="verb-flag" id="verbFlag"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 탭 2: 매트릭스 (질문 보드) ═════ -->
+  <section class="panel" id="panel-board">
+    <div class="board-topbar">
+      <p class="board-hint">빈 칸을 눌러 학생용 질문을 적어보세요 · 다 채우지 않아도 됩니다.</p>
+      <button class="btn-mini" id="btnRadars">📊 지표 보기</button>
+    </div>
+    <div class="board-scroll">
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <!-- ═════ 탭 3: 완성 ═════ -->
+  <section class="panel" id="panel-done">
+    <div class="select-summary" id="selectSummary"></div>
+
+    <div class="export-toolbar">
+      <button class="btn-primary-lg" id="btnShowWs">📄 평가지 보기</button>
+      <div class="export-dd">
+        <button class="btn-mini" id="exportDdBtn">⬇ 내보내기 ▾</button>
+        <div class="export-dd__menu" id="exportDdMenu">
+          <button id="btnPrint">🖨 인쇄 / PDF</button>
+          <button id="btnExportMd">📄 마크다운(.md)</button>
+          <button id="btnCopy">📋 클립보드 복사</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ws-wrap hidden" id="wsWrap">
+      <div class="ws-toolbar" id="wsToolbar" role="toolbar" aria-label="평가지 편집 도구">
+        <button class="btn-mini" id="wsAddImage" title="평가지에 이미지 삽입">🖼 이미지 추가</button>
+        <input type="file" id="wsImgInput" accept="image/*" class="hidden" />
+        <button class="btn-mini" id="wsDrawToggle" aria-pressed="false" title="자유롭게 손으로 그리기">✏️ 펜</button>
+        <input type="color" id="wsPenColor" value="#d6336c" title="펜 색상" />
+        <select class="select" id="wsPenSize" title="펜 굵기">
+          <option value="2">가는 펜</option><option value="4" selected>보통 펜</option><option value="8">굵은 펜</option>
+        </select>
+        <button class="btn-mini" id="wsDrawClear" title="그린 것 지우기">🧹 그림 지우기</button>
+        <span class="ws-toolbar__spacer"></span>
+        <button class="btn-mini" id="wsCopyBtn" title="문항+루브릭 복사">📋 복사</button>
+        <button class="btn-mini" id="wsPrintBtn" title="인쇄 / PDF 저장">🖨 인쇄</button>
+      </div>
+      <div id="printArea"><div id="wsBody"></div></div>
+    </div>
+  </section>
+
+</div><!-- /wrap -->
+
+<footer class="footer">
+  <span>© KCBC Builder Studio v3 · 「질문하는 학교」 이화여자대학교 산학협력단</span>
+  · <button id="btnInfo">ⓘ 이론적 배경</button>
+</footer>
+
+<!-- ═════ 셀 편집 모달 ═════ -->
+<div class="modal" id="cellModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h3 class="modal__title" id="cellModalTitle">셀 편집</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+
+    <div class="field">
+      <label class="field__label">학생용 질문 <span class="req">*</span></label>
+      <textarea class="textarea" id="cellQuestion" style="min-height:72px" placeholder="예: 놀이터 시설이 고장 나 위험합니다. 어느 기관에 도움을 요청해야 할지 쓰고, 그 이유를 설명해 보세요."></textarea>
+    </div>
+    <button class="btn-tech" id="btnOpenTech">💡 예시 문구 가져오기</button>
+    <button class="btn-tech" id="btnCellCoach" style="border-color:var(--coach);color:var(--coach)">💬 코치 피드백</button>
+
+    <label class="check-include" style="margin-top:12px;">
+      <input type="checkbox" id="cellInclude"> ☑ 이 질문을 평가문항으로 뽑기
+    </label>
+
+    <details class="adv">
+      <summary>더 다듬기 (채점 힌트 · 답안 형식 · KCBC 5요소 · 자료 이미지)</summary>
+      <div class="adv-body">
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">도달 판단 기준 (선택 — 비워두면 SOLO 기본 문구 사용)</label>
+          <input class="input" id="cellScore" placeholder="예: 고도와 그림자의 관계를 근거를 들어 설명한다" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">문장 시작 어구 (선택)</label>
+          <input class="input" id="cellStarter" placeholder="예: 그림자의 길이는 (　　　　). 왜냐하면" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">학생 답안 형식</label>
+          <div class="radio-row">
+            <label><input type="radio" name="answerType" value="write" checked> ✍ 서술형</label>
+            <label><input type="radio" name="answerType" value="draw"> 🖼 그림형</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">KCBC 5요소 태그</label>
+          <div class="chips" id="krChips">
+            <button class="chip" data-kr="type">유형</button>
+            <button class="chip" data-kr="method">방법</button>
+            <button class="chip" data-kr="content">내용</button>
+            <button class="chip" data-kr="use">활용</button>
+            <button class="chip" data-kr="meta">메타</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">디지털 소양 5요소 (선택 — 지표의 "균형" 계산에 쓰입니다)</label>
+          <select class="select" id="cellCompetency">
+            <option value="">미지정</option>
+            <option value="ethics">반성·성찰</option>
+            <option value="access">접근·선택</option>
+            <option value="analyze">이해·분석·평가</option>
+            <option value="participate">공유·참여</option>
+            <option value="create">의사소통·생산</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">자료 이미지 첨부 (선택)</label>
+          <div class="img-drop" id="imgDrop">📎 클릭해서 이미지 선택 (500KB 권장)</div>
+          <input type="file" id="imgInput" accept="image/*" class="hidden" />
+          <img class="img-preview hidden" id="imgPreview" />
+          <input class="input hidden" id="imgAlt" placeholder="대체 텍스트 (이미지 설명) — 필수" style="margin-top:6px" />
+          <button class="btn-danger-mini hidden" id="imgRemove" style="margin-top:6px">이미지 제거</button>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═════ 기법 라이브러리 모달 ═════ -->
+<div class="modal" id="techModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h3 class="modal__title">💡 예시 문구 가져오기</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <div class="tech-filter" id="techFilter"></div>
+    <div class="tech-list" id="techList"></div>
+  </div>
+</div>
+
+<!-- ═════ 지표 팝업 (완성도 · 디지털 소양 균형 · 열린 질문 비율) ═════ -->
+<div class="modal" id="radarsModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" style="max-width:820px">
+    <div class="modal__head">
+      <h3 class="modal__title">📊 문항 지표</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <p class="field__hint" style="margin:-6px 0 10px;">참고용 지표입니다 · 채운 셀 전체 기준(선별 여부와 무관) · 판단은 선생님의 몫입니다.</p>
+    <div class="radars">
+      <div class="radar-card">
+        <h3>완성도</h3><p>국면·도달기준·선별</p>
+        <svg viewBox="-120 -120 240 240" id="rad-completion" aria-label="완성도 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreCompletion">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>디지털 소양 균형</h3><p>5요소 · 반성/접근/분석/공유/생산</p>
+        <svg viewBox="-120 -120 240 240" id="rad-mail" aria-label="디지털 소양 5요소 균형 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreMail">0</span><span class="radar-card__unit">/100</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>열린 질문 비율</h3><p>왜/어떻게/만약/비교/평가/영향</p>
+        <svg viewBox="-120 -120 240 240" id="rad-open" aria-label="열린 질문 비율 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════ 이론적 배경 팝업 ═════ -->
+<div class="info-pop" id="infoPop">
+  <div class="info-pop__scrim" data-close></div>
+  <div class="info-pop__panel">
+    <h3>ⓘ 이론적 배경</h3>
+    <ul>
+      <li>「질문하는 학교」 — 이화여자대학교 산학협력단 (질문 사이클 4국면)</li>
+      <li>디지털 소양 5요소 — 2022 개정 교육과정 총론</li>
+      <li>KCBC 5요소 — 정혜승 (2022·2024)</li>
+      <li>SOLO 분류법 (Biggs&nbsp;&amp;&nbsp;Collis) · UbD GRASPS</li>
+    </ul>
+    <button class="btn-mini" data-close style="margin-top:12px">닫기</button>
+  </div>
+</div>
+
+<!-- ═════ AI 코치 팝업 ═════ -->
+<button class="coach-fab" id="coachFab" aria-label="AI 코치 열기">💬<span class="coach-fab__badge" id="coachFabBadge"></span></button>
+<aside class="coach-panel" id="coachPanel">
+  <div class="coach-header">
+    <span>💬 AI 코치</span>
+    <button class="coach-header__close" id="coachClose">✕</button>
+  </div>
+  <div class="coach-keyrow" id="coachKeyRow">
+    <input type="password" class="input" id="coachKey" placeholder="Anthropic API 키 (sk-ant-...)" autocomplete="off">
+    <button class="btn-mini" id="coachKeySave">저장</button>
+    <span class="coach-keynote">🔒 브라우저 세션에만 저장 · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">키 발급 ↗</a></span>
+  </div>
+  <div class="coach-chat" id="coachChat">
+    <div class="cmsg cmsg--ai">안녕하세요! 문항 초안에 대해 <b>성취기준 정렬</b>, <b>도달기준 제안</b>, <b>예시 답안 초안</b>을 도와드려요. 매트릭스 셀을 열고 질문을 쓴 뒤 "💬 코치 피드백"을 눌러보세요.</div>
+  </div>
+  <div class="coach-quick" id="coachQuick">
+    <button class="coach-quick-btn" data-ask="align">📐 성취기준 정렬</button>
+    <button class="coach-quick-btn" data-ask="criterion">📋 도달기준 제안</button>
+    <button class="coach-quick-btn" data-ask="sample">✨ 예시 답안 초안</button>
+  </div>
+  <div class="coach-inputrow">
+    <textarea id="coachInput" rows="1" placeholder="자유롭게 질문하세요… (Enter 전송)"></textarea>
+    <button id="coachSend">↑</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═════════ 데이터 ═════════ */
+const PHASES = [
+  { key:'generate', ko:'자유롭게 질문 만들기' },
+  { key:'refine',   ko:'더 나은 질문 만들기' },
+  { key:'inquire',  ko:'질문에 답 찾기' },
+  { key:'reflect',  ko:'성찰과 다음 배움' },
+];
+const LEVELS = [
+  { key:'fact',     ko:'사실 확인' },
+  { key:'link',     ko:'연결·설명' },
+  { key:'transfer', ko:'전이·일반화' },
+];
+const LEVEL_TEMPLATE = {
+  fact:'학습 내용의 개별 사실·요소를 정확히 제시한다',
+  link:'핵심 요소 간 관계를 근거를 들어 설명한다',
+  transfer:'학습한 원리를 새로운 맥락에 적용하여 예측·일반화한다',
+};
+const SELFCHECK_TEMPLATE = {
+  fact:'나는 사실과 요소를 정확히 나타냈다',
+  link:'나는 요소 간의 관계를 까닭을 들어 설명했다',
+  transfer:'나는 배운 원리로 새로운 상황을 예측하거나 적용했다',
+};
+const GHOST = {
+  'generate:fact':'학생이 자료에서 무엇을 있는 그대로 관찰하게 할까요?',
+  'generate:link':'두 요소 사이의 관계를 스스로 궁금해하게 하려면?',
+  'generate:transfer':'이 개념이 다른 상황과 어떻게 이어질지 상상하게 하려면?',
+  'refine:fact':"학생의 '무엇인가' 질문을 더 구체적으로 다듬는다면?",
+  'refine:link':'질문에 개념 렌즈를 어떻게 끼우게 할까요?',
+  'refine:transfer':'질문을 더 넓은 맥락으로 확장한다면 어떻게 물을까요?',
+  'inquire:fact':'이 사실을 확인하려면 학생이 어떤 자료를 봐야 할까요?',
+  'inquire:link':'근거를 들어 관계를 설명하게 하려면 어떤 질문이 좋을까요?',
+  'inquire:transfer':'배운 원리로 새 상황을 예측하게 하려면?',
+  'reflect:fact':'무엇을 새로 알게 됐는지 확인하는 질문은?',
+  'reflect:link':'질문이 처음과 어떻게 달라졌는지 돌아보게 하려면?',
+  'reflect:transfer':'오늘 배운 걸 다음에 어떻게 쓸지 묻는다면?',
+};
+function gradeBand(g){ return (g==='3학년'||g==='4학년') ? 'g34' : 'g56'; }
+const ACHIEVEMENTS = {
+  g34: {
+    '국어': [
+      { code:'4국01-04', desc:'상대의 말을 요약하며 듣고 자신의 의견을 조리 있게 말한다.' },
+      { code:'4국02-03', desc:'글에서 낱말의 의미나 생략된 내용을 짐작한다.' },
+      { code:'4국03-02', desc:'중심 문장과 뒷받침 문장을 갖추어 문단을 쓴다.' },
+      { code:'4국05-03', desc:'인물의 마음이나 생각을 짐작하고 이를 자신과 비교하며 작품을 감상한다.' },
+    ],
+    '사회': [
+      { code:'4사03-01', desc:'우리 고장의 지리적 특성을 조사하고, 이것이 주민 생활에 미치는 영향을 파악한다.' },
+      { code:'4사04-04', desc:'옛사람들의 생활 도구나 주거 형태 등의 변화상을 알아본다.' },
+      { code:'4사06-01', desc:'우리 사회의 다양한 문화 현상을 조사·비교하고, 문화 다양성 존중의 태도를 갖는다.' },
+    ],
+    '과학': [
+      { code:'4과01-01', desc:'물체를 이루는 물질을 알아보기 위한 관찰·실험을 수행할 수 있다.' },
+      { code:'4과02-02', desc:'식물의 생김새와 특징을 비교하여 여러 가지 방법으로 분류할 수 있다.' },
+      { code:'4과14-01', desc:'물의 상태 변화를 관찰하고 상태 변화 과정에서의 에너지 출입을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'4수01-05', desc:'곱셈과 나눗셈의 관계를 이해하고 활용하여 문제를 해결한다.' },
+      { code:'4수02-06', desc:'분수의 덧셈과 뺄셈의 계산 원리를 이해하고 계산할 수 있다.' },
+      { code:'4수03-11', desc:'수직·평행 관계를 이해하고 이를 활용하여 도형을 설명한다.' },
+    ],
+    '영어': [
+      { code:'4영01-03', desc:'낱말이나 어구, 문장을 듣고 정확하게 따라 말한다.' },
+      { code:'4영02-05', desc:'그림이나 실물, 동작에 관한 쉬운 낱말과 표현을 듣고 이해한다.' },
+      { code:'4영04-02', desc:'주변의 사물이나 사람에 대해 쉽고 간단한 문장을 쓴다.' },
+    ],
+  },
+  g56: {
+    '국어': [
+      { code:'6국01-04', desc:'자료를 정리하여 말할 내용을 체계적으로 구성한다.' },
+      { code:'6국02-04', desc:'글을 읽고 내용의 타당성과 표현의 적절성을 판단한다.' },
+      { code:'6국03-04', desc:'적절한 근거와 알맞은 표현을 사용하여 주장하는 글을 쓴다.' },
+      { code:'6국05-05', desc:'작품에 대한 이해와 감상을 바탕으로 다른 사람과 의견을 나눈다.' },
+    ],
+    '사회': [
+      { code:'6사01-01', desc:'우리나라의 위치와 영역을 지도에서 찾고, 그 특징을 설명한다.' },
+      { code:'6사04-02', desc:'조선 후기의 사회·문화 변화상을 시대적 배경 속에서 파악한다.' },
+      { code:'6사07-04', desc:'우리 경제 체제의 특징을 시장 원리와 관련지어 설명한다.' },
+    ],
+    '과학': [
+      { code:'6과03-01', desc:'우리 몸의 각 기관이 어떻게 관련되어 있는지 조사하여 발표할 수 있다.' },
+      { code:'6과11-02', desc:'전지와 전구, 전선을 연결하여 전구에 불이 켜지는 조건을 설명할 수 있다.' },
+      { code:'6과16-02', desc:'지구와 달의 크기, 자전과 공전의 특징을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'6수02-06', desc:'원의 지름과 반지름, 원주율의 관계를 이해하고 원의 둘레와 넓이를 구할 수 있다.' },
+      { code:'6수03-04', desc:'비와 비율의 개념을 이해하고 이를 실생활 문제 해결에 활용한다.' },
+      { code:'6수04-03', desc:'평균의 의미를 알고, 자료의 평균을 구할 수 있다.' },
+    ],
+    '영어': [
+      { code:'6영01-04', desc:'대상이나 상황에 대한 간단한 설명을 듣고 세부 정보를 이해한다.' },
+      { code:'6영02-06', desc:'일상생활에 관한 자신의 의견이나 감정을 간단히 표현한다.' },
+      { code:'6영04-04', desc:'자신이나 주변 사람, 일상생활을 쉬운 문장으로 쓴다.' },
+    ],
+  },
+};
+const TECHS = [
+  { id:'socratic', ko:'소크라테스 질문법', emoji:'💬', phases:['refine','reflect'],
+    seed:'친구의 주장에 대해 (1)명료화 (2)근거 확인 (3)대안 관점 (4)함의 (5)메타 질문 중 3개 이상 물어보세요.' },
+  { id:'why-5', ko:'왜냐고 5번 묻기', emoji:'❓', phases:['refine','inquire'],
+    seed:'첫 질문에 답한 뒤 그 답에 다시 "왜?"를 5번 이어 물어, 표면적 답 뒤의 근본 원인·개념을 드러내 보세요.' },
+  { id:'concept-lens', ko:'개념 렌즈 바꾸기', emoji:'🔍', phases:['refine','inquire'],
+    seed:'같은 자료를 "원인·결과", "부분·전체", "변화·안정" 렌즈로 각각 다시 보고 질문을 하나씩 만들어 보세요.' },
+  { id:'6-hats', ko:'여섯 색깔 모자', emoji:'🎩', phases:['refine'],
+    seed:'같은 질문을 사실(흰)·감정(빨)·비판(검)·긍정(노)·창의(초)·관리(파) 관점으로 각각 재작성해 봅시다.' },
+  { id:'kwl', ko:'K-W-L 차트', emoji:'📊', phases:['reflect'],
+    seed:'수업 전에는 "아는 것(K)/궁금한 것(W)"을 채우고, 수업 후에는 "새로 배운 것(L)/더 알고 싶은 새 질문"을 추가해 보세요.' },
+  { id:'lateral', ko:'수평적 읽기', emoji:'🌐', phases:['inquire','refine'],
+    seed:'같은 사건을 다룬 자료 2~3개를 나란히 놓고, 공통점·차이점·의문점을 각각 3개씩 뽑아 보세요.' },
+  { id:'first-letter', ko:'질문 첫 글자 뽑기', emoji:'🎲', phases:['generate'],
+    seed:'자료에서 핵심 단어를 한 글자씩 뽑아, 그 글자로 시작하는 질문을 5개 이상 만들어 보세요.' },
+  { id:'observe-loop', ko:'관찰-질문-관찰 순환', emoji:'🔄', phases:['inquire'],
+    seed:'첫 관찰 → 떠오른 질문 기록 → 그 질문을 확인하려 다시 관찰 → 새 질문 만들기 순환을 세 번 반복해 보세요.' },
+  { id:'meta-log', ko:'질문 성찰 로그', emoji:'📝', phases:['reflect'],
+    seed:'오늘 내가 만든 질문 3개를 (1)명료성 (2)답을 여는 개방성 (3)다른 상황 전이 가능성 3점 척도로 스스로 평가해 봅시다.' },
+];
+const VERB_RE = /(이해한다|설명(할 수 있다|한다)|비교(한다|할 수 있다)|분류(한다|할 수 있다)|조사(한다|하고)|파악한다|분석(한다|할 수 있다)|표현(한다|할 수 있다)|적용(한다|할 수 있다)|평가(한다|할 수 있다)|활용(한다|하여)|말한다|쓴다|갖는다|해결한다|관찰(하여|하고)|수행할 수 있다|구성한다|판단한다|감상(하며|한다)|나눈다|알아본다|기른다)/;
+function suggestPhase(text){
+  if(/비교|평가|판단|타당/.test(text)) return 'refine';
+  if(/적용|전이|예측|해결/.test(text)) return 'reflect';
+  if(/설명|이해|파악|분석|조사/.test(text)) return 'inquire';
+  return null;
+}
+
+/* CBI 핵심 개념어(Erickson & Lanning 매크로 개념 + KCBC 초등 교과 빈출어) — 개념 전이의 앵커 */
+const CONCEPT_DICTIONARY = [
+  '변화','발전','다양성','상호작용','관계','영향','갈등','협력','균형','순환','구조','기능',
+  '원인','결과','시스템','연결','적응','성장','정체성','공동체','책임','권리','지속가능성',
+  '관점','가치','전통','문화','환경','공존','평등','정의','참여','이동','소통','창조','혁신',
+  '패턴','형태','에너지','자원','분배','연속성','차이','유사성','시간','공간','위치','규칙',
+  '질서','권력','자유','안전','보호','존중','배려','소속감','성찰','도전','문제해결','창의성',
+  '상상력','표현','선택','증거','근거',
+];
+function extractConcept(text){
+  if(!text || !text.trim()) return null;
+  let best = null, bestIdx = Infinity;
+  CONCEPT_DICTIONARY.forEach(word => {
+    const idx = text.indexOf(word);
+    if(idx !== -1 && idx < bestIdx){ best = word; bestIdx = idx; }
+  });
+  return best;
+}
+function updateConceptBadge(){
+  const badge = $('#conceptBadge');
+  const text = state.unitQuestion.trim();
+  if(!text){
+    badge.textContent = '개념어: —'; badge.className = 'concept-badge is-empty'; return;
+  }
+  const c = extractConcept(text);
+  if(c){ badge.textContent = `개념어: ${c}`; badge.className = 'concept-badge'; }
+  else { badge.textContent = '개념어: 인식 안 됨'; badge.className = 'concept-badge is-none'; }
+}
+
+/* ═════════ 상태 ═════════ */
+const STORAGE_KEY = 'kcbc-v3:draft';
+const AI_KEY_STORAGE = 'kcbc-v3:ai-key';
+const AI_MODEL = 'claude-sonnet-5';
+const state = {
+  grade:'4학년', subject:'사회', title:'', unitQuestion:'', scenario:'',
+  achievements:[], standardCustom:'',
+  items:{}, // "phase:level" -> {question,included,score,starter,answerType,kr:[],image:{data,alt},seedApplied}
+  levelExamples:{ fact:'', link:'', transfer:'' },
+  levelExampleDirty:{ fact:false, link:false, transfer:false },
+  activeCell:null,
+};
+let chatHistory = [];
+let techFilter = 'all';
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const cellKey = (p,l) => `${p}:${l}`;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('is-on');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('is-on'), 2400);
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  $('#saveInd').textContent = '● 자동 저장됨';
+}
+function restore(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    Object.assign(state, s, { activeCell:null });
+  }catch(e){}
+}
+
+/* ═════════ 탭 전환 ═════════ */
+$$('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+function switchTab(tab){
+  $$('.tab-btn').forEach(b => b.classList.toggle('is-on', b.dataset.tab===tab));
+  $$('.panel').forEach(p => p.classList.toggle('is-on', p.id === 'panel-'+tab));
+  if(tab === 'done') renderDone();
+}
+$('#btnHome').addEventListener('click', () => {
+  switchTab('setup');
+  window.scrollTo({ top:0, behavior:'smooth' });
+});
+
+/* ═════════ 더보기 메뉴 ═════════ */
+$('#moreBtn').addEventListener('click', () => {
+  const open = !$('#morePop').classList.contains('is-open');
+  $('#morePop').classList.toggle('is-open', open);
+  $('#moreBtn').setAttribute('aria-expanded', open?'true':'false');
+});
+document.addEventListener('click', e => {
+  const pop = $('#morePop'), btn = $('#moreBtn');
+  if(pop.classList.contains('is-open') && !pop.contains(e.target) && e.target!==btn) pop.classList.remove('is-open');
+});
+$('#btnInfo').addEventListener('click', () => $('#infoPop').classList.add('is-on'));
+$$('[data-close]').forEach(el => el.addEventListener('click', (e) => {
+  e.target.closest('.modal,.info-pop').classList.remove('is-on');
+}));
+
+/* ═════════ 단원 정보 ═════════ */
+function currentAchievements(){ return ACHIEVEMENTS[gradeBand(state.grade)]?.[state.subject] ?? []; }
+function renderAchievements(){
+  const list = $('#achList');
+  const items = currentAchievements();
+  list.innerHTML = items.map(a => {
+    const on = state.achievements.includes(a.code);
+    return `<label class="ach-item"><input type="checkbox" data-code="${a.code}" ${on?'checked':''}>
+      <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}</span></label>`;
+  }).join('') || `<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">준비 중인 학년·과목입니다. 아래에 직접 입력해 주세요.</div>`;
+  list.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+    const c = cb.dataset.code;
+    if(cb.checked){ if(!state.achievements.includes(c)) state.achievements.push(c); }
+    else state.achievements = state.achievements.filter(x=>x!==c);
+    updatePhaseHint();
+    $('#achCount').textContent = state.achievements.length;
+    save();
+  }));
+  $('#achCount').textContent = state.achievements.length;
+  updatePhaseHint();
+}
+function standardText(){
+  const picked = state.achievements.map(c => {
+    const a = currentAchievements().find(x=>x.code===c);
+    return a ? `[${a.code}] ${a.desc}` : c;
+  });
+  const custom = state.standardCustom.trim();
+  if(custom) picked.push(custom);
+  return picked.join('\n');
+}
+function updatePhaseHint(){
+  const el = $('#phaseHint');
+  const text = standardText();
+  const p = text ? suggestPhase(text) : null;
+  if(p){
+    const ph = PHASES.find(x=>x.key===p);
+    el.textContent = `💡 이 성취기준은 보통 '${ph.ko}' 국면과 잘 어울려요 (참고용 — 선택은 선생님 몫입니다)`;
+    el.classList.add('is-on');
+  } else {
+    el.classList.remove('is-on');
+  }
+}
+function checkVerb(){
+  const flag = $('#verbFlag'); const t = state.standardCustom.trim();
+  if(!t){ flag.classList.remove('is-on'); return; }
+  if(VERB_RE.test(t)){ flag.className = 'verb-flag verb-flag--ok is-on'; flag.textContent = '✓ 행동 동사가 포함되어 있습니다.'; }
+  else { flag.className = 'verb-flag is-on'; flag.textContent = '⚠ 행동 동사(이해한다·설명할 수 있다 등)가 보이지 않습니다.'; }
+}
+$('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); save(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); save(); });
+$('#title').addEventListener('input', e => { state.title = e.target.value; save(); });
+$('#unitQuestion').addEventListener('input', e => { state.unitQuestion = e.target.value; updateConceptBadge(); save(); });
+$('#scenario').addEventListener('input', e => { state.scenario = e.target.value; save(); });
+$('#standardCustom').addEventListener('input', e => { state.standardCustom = e.target.value; checkVerb(); updatePhaseHint(); save(); });
+
+/* ═════════ 매트릭스 = 질문 보드 ═════════ */
+function renderBoard(){
+  const wrap = $('#board'); wrap.innerHTML = '';
+  wrap.insertAdjacentHTML('beforeend', '<div class="board__corner"></div>');
+  PHASES.forEach(P => wrap.insertAdjacentHTML('beforeend', `<div class="board__col-head">${P.ko}<span class="arrow">→</span></div>`));
+  LEVELS.forEach(L => {
+    wrap.insertAdjacentHTML('beforeend', `<div class="board__row-head">${L.ko}</div>`);
+    PHASES.forEach(P => {
+      const key = cellKey(P.key, L.key);
+      const it = state.items[key];
+      const filled = it && it.question && it.question.trim();
+      const active = state.activeCell === key;
+      const div = document.createElement('div');
+      div.className = `board-cell ${filled?'is-filled':''} ${active?'is-active':''}`;
+      div.dataset.phase = P.key; div.dataset.level = L.key;
+      div.innerHTML = filled
+        ? `<div class="board-cell__q">${esc(it.question.slice(0,90))}${it.question.length>90?'…':''}</div>
+           <div class="board-cell__chips">
+             ${it.seedApplied ? '<span class="chip-mini chip-mini--seed">예시 — 다듬어주세요</span>' : ''}
+             ${it.image ? '<span class="chip-mini">📎 이미지</span>' : ''}
+           </div>
+           ${it.included ? '<div class="stamp">평가<br>문항</div>' : ''}`
+        : `<div class="board-cell__ghost">${GHOST[key]}</div>`;
+      div.addEventListener('click', () => openCellModal(P.key, L.key));
+      wrap.appendChild(div);
+    });
+  });
+  updateDoneBadge();
+}
+function updateDoneBadge(){
+  const n = Object.values(state.items).filter(x=>x.included && x.question && x.question.trim()).length;
+  const badge = $('#doneBadge');
+  badge.textContent = n;
+  badge.classList.toggle('is-zero', n===0);
+}
+
+/* ═════════ 셀 편집 모달 ═════════ */
+function openCellModal(phase, level){
+  state.activeCell = cellKey(phase, level);
+  const P = PHASES.find(x=>x.key===phase), L = LEVELS.find(x=>x.key===level);
+  $('#cellModalTitle').textContent = `✎ ${P.ko} × ${L.ko}`;
+  const it = state.items[state.activeCell] || { question:'', included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null };
+  $('#cellQuestion').value = it.question || '';
+  $('#cellQuestion').placeholder = GHOST[state.activeCell];
+  $('#cellInclude').checked = !!it.included;
+  $('#cellScore').value = it.score || '';
+  $('#cellStarter').value = it.starter || '';
+  document.querySelector(`input[name="answerType"][value="${it.answerType||'write'}"]`).checked = true;
+  $$('#krChips .chip').forEach(c => c.classList.toggle('is-on', it.kr && it.kr.includes(c.dataset.kr)));
+  $('#cellCompetency').value = it.competency || '';
+  setImagePreview(it.image);
+  $('#cellModal').classList.add('is-on');
+  renderBoard();
+}
+function currentItem(){
+  return state.items[state.activeCell] || { question:'', included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null, seedApplied:false };
+}
+function saveCell(){
+  if(!state.activeCell) return;
+  const q = $('#cellQuestion').value;
+  const inc = $('#cellInclude').checked;
+  const sc = $('#cellScore').value;
+  const st = $('#cellStarter').value;
+  const at = document.querySelector('input[name="answerType"]:checked').value;
+  const kr = $$('#krChips .chip.is-on').map(c=>c.dataset.kr);
+  const comp = $('#cellCompetency').value;
+  const prevImage = currentItem().image;
+  if(!q.trim() && !inc && !sc.trim() && !st.trim() && kr.length===0 && !comp && !prevImage){
+    delete state.items[state.activeCell];
+  } else {
+    state.items[state.activeCell] = { ...currentItem(), question:q, included:inc, score:sc, starter:st, answerType:at, kr, competency:comp, image:prevImage };
+  }
+  renderBoard();
+  save();
+}
+['#cellQuestion','#cellScore','#cellStarter','#cellInclude'].forEach(sel => {
+  $(sel).addEventListener('input', () => { markEdited(); saveCell(); });
+  $(sel).addEventListener('change', saveCell);
+});
+function markEdited(){
+  if(!state.activeCell) return;
+  const it = state.items[state.activeCell];
+  if(it) it.seedApplied = false;
+}
+$$('input[name="answerType"]').forEach(r => r.addEventListener('change', saveCell));
+$('#cellCompetency').addEventListener('change', saveCell);
+$('#krChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  chip.classList.toggle('is-on'); saveCell();
+});
+$$('#cellModal [data-close]').forEach(el => el.addEventListener('click', () => { state.activeCell=null; renderBoard(); }));
+
+/* 이미지 첨부 */
+function setImagePreview(image){
+  const prev = $('#imgPreview'), alt = $('#imgAlt'), rm = $('#imgRemove');
+  if(image && image.data){
+    prev.src = image.data; prev.classList.remove('hidden');
+    alt.value = image.alt || ''; alt.classList.remove('hidden');
+    rm.classList.remove('hidden');
+  } else {
+    prev.classList.add('hidden'); prev.src='';
+    alt.value=''; alt.classList.add('hidden');
+    rm.classList.add('hidden');
+  }
+}
+$('#imgDrop').addEventListener('click', () => $('#imgInput').click());
+$('#imgInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  if(f.size > 800*1024){ toast('⚠ 이미지가 너무 큽니다 (500KB 권장). 압축 후 다시 시도해 주세요'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const it = currentItem();
+    it.image = { data: reader.result, alt:'' };
+    state.items[state.activeCell] = it;
+    setImagePreview(it.image);
+    save();
+    toast('📎 이미지 첨부 완료 — 대체 텍스트를 입력해 주세요');
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+$('#imgAlt').addEventListener('input', e => {
+  const it = currentItem();
+  if(it.image) it.image.alt = e.target.value;
+  state.items[state.activeCell] = it;
+  save();
+});
+$('#imgRemove').addEventListener('click', () => {
+  const it = currentItem(); it.image = null;
+  state.items[state.activeCell] = it;
+  setImagePreview(null); saveCell();
+});
+
+/* ═════════ 기법(예시 문구) 라이브러리 ═════════ */
+function openTechModal(){
+  $('#techModal').classList.add('is-on');
+  renderTechFilter(); renderTechList();
+}
+function renderTechFilter(){
+  const wrap = $('#techFilter'); wrap.innerHTML = '';
+  const cats = [{key:'all',ko:'전체'}, ...PHASES.map(p=>({key:p.key,ko:p.ko}))];
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (techFilter===c.key?' is-on':'');
+    btn.textContent = c.ko;
+    btn.addEventListener('click', () => { techFilter=c.key; renderTechFilter(); renderTechList(); });
+    wrap.appendChild(btn);
+  });
+}
+function renderTechList(){
+  const wrap = $('#techList'); wrap.innerHTML = '';
+  const list = TECHS.filter(t => techFilter==='all' || t.phases.includes(techFilter));
+  list.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tech-card';
+    card.innerHTML = `<div class="tech-card__head"><span>${t.emoji}</span><h4 class="tech-card__ko">${t.ko}</h4></div>
+      <div class="tech-card__seed">"${esc(t.seed)}"</div>`;
+    card.addEventListener('click', () => {
+      $('#cellQuestion').value = t.seed;
+      const it = currentItem(); it.seedApplied = true;
+      state.items[state.activeCell] = { ...it, question:t.seed };
+      saveCell();
+      $('#techModal').classList.remove('is-on');
+      toast(`✓ 「${t.ko}」 예시를 넣었습니다 — 학급 맥락에 맞게 다듬어 주세요`);
+    });
+    wrap.appendChild(card);
+  });
+}
+$('#btnOpenTech').addEventListener('click', openTechModal);
+
+/* ═════════ 지표 (완성도 · 디지털 소양 균형 · 열린 질문 비율) — 버튼을 눌러야만 표시 ═════════ */
+const MAIL = [
+  { key:'ethics',      ko:'반성·성찰' },
+  { key:'access',      ko:'접근·선택' },
+  { key:'analyze',     ko:'이해·분석·평가' },
+  { key:'participate', ko:'공유·참여' },
+  { key:'create',      ko:'의사소통·생산' },
+];
+const OPEN_RE = /(왜|어떻게|어떤|어디|만약|어떨까|생각|판단|비교|평가|대안|이유|영향|연결|관점)/;
+function allFilledItems(){
+  return Object.entries(state.items)
+    .filter(([,v]) => v.question && v.question.trim())
+    .map(([k,v]) => { const [phase,level]=k.split(':'); return { ...v, phase, level }; });
+}
+function hexPoints(r){
+  const pts = [];
+  for(let i=0;i<6;i++){ const a=-Math.PI/2+i*(Math.PI/3); pts.push(`${(r*Math.cos(a)).toFixed(1)},${(r*Math.sin(a)).toFixed(1)}`); }
+  return pts.join(' ');
+}
+function axisXY(r,i,N){ const a=-Math.PI/2+i*(2*Math.PI/N); return [r*Math.cos(a), r*Math.sin(a)]; }
+function drawHexRadar(svgId, axisLabels, values, color){
+  const svg = document.getElementById(svgId); if(!svg) return;
+  const R=90, rings=4, N=6;
+  let out='';
+  for(let r=1;r<=rings;r++){ out += `<polygon points="${hexPoints(R*r/rings)}" fill="none" stroke="#e6e8f0" stroke-width="1"/>`; }
+  for(let i=0;i<N;i++){ const [x,y]=axisXY(R,i,N); out += `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e6e8f0" stroke-width="1"/>`; }
+  const pts=[];
+  for(let i=0;i<N;i++){ const v=values[i]??0; const [x,y]=axisXY(R*Math.max(0.02,Math.min(1,v)),i,N); pts.push(`${x.toFixed(1)},${y.toFixed(1)}`); }
+  out += `<polygon points="${pts.join(' ')}" fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="2"/>`;
+  for(let i=0;i<N;i++){ const v=values[i]??0; const [x,y]=axisXY(R*Math.max(0.02,Math.min(1,v)),i,N); out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`; }
+  for(let i=0;i<N;i++){ const [x,y]=axisXY(R+18,i,N); out += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#8c93a8" font-weight="600">${axisLabels[i]??''}</text>`; }
+  svg.innerHTML = out;
+}
+function renderRadars(){
+  const items = allFilledItems();
+  const PH = PHASES.map(p=>p.key);
+  const stageFill = {}; PH.forEach(k => stageFill[k] = items.filter(x=>x.phase===k).length/3);
+  const scoreRate = items.length ? items.filter(x=>x.score&&x.score.trim()).length/items.length : 0;
+  const selectRate = items.length ? items.filter(x=>x.included).length/items.length : 0;
+  const compValues = [stageFill.generate, stageFill.refine, stageFill.inquire, stageFill.reflect, scoreRate, selectRate];
+  drawHexRadar('rad-completion', ['생성','정교화','탐구','성찰','도달기준','선별'], compValues, '#3a57e8');
+  $('#scoreCompletion').textContent = Math.round(compValues.reduce((a,b)=>a+b,0)/6*100);
+
+  const mailCount = { ethics:0, access:0, analyze:0, participate:0, create:0 };
+  items.forEach(x => { if(x.competency) mailCount[x.competency]++; });
+  const maxU = Math.max(1, ...Object.values(mailCount));
+  const mailVals = MAIL.map(m => mailCount[m.key]/maxU);
+  const usedM = Object.values(mailCount).filter(c=>c>0).length;
+  mailVals.push(usedM/5);
+  drawHexRadar('rad-mail', ['성찰','접근','분석','참여','생산','커버'], mailVals, '#7048e8');
+  const counts = Object.values(mailCount);
+  const mean = counts.reduce((a,b)=>a+b,0)/5;
+  const variance = counts.reduce((s,c)=>s+(c-mean)*(c-mean),0)/5;
+  const evenness = mean===0 ? 0 : Math.max(0, 1-Math.sqrt(variance)/mean);
+  $('#scoreMail').textContent = Math.round((usedM/5)*60 + evenness*40);
+
+  const KWS = [ {key:'왜',re:/왜/}, {key:'어떻게',re:/어떻게/}, {key:'만약',re:/만약|어떨/}, {key:'비교',re:/비교|차이|공통/}, {key:'평가',re:/평가|판단|타당/}, {key:'영향',re:/영향|결과|바뀌/} ];
+  const n = items.length || 1;
+  const openVals = KWS.map(k => items.filter(x=>k.re.test(x.question)).length/n);
+  drawHexRadar('rad-open', KWS.map(k=>k.key), openVals, '#2ea66c');
+  const openCount = items.filter(x=>OPEN_RE.test(x.question)).length;
+  $('#scoreOpen').textContent = items.length ? Math.round(openCount/items.length*100) : 0;
+}
+$('#btnRadars').addEventListener('click', () => {
+  renderRadars();
+  $('#radarsModal').classList.add('is-on');
+});
+
+/* ═════════ 완성 탭 ═════════ */
+function selectedItems(){
+  const LV = LEVELS.map(l=>l.key), PH = PHASES.map(p=>p.key);
+  return Object.entries(state.items)
+    .filter(([,v]) => v.included && v.question && v.question.trim())
+    .map(([k,v]) => { const [phase,level]=k.split(':'); return { ...v, phase, level }; })
+    .sort((a,b) => (LV.indexOf(a.level)-LV.indexOf(b.level)) || (PH.indexOf(a.phase)-PH.indexOf(b.phase)));
+}
+function renderDone(){
+  const sel = selectedItems();
+  const total = PHASES.length * LEVELS.length;
+  const summary = $('#selectSummary');
+  if(sel.length === 0){
+    summary.innerHTML = `<div class="select-summary__main">아직 선별된 문항이 없습니다.</div>
+      <div class="select-summary__dist">🧩 매트릭스에서 질문을 쓰고 "평가문항으로 뽑기"를 체크해 주세요.</div>`;
+  } else {
+    const phaseCount = {}, levelCount = {};
+    sel.forEach(it => { phaseCount[it.phase]=(phaseCount[it.phase]||0)+1; levelCount[it.level]=(levelCount[it.level]||0)+1; });
+    const phaseChips = PHASES.filter(p=>phaseCount[p.key]).map(p=>`<span class="dist-chip">${p.ko} ${phaseCount[p.key]}</span>`).join('');
+    const levelChips = LEVELS.filter(l=>levelCount[l.key]).map(l=>`<span class="dist-chip">${l.ko} ${levelCount[l.key]}</span>`).join('');
+    summary.innerHTML = `<div class="select-summary__main">매트릭스 ${total}칸 중 <b>${sel.length}개</b> 셀을 평가문항으로 선별했습니다</div>
+      <div class="select-summary__dist">국면 ${phaseChips} &nbsp;|&nbsp; 수준 ${levelChips}</div>`;
+  }
+  updateDoneBadge();
+}
+$('#exportDdBtn').addEventListener('click', () => $('#exportDdMenu').classList.toggle('is-open'));
+document.addEventListener('click', e => {
+  const menu = $('#exportDdMenu'), btn = $('#exportDdBtn');
+  if(menu.classList.contains('is-open') && !menu.contains(e.target) && e.target!==btn) menu.classList.remove('is-open');
+});
+
+/* ═════════ 평가지 렌더링 (목표 시험지 서식) ═════════ */
+function lineCountFor(level){ return level==='fact' ? 2 : level==='link' ? 3 : 4; }
+function renderWorksheet(){
+  const sel = selectedItems();
+  if(sel.length === 0){ toast('⚠ 평가문항으로 뽑힌 셀이 없습니다 — 매트릭스에서 먼저 선별해 주세요'); return; }
+
+  const subject = esc(state.subject);
+  const grade = esc(state.grade);
+  const unitName = esc(state.title || '(단원명 미입력)');
+  const std = standardText();
+  const scenario = state.scenario.trim();
+
+  const qHtml = sel.map((it, i) => {
+    const img = it.image && it.image.data ? `<img class="ws-img" src="${it.image.data}" alt="${esc(it.image.alt||'')}">` : '';
+    const starter = it.starter ? `<p class="ws-starter" contenteditable="true">${esc(it.starter)}</p>` : '';
+    const draw = it.answerType === 'draw' ? `<div class="ws-drawbox">(그림으로 나타내는 곳)</div>` : '';
+    const lines = Array.from({length:lineCountFor(it.level)}).map(()=>'<i></i>').join('');
+    return `<div class="ws-q" data-idx="${i}">
+      <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
+      ${img}${starter}${draw}
+      <div class="ws-lines">${lines}</div>
+    </div>`;
+  }).join('');
+
+  const selfCheckRows = sel.map(it => {
+    const txt = SELFCHECK_TEMPLATE[it.level];
+    return `<tr><td contenteditable="true">${txt}</td><td class="c">□</td><td class="c"></td></tr>`;
+  }).join('');
+
+  const mapRows = sel.map((it,i) => {
+    const P = PHASES.find(p=>p.key===it.phase), L = LEVELS.find(l=>l.key===it.level);
+    const criterion = it.score && it.score.trim() ? it.score : LEVEL_TEMPLATE[it.level];
+    const isDefault = !(it.score && it.score.trim());
+    return `<tr><td style="text-align:center">${i+1}</td><td>${P.ko}</td><td>${L.ko}</td>
+      <td contenteditable="true" data-idx="${i}" class="crit-cell">${esc(criterion)}${isDefault?'<span class="ws-warn-badge">AI 기본값</span>':''}</td></tr>`;
+  }).join('');
+
+  const presentLevels = LEVELS.filter(l => sel.some(it=>it.level===l.key));
+  const exRows = presentLevels.map(L => {
+    const txt = state.levelExamples[L.key];
+    const dirty = state.levelExampleDirty[L.key];
+    return `<tr><td style="white-space:nowrap">${L.ko}</td>
+      <td contenteditable="true" data-level="${L.key}" class="ex-cell">${esc(txt || '(예시 답안 초안을 적어주세요 — 우측 하단 💬 코치의 "예시 답안 초안"으로 도움받을 수 있어요)')}${!dirty&&txt?'<span class="ws-warn-badge">AI 초안</span>':''}</td></tr>`;
+  }).join('');
+
+  $('#wsBody').innerHTML = `
+    <div class="ws-page">
+      <h1 class="ws-h1">${subject}과 수행평가지</h1>
+      <div class="ws-name">${grade} &nbsp;&nbsp;반 &nbsp;&nbsp;번 &nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+      <table class="ws-head">
+        <tr><th>단원명</th><td contenteditable="true">${unitName}</td><th>차시</th><td class="date" style="width:70px">&nbsp;/&nbsp;</td><th>평가일</th><td class="date" style="width:130px">년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일</td></tr>
+        <tr><th>과제명</th><td colspan="3" contenteditable="true">${esc(state.unitQuestion || unitName)}</td><th>평가자</th><td class="date">(인)</td></tr>
+      </table>
+      <div class="ws-sec-title">활 동 과 제</div>
+      <div class="ws-body-box">
+        ${scenario ? `<p class="ws-scenario" contenteditable="true">※ ${esc(scenario)}</p>` : ''}
+        ${qHtml}
+        <div class="ws-q">
+          <p class="ws-q-title">${sel.length+1}. 나의 도달 확인</p>
+          <table class="ws-rubric"><tr><th>나는…</th><th>스스로 확인</th><th>선생님 확인</th></tr>${selfCheckRows}</table>
+        </div>
+      </div>
+      <p class="ws-pagenum">- 1 -</p>
+    </div>
+
+    <div class="ws-page ws-teacher">
+      <h1 class="ws-h1">교사용 채점 기준</h1>
+      <div class="ws-tsec"><h3>1. 성취기준</h3><p contenteditable="true">${std ? esc(std).replace(/\n/g,'<br>') : '(미입력)'}</p></div>
+      <div class="ws-tsec"><h3>2. 문항별 평가 요소</h3>
+        <table class="ws-map"><tr><th>문항</th><th>질문 사이클 국면</th><th>수준</th><th>도달 판단 기준</th></tr>${mapRows}</table>
+      </div>
+      <div class="ws-tsec"><h3>3. 수준별 예시 답안</h3>
+        <div class="ws-warn">※ 아래 예시 답안은 AI 초안임. 교사 수정 전에는 채점에 사용하지 말 것. 수정 후 본 문구를 삭제하고 사용.</div>
+        <table class="ws-map"><tr><th>수준</th><th>예시 응답의 특징</th></tr>${exRows}</table>
+      </div>
+      <div class="ws-tsec"><h3>4. 피드백 기록</h3><div class="ws-fb"><i></i><i></i><i></i><i></i></div></div>
+      <p class="ws-pagenum">- 2 -</p>
+    </div>
+  `;
+
+  $('#wsWrap').classList.remove('hidden');
+  bindWorksheetEdits();
+  setTimeout(()=>$('#wsWrap').scrollIntoView({behavior:'smooth',block:'start'}), 60);
+}
+function bindWorksheetEdits(){
+  $$('.crit-cell').forEach(td => td.addEventListener('input', () => {
+    const idx = +td.dataset.idx;
+    const sel = selectedItems();
+    const it = sel[idx];
+    if(!it) return;
+    const raw = td.textContent.replace('AI 기본값','').trim();
+    state.items[cellKey(it.phase, it.level)].score = raw;
+    td.querySelector('.ws-warn-badge')?.remove();
+    save();
+  }));
+  $$('.ex-cell').forEach(td => td.addEventListener('input', () => {
+    const level = td.dataset.level;
+    state.levelExamples[level] = td.textContent.replace('AI 초안','').trim();
+    state.levelExampleDirty[level] = true;
+    td.querySelector('.ws-warn-badge')?.remove();
+    save();
+  }));
+}
+$('#btnShowWs').addEventListener('click', renderWorksheet);
+
+/* ═════════ 평가지 그림판 도구 (이미지 삽입 · 펜 그리기) ═════════ */
+function insertImageAtSelection(imgEl){
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const range = sel.getRangeAt(0);
+    const node = range.commonAncestorContainer;
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    if(el && el.closest('#wsBody .ws-page')){
+      range.insertNode(imgEl);
+      return true;
+    }
+  }
+  return false;
+}
+$('#wsAddImage').addEventListener('click', () => {
+  if($('#wsWrap').classList.contains('hidden')){ toast('⚠ 먼저 평가지를 보기로 열어주세요'); return; }
+  $('#wsImgInput').click();
+});
+$('#wsImgInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = document.createElement('img');
+    img.src = reader.result;
+    img.className = 'ws-img';
+    img.style.margin = '12px auto';
+    if(!insertImageAtSelection(img)){
+      const box = document.querySelector('#wsBody .ws-page .ws-body-box');
+      if(box) box.appendChild(img);
+    }
+    toast('🖼 이미지를 추가했습니다');
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+
+let wsPenOn = false;
+function ensureWsCanvases(){
+  return $$('#wsBody .ws-page').map(page => {
+    let c = page.querySelector('.ws-draw-canvas');
+    if(!c){
+      c = document.createElement('canvas');
+      c.className = 'ws-draw-canvas';
+      c.width = page.clientWidth; c.height = page.clientHeight;
+      page.appendChild(c);
+      let last = null;
+      const ctx = c.getContext('2d');
+      const pos = e => { const r = c.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; };
+      c.addEventListener('pointerdown', e => { last = pos(e); c.setPointerCapture(e.pointerId); });
+      c.addEventListener('pointermove', e => {
+        if(!last) return;
+        const p = pos(e);
+        ctx.strokeStyle = $('#wsPenColor').value;
+        ctx.lineWidth = Number($('#wsPenSize').value);
+        ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+        last = p;
+      });
+      c.addEventListener('pointerup', () => { last = null; });
+    }
+    return c;
+  });
+}
+$('#wsDrawToggle').addEventListener('click', () => {
+  if($('#wsWrap').classList.contains('hidden')){ toast('⚠ 먼저 평가지를 보기로 열어주세요'); return; }
+  wsPenOn = !wsPenOn;
+  const canvases = ensureWsCanvases();
+  canvases.forEach(c => c.classList.toggle('is-pen', wsPenOn));
+  $('#wsDrawToggle').classList.toggle('is-on', wsPenOn);
+  $('#wsDrawToggle').setAttribute('aria-pressed', wsPenOn?'true':'false');
+  toast(wsPenOn ? '✏️ 펜 모드 · 평가지 위에 자유롭게 그리세요' : '펜 모드 해제 · 텍스트 편집 가능');
+});
+$('#wsDrawClear').addEventListener('click', () => {
+  $$('#wsBody .ws-draw-canvas').forEach(c => c.getContext('2d').clearRect(0,0,c.width,c.height));
+});
+$('#wsCopyBtn').addEventListener('click', () => $('#btnCopy').click());
+$('#wsPrintBtn').addEventListener('click', () => $('#btnPrint').click());
+
+/* 내보내기 */
+$('#btnPrint').addEventListener('click', () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  if($('#wsWrap').classList.contains('hidden')) renderWorksheet();
+  setTimeout(()=>window.print(), 120);
+});
+function buildMd(){
+  const sel = selectedItems();
+  const std = standardText();
+  const lines = [`# ${state.subject}과 수행평가지`, '', `- 학년: ${state.grade}`, `- 단원명: ${state.title||'(미입력)'}`, `- 성취기준:`];
+  (std?std.split('\n'):['(미입력)']).forEach(s=>lines.push(`  - ${s}`));
+  lines.push('', '## 문항');
+  sel.forEach((it,i) => lines.push(`${i+1}. ${it.question}`, ''));
+  lines.push('## 문항별 평가 요소', '', '| 문항 | 국면 | 수준 | 도달 판단 기준 |', '|---|---|---|---|');
+  sel.forEach((it,i) => {
+    const P = PHASES.find(p=>p.key===it.phase), L = LEVELS.find(l=>l.key===it.level);
+    const criterion = it.score && it.score.trim() ? it.score : LEVEL_TEMPLATE[it.level];
+    lines.push(`| ${i+1} | ${P.ko} | ${L.ko} | ${criterion} |`);
+  });
+  return lines.join('\n');
+}
+function download(name, text, type){
+  const blob = new Blob([text], { type: type || 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+$('#btnExportMd').addEventListener('click', () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  download(`평가문항_${state.grade}_${state.subject}.md`, buildMd(), 'text/markdown;charset=utf-8');
+  toast('📄 마크다운으로 저장했습니다');
+});
+$('#btnCopy').addEventListener('click', async () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  try{ await navigator.clipboard.writeText(buildMd()); toast('📋 클립보드에 복사했습니다'); }
+  catch(e){ toast('⚠ 복사 실패 — 브라우저 권한을 확인해 주세요'); }
+});
+
+/* ═════════ AI 코치 ═════════ */
+function aiGetKey(){ try{ return sessionStorage.getItem(AI_KEY_STORAGE)||''; }catch(e){ return ''; } }
+function aiSetKey(k){ try{ sessionStorage.setItem(AI_KEY_STORAGE, k); }catch(e){} }
+function updateKeyRow(){ $('#coachKeyRow').classList.toggle('hidden', !!aiGetKey()); }
+$('#coachKeySave').addEventListener('click', () => {
+  const v = $('#coachKey').value.trim();
+  if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+  aiSetKey(v); updateKeyRow();
+  toast('✓ API 키 저장 완료 (이 브라우저 세션 동안만 유지)');
+});
+function openCoach(){ $('#coachPanel').classList.add('is-open'); $('#coachFabBadge').classList.remove('is-on'); }
+function closeCoach(){ $('#coachPanel').classList.remove('is-open'); }
+$('#coachFab').addEventListener('click', () => $('#coachPanel').classList.contains('is-open') ? closeCoach() : openCoach());
+$('#coachClose').addEventListener('click', closeCoach);
+document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#coachPanel').classList.contains('is-open')) closeCoach(); });
+
+function currentDraft(){
+  if(state.activeCell){
+    const it = state.items[state.activeCell];
+    if(it && it.question && it.question.trim()) return it.question.trim();
+  }
+  return '';
+}
+function systemPrompt(){
+  return `당신은 대한민국 초등교사의 개념기반 탐구 문항 개발 코치입니다.
+목표: 교사의 문항 초안을 성취기준에 정렬하고, SOLO 3수준(사실 확인/연결·설명/전이·일반화) 도달 판단 기준과 예시 답안 초안을 제안합니다.
+원칙: 교사를 저자로 존중 — 지시가 아닌 제안. 2022 개정 교육과정과 「질문하는 학교」 정책 기반. 한국어 5문장 이내, 간결하게.
+
+컨텍스트:
+학년·과목: ${state.grade} ${state.subject}
+단원명: ${state.title||'(미입력)'}
+성취기준:\n${standardText()||'(미입력)'}`;
+}
+function quickPrompt(type){
+  const draft = currentDraft();
+  const level = state.activeCell ? state.activeCell.split(':')[1] : null;
+  const levelKo = level ? LEVELS.find(l=>l.key===level).ko : null;
+  if(type==='align') return `교사의 문항 초안:\n${draft||'(초안 없음)'}\n\n이 문항이 성취기준의 어떤 행동 동사를 측정하나요? 부족한 부분과 개선 제안 한 줄을 알려주세요.`;
+  if(type==='criterion') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 문항의 '도달 판단 기준' 한 문장을 SOLO 수준 어법으로 제안해 주세요. (예: "~요소 간 관계를 근거를 들어 설명한다")`;
+  if(type==='sample') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 수준의 학생 예시 답안 특징을 1~2문장으로 제안해 주세요. (실제 정답이 아닌, 답안의 특징 서술)`;
+  return '';
+}
+function addMsg(role, text){
+  const cls = role==='user'?'cmsg--user':role==='error'?'cmsg--error':'cmsg--ai';
+  const el = document.createElement('div');
+  el.className = `cmsg ${cls}`;
+  el.textContent = text;
+  if(role==='ai' && state.activeCell){
+    const m = text.match(/「([^」]{4,})」/) || text.match(/"([^"]{4,})"/);
+    if(m){
+      const btn = document.createElement('button');
+      btn.className = 'cmsg__apply'; btn.textContent = '↩ 도달 판단 기준에 반영';
+      btn.addEventListener('click', () => {
+        const it = currentItem(); it.score = m[1];
+        state.items[state.activeCell] = it; save();
+        toast('✓ 코치 제안을 반영했습니다');
+      });
+      el.appendChild(document.createElement('br')); el.appendChild(btn);
+    }
+  }
+  const chat = $('#coachChat'); chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
+  if((role==='ai'||role==='error') && !$('#coachPanel').classList.contains('is-open')) $('#coachFabBadge').classList.add('is-on');
+  return el;
+}
+async function sendToClaude(prompt, displayText){
+  const key = aiGetKey();
+  if(!key){ toast('⚠ Anthropic API 키를 먼저 입력해 주세요'); updateKeyRow(); $('#coachKey').focus(); return; }
+  addMsg('user', displayText||prompt);
+  chatHistory.push({role:'user', content:prompt});
+  const btn = $('#coachSend'); btn.disabled = true;
+  const loading = document.createElement('div');
+  loading.className = 'cmsg cmsg--loading'; loading.textContent = '코치가 생각하는 중…';
+  $('#coachChat').appendChild(loading); $('#coachChat').scrollTop = $('#coachChat').scrollHeight;
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:AI_MODEL, max_tokens:700, system:systemPrompt(), messages:chatHistory.slice(-10) }),
+    });
+    const data = await res.json();
+    loading.remove();
+    if(!res.ok){ addMsg('error', `⚠ ${data?.error?.message||('요청 실패 HTTP '+res.status)}`); chatHistory.pop(); return; }
+    const text = (data.content||[]).map(b=>b.text||'').join('').trim() || '(응답 없음)';
+    chatHistory.push({role:'assistant', content:text});
+    addMsg('ai', text);
+  }catch(e){
+    loading.remove(); addMsg('error','⚠ 네트워크 오류 · API 키와 연결 상태를 확인해 주세요'); chatHistory.pop();
+  }finally{ btn.disabled = false; }
+}
+$$('.coach-quick-btn').forEach(btn => btn.addEventListener('click', () => sendToClaude(quickPrompt(btn.dataset.ask), btn.textContent)));
+$('#btnCellCoach').addEventListener('click', () => {
+  if(!standardText()){ toast('⚠ 먼저 성취기준을 입력해 주세요'); return; }
+  const q = $('#cellQuestion').value.trim();
+  if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  openCoach();
+  sendToClaude(quickPrompt('align'), '📐 셀 문항 피드백 요청');
+});
+function sendFree(){
+  const input = $('#coachInput'); const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  const prompt = `문항 초안: ${currentDraft()||'(없음)'}\n\n교사의 질문: ${text}`;
+  sendToClaude(prompt, text);
+}
+$('#coachSend').addEventListener('click', sendFree);
+$('#coachInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFree(); } });
+
+/* ═════════ 초기화 ═════════ */
+function applyStateToUI(){
+  $('#grade').value = state.grade; $('#subject').value = state.subject;
+  $('#title').value = state.title; $('#unitQuestion').value = state.unitQuestion;
+  $('#scenario').value = state.scenario; $('#standardCustom').value = state.standardCustom;
+  renderAchievements(); checkVerb(); renderBoard();
+  updateConceptBadge();
+  updateKeyRow();
+}
+restore();
+applyStateToUI();
+</script>
+</body>
+</html>
