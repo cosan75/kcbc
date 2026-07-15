@@ -454,6 +454,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
       <div class="ach-list" id="achList"></div>
       <p class="field__hint">자주 쓰는 예시 몇 개만 담았어요 · 찾는 성취기준이 없으면 아래 직접 입력을 이용해 주세요.</p>
       <div class="phase-hint" id="phaseHint"></div>
+      <div class="phase-hint" id="unitHint"></div>
       <div class="field" style="margin-top:12px;">
         <label class="field__label">✏️ 직접 입력 <span style="font-weight:500;color:var(--muted)">— 어떤 교과·학년의 성취기준이든 여기에 붙여넣으면 됩니다</span></label>
         <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
@@ -993,6 +994,7 @@ function renderAchievements(){
     if(cb.checked){ if(!state.achievements.includes(c)) state.achievements.push(c); }
     else state.achievements = state.achievements.filter(x=>x!==c);
     updatePhaseHint();
+    updateUnitHint();
     $('#achCount').textContent = state.achievements.length;
     save();
   }));
@@ -1026,9 +1028,29 @@ function checkVerb(){
   if(VERB_RE.test(t)){ flag.className = 'verb-flag verb-flag--ok is-on'; flag.textContent = '✓ 행동 동사가 포함되어 있습니다.'; }
   else { flag.className = 'verb-flag is-on'; flag.textContent = '⚠ 행동 동사(이해한다·설명할 수 있다 등)가 보이지 않습니다.'; }
 }
-$('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); save(); });
-$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); updateNcicLink(); save(); });
-$('#title').addEventListener('input', e => { state.title = e.target.value; save(); });
+$('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); updateUnitHint(); save(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); updateNcicLink(); updateUnitHint(); save(); });
+function keywordOverlap(text, desc){
+  const words = text.replace(/[^가-힣a-zA-Z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>=2);
+  return words.some(w => desc.includes(w));
+}
+function updateUnitHint(){
+  const hint = $('#unitHint');
+  const title = state.title.trim();
+  if(!title){ hint.classList.remove('is-on'); hint.innerHTML=''; return; }
+  const matches = currentAchievements().filter(a => !state.achievements.includes(a.code) && keywordOverlap(title, a.desc));
+  if(matches.length === 0){ hint.classList.remove('is-on'); hint.innerHTML=''; return; }
+  hint.classList.add('is-on');
+  hint.innerHTML = `💡 단원명과 관련 있어 보이는 성취기준(참고용):` + matches.map(a =>
+    `<button type="button" class="chip-mini" style="cursor:pointer;border:none;margin-left:5px;" data-code="${a.code}">${a.code} 체크</button>`
+  ).join('');
+  hint.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    const cb = document.querySelector(`#achList input[data-code="${btn.dataset.code}"]`);
+    if(cb && !cb.checked){ cb.checked = true; cb.dispatchEvent(new Event('change')); }
+    updateUnitHint();
+  }));
+}
+$('#title').addEventListener('input', e => { state.title = e.target.value; updateUnitHint(); save(); });
 $('#unitQuestion').addEventListener('input', e => { state.unitQuestion = e.target.value; updateConceptBadge(); save(); });
 $('#scenario').addEventListener('input', e => { state.scenario = e.target.value; save(); });
 $('#standardCustom').addEventListener('input', e => { state.standardCustom = e.target.value; checkVerb(); updatePhaseHint(); save(); });
@@ -1695,7 +1717,7 @@ function parsePlanText(text){
   while((m = codeRe.exec(text))){
     const digits = m[3].replace(/\s+/g, '');
     const code = `${m[1]}${m[2]}${digits}`;
-    if(!seen.has(code)) seen.set(code, { code, grade:m[1], subject:SUBJECT_CHAR[m[2]] });
+    if(!seen.has(code)) seen.set(code, { code, grade:m[1], subject:SUBJECT_CHAR[m[2]], index:m.index });
   }
   const codes = [...seen.values()];
   const unitRe = /(\d{1,2})\s*[.．]\s*([A-Za-z가-힣][^\n]{1,26}?)(?=\s{2,}|\n|표현|이해|평가|하기|기르기|익히기|$)/g;
@@ -1703,8 +1725,17 @@ function parsePlanText(text){
   let um;
   while((um = unitRe.exec(text)) && units.length < 8){
     const label = `${um[1]}. ${um[2].trim()}`;
-    if(label.length >= 4 && label.length <= 34 && !unitSeen.has(label)){ unitSeen.add(label); units.push(label); }
+    if(label.length >= 4 && label.length <= 34 && !unitSeen.has(label)){ unitSeen.add(label); units.push({ label, index:um.index }); }
   }
+  // 평가계획 표에서는 성취기준 코드 바로 뒤에 그 단원명이 옵니다 — 텍스트상 가장 가까운 단원명을 그 코드의 단원으로 짝짓습니다
+  codes.forEach(c => {
+    let best = null, bestDist = Infinity;
+    units.forEach((u, i) => {
+      const dist = Math.abs(u.index - c.index);
+      if(dist < bestDist){ bestDist = dist; best = i; }
+    });
+    c.unitIndex = best;
+  });
   const scenarioRe = /([가-힣][가-힣·\s]{3,20}(?:하기|읽기|쓰기|말하기|만들기))/g;
   const scenarioSeen = new Set(); const scenarios = [];
   let sm;
@@ -1712,14 +1743,14 @@ function parsePlanText(text){
     const t = sm[1].trim().replace(/\s+/g,' ');
     if(t.length>=5 && !scenarioSeen.has(t)){ scenarioSeen.add(t); scenarios.push(t); }
   }
-  return { codes, units, scenarios };
+  return { codes, units:units.map(u=>u.label), scenarios };
 }
 function matchAchievements(codes){
   const matched = [], unmatched = [];
   codes.forEach(c => {
     const band = (c.grade==='3'||c.grade==='4') ? 'g34' : 'g56';
     const a = (ACHIEVEMENTS[band]?.[c.subject]||[]).find(x => x.code===c.code);
-    if(a) matched.push({ ...a, subject:c.subject, band });
+    if(a) matched.push({ ...a, subject:c.subject, band, unitIndex:c.unitIndex });
     else unmatched.push(c);
   });
   return { matched, unmatched };
@@ -1768,21 +1799,33 @@ function renderPlanReview(){
     ? units.map((u,i) => `<option value="${i}">${esc(u)}</option>`).join('')
     : `<option value="-1">감지된 단원명 없음</option>`;
   $('#planUnitText').value = units[0] || '';
-  unitSel.addEventListener('change', () => { $('#planUnitText').value = units[+unitSel.value] || ''; });
 
   $('#planScenarioText').value = scenarios[0] ? `(${scenarios[0]} 관련 상황을 구체적으로 적어보세요)` : '';
   $('#planScenarioUse').checked = false;
 
+  const unitChip = (idx) => (units.length > 1 && idx != null) ? `<span class="chip-mini" style="margin-left:6px;">🔗 ${esc(units[idx])}</span>` : '';
   $('#planMatchedList').innerHTML = matched.length
-    ? matched.map((a,i) => `<label class="ach-item"><input type="checkbox" data-i="${i}" checked>
-        <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}</span></label>`).join('')
+    ? matched.map((a,i) => `<label class="ach-item" data-unit-idx="${a.unitIndex ?? ''}"><input type="checkbox" data-i="${i}">
+        <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}${unitChip(a.unitIndex)}</span></label>`).join('')
     : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">목록과 일치하는 성취기준을 찾지 못했습니다.</div>`;
 
   $('#planUnmatchedList').innerHTML = unmatched.length
-    ? unmatched.map((c,i) => `<label class="ach-item"><input type="checkbox" data-i="${i}" checked>
-        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.subject} · 상세 설명은 목록에 없어요 — 직접입력에 코드만 추가됩니다</span></label>`).join('')
+    ? unmatched.map((c,i) => `<label class="ach-item" data-unit-idx="${c.unitIndex ?? ''}"><input type="checkbox" data-i="${i}">
+        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.subject} · 상세 설명은 목록에 없어요 — 직접입력에 코드만 추가됩니다${unitChip(c.unitIndex)}</span></label>`).join('')
     : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">(없음)</div>`;
   $('#planUnmatchedWrap').classList.toggle('hidden', unmatched.length===0);
+
+  /* 선택된 단원명과 짝지어진 성취기준만 기본으로 체크 — 나머지는 직접 체크 가능 */
+  function recalcChecksForUnit(){
+    const selIdx = units.length ? +unitSel.value : null;
+    $$('#planMatchedList input, #planUnmatchedList input').forEach(cb => {
+      const raw = cb.closest('.ach-item').dataset.unitIdx;
+      const itemUnitIdx = raw === '' ? null : +raw;
+      cb.checked = (units.length <= 1) || itemUnitIdx == null || itemUnitIdx === selIdx;
+    });
+  }
+  unitSel.onchange = () => { $('#planUnitText').value = units[+unitSel.value] || ''; recalcChecksForUnit(); };
+  recalcChecksForUnit();
 }
 $('#btnPlanApply').addEventListener('click', () => {
   if(!planParsed) return;
@@ -1817,7 +1860,7 @@ $('#btnPlanApply').addEventListener('click', () => {
     addedRaw = rawLines.length;
   }
 
-  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); updateNcicLink(); save();
+  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); updateNcicLink(); updateUnitHint(); save();
   $('#planModal').classList.remove('is-on');
   switchTab('setup');
   toast(`✓ 성취기준 ${addedMatched}개 자동 체크${addedRaw?`, ${addedRaw}개는 직접입력에 추가`:''}했습니다`);
@@ -1828,7 +1871,7 @@ function applyStateToUI(){
   $('#grade').value = state.grade; $('#subject').value = state.subject;
   $('#title').value = state.title; $('#unitQuestion').value = state.unitQuestion;
   $('#scenario').value = state.scenario; $('#standardCustom').value = state.standardCustom;
-  renderAchievements(); checkVerb(); renderBoard(); updateNcicLink();
+  renderAchievements(); checkVerb(); renderBoard(); updateNcicLink(); updateUnitHint();
   updateConceptBadge();
   updateKeyRow();
 }
