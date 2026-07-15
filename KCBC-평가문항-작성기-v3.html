@@ -227,7 +227,15 @@ details.adv > .adv-body{ padding:12px; display:flex; flex-direction:column; gap:
   padding:9px 14px; border-radius:8px; border:1.5px solid var(--accent); background:var(--panel);
   color:var(--accent); font-weight:700; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; gap:5px;
 }
-.btn-tech:hover{ background:var(--accent); color:#fff; }
+.btn-tech:hover{ filter:brightness(0.96); }
+.tech-filter{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.tech-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; }
+@media (max-width:640px){ .tech-list{ grid-template-columns:1fr; } }
+.tech-card{ border:1px solid var(--line); border-radius:10px; padding:11px; cursor:pointer; }
+.tech-card:hover{ border-color:var(--accent); background:#fbfcff; }
+.tech-card__head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.tech-card__ko{ font-size:12.5px; font-weight:700; margin:0; }
+.tech-card__seed{ font-size:11px; color:var(--ink-soft); background:var(--line-soft); padding:6px 8px; border-radius:6px; }
 .btn-mini{ padding:7px 12px; border-radius:7px; border:1px solid var(--line); background:var(--panel); cursor:pointer; font-size:11.5px; color:var(--ink-soft); font-weight:600; }
 .btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
 .btn-danger-mini{ padding:6px 10px; border-radius:7px; border:1px solid var(--rose); background:#fff5f8; color:var(--rose); cursor:pointer; font-size:11px; font-weight:700; }
@@ -443,7 +451,6 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     <div class="card">
       <h2 class="card__title">🎯 성취기준 <span class="card__hint">선택 <b id="achCount" style="color:var(--accent)">0</b>개</span></h2>
       <div class="ach-list" id="achList"></div>
-      <p class="field__hint">자주 쓰는 예시 몇 개만 담았어요 · 찾는 성취기준이 없으면 아래 직접 입력을 이용해 주세요.</p>
       <div class="phase-hint" id="phaseHint"></div>
       <div class="phase-hint" id="unitHint"></div>
       <div class="field" style="margin-top:12px;">
@@ -451,7 +458,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
         <div class="verb-flag" id="verbFlag"></div>
         <button class="btn-tech" id="btnFindStandard" style="margin-top:8px;border-color:var(--coach);color:var(--coach)">🤖 AI로 성취기준 찾기</button>
-        <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 추정해 드려요 — 반드시 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 원문과 대조해 주세요.</p>
+        <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 찾아 드려요 — 반드시 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 원문과 대조해 주세요.</p>
       </div>
     </div>
   </section>
@@ -581,6 +588,19 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
   </div>
 </div>
 
+<!-- ═════ 기법 라이브러리 모달 ═════ -->
+<div class="modal" id="techModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h3 class="modal__title">💡 예시 문구 가져오기</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <div class="tech-filter" id="techFilter"></div>
+    <div class="tech-list" id="techList"></div>
+  </div>
+</div>
+
 <!-- ═════ 지표 팝업 (완성도 · 디지털 소양 균형 · 열린 질문 비율) ═════ -->
 <div class="modal" id="radarsModal" role="dialog" aria-modal="true">
   <div class="modal__scrim" data-close></div>
@@ -645,7 +665,9 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <div class="ach-list" id="planMatchedList"></div>
       </div>
       <div class="field" id="planUnmatchedWrap">
-        <label class="field__label">목록에 없는 성취기준 코드 <span style="font-weight:500;color:var(--muted)">(직접입력에 원문 그대로 추가됩니다)</span></label>
+        <label class="field__label">목록에 없는 성취기준 코드
+          <button class="btn-mini" id="btnPlanFindUnmatched" style="margin-left:auto;">🤖 AI로 설명 찾기</button>
+        </label>
         <div class="ach-list" id="planUnmatchedList"></div>
       </div>
       <button class="btn-primary-lg" id="btnPlanApply" style="width:100%; justify-content:center;">이 내용으로 적용</button>
@@ -734,21 +756,27 @@ const GHOST = {
   'reflect:link':'질문 전·후의 변화를 어떻게 비교하게 할까요?',
   'reflect:transfer':'다음 배움의 질문을 스스로 세우게 하려면?',
 };
-/* KCBC-매트릭스-질문보드.html 시안의 시드(학생용 지시문) — 셀 1개당 1개, 클릭 즉시 삽입 */
-const SEEDS = {
-  'generate:fact':'자료에서 궁금한 점을 자유롭게 3개 이상 적어 보세요.',
-  'generate:link':'왜/어떻게로 시작하는 개방형 질문을 만들어 보세요.',
-  'generate:transfer':'이 주제가 내 생활과 만나는 질문을 만들어 보세요.',
-  'refine:fact':'내 질문을 사실/개념/전이로 분류해 보세요.',
-  'refine:link':'질문에 개념 렌즈(원인·결과 등)를 하나 붙여 다듬어 보세요.',
-  'refine:transfer':'내 질문을 다른 단원·상황에도 쓸 수 있게 고쳐 보세요.',
-  'inquire:fact':'질문에 답하기 위해 볼 자료 2개를 정하세요.',
-  'inquire:link':'자료 근거 2개 이상으로 자기 답을 완성해 보세요.',
-  'inquire:transfer':'찾은 답을 새로운 상황에 적용해 예측해 보세요.',
-  'reflect:fact':'수업에서 새로 알게 된 것 하나를 적어 보세요.',
-  'reflect:link':'내 질문이 어떻게 바뀌었는지 전·후를 비교해 쓰세요.',
-  'reflect:transfer':'다음 시간에 탐구하고 싶은 질문을 스스로 세워 보세요.',
-};
+/* 기법 라이브러리 — 국면별로 필터해 고르는 예시 문구 12종 */
+const TECHS = [
+  { id:'socratic', ko:'소크라테스 질문법', emoji:'💬', phases:['refine','reflect'],
+    seed:'친구의 주장에 대해 (1)명료화 (2)근거 확인 (3)대안 관점 (4)함의 (5)메타 질문 중 3개 이상 물어보세요.' },
+  { id:'why-5', ko:'왜냐고 5번 묻기', emoji:'❓', phases:['refine','inquire'],
+    seed:'첫 질문에 답한 뒤 그 답에 다시 "왜?"를 5번 이어 물어, 표면적 답 뒤의 근본 원인·개념을 드러내 보세요.' },
+  { id:'concept-lens', ko:'개념 렌즈 바꾸기', emoji:'🔍', phases:['refine','inquire'],
+    seed:'같은 자료를 "원인·결과", "부분·전체", "변화·안정" 렌즈로 각각 다시 보고 질문을 하나씩 만들어 보세요.' },
+  { id:'6-hats', ko:'여섯 색깔 모자', emoji:'🎩', phases:['refine'],
+    seed:'같은 질문을 사실(흰)·감정(빨)·비판(검)·긍정(노)·창의(초)·관리(파) 관점으로 각각 재작성해 봅시다.' },
+  { id:'kwl', ko:'K-W-L 차트', emoji:'📊', phases:['reflect'],
+    seed:'수업 전에는 "아는 것(K)/궁금한 것(W)"을 채우고, 수업 후에는 "새로 배운 것(L)/더 알고 싶은 새 질문"을 추가해 보세요.' },
+  { id:'lateral', ko:'수평적 읽기', emoji:'🌐', phases:['inquire','refine'],
+    seed:'같은 사건을 다룬 자료 2~3개를 나란히 놓고, 공통점·차이점·의문점을 각각 3개씩 뽑아 보세요.' },
+  { id:'first-letter', ko:'질문 첫 글자 뽑기', emoji:'🎲', phases:['generate'],
+    seed:'자료에서 핵심 단어를 한 글자씩 뽑아, 그 글자로 시작하는 질문을 5개 이상 만들어 보세요.' },
+  { id:'observe-loop', ko:'관찰-질문-관찰 순환', emoji:'🔄', phases:['inquire'],
+    seed:'첫 관찰 → 떠오른 질문 기록 → 그 질문을 확인하려 다시 관찰 → 새 질문 만들기 순환을 세 번 반복해 보세요.' },
+  { id:'meta-log', ko:'질문 성찰 로그', emoji:'📝', phases:['reflect'],
+    seed:'오늘 내가 만든 질문 3개를 (1)명료성 (2)답을 여는 개방성 (3)다른 상황 전이 가능성 3점 척도로 스스로 평가해 봅시다.' },
+];
 /* 교과별 신호 프로파일 — KCBC-매트릭스-정교화-v2.md §2 표를 그대로 옮김(가공·추정 없음) */
 const SUBJECT_PROFILE = {
   '체육':   { rowSignal:'full',    orderSignal:'none' },
@@ -882,6 +910,7 @@ const state = {
   activeCell:null,
 };
 let chatHistory = [];
+let techFilter = 'all';
 
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -1141,17 +1170,43 @@ $('#imgRemove').addEventListener('click', () => {
   setImagePreview(null); saveCell();
 });
 
-/* ═════════ 예시 문구 (질문보드 시안: 셀 1개당 1개, 클릭 즉시 삽입) ═════════ */
-$('#btnOpenTech').addEventListener('click', () => {
-  if(!state.activeCell) return;
-  const seed = SEEDS[state.activeCell];
-  if(!seed) return;
-  $('#cellQuestion').value = seed;
-  const it = currentItem(); it.seedApplied = true;
-  state.items[state.activeCell] = { ...it, question:seed };
-  saveCell();
-  toast('✓ 예시 문구를 넣었습니다 — 학급 맥락에 맞게 다듬어 주세요');
-});
+/* ═════════ 기법(예시 문구) 라이브러리 ═════════ */
+function openTechModal(){
+  $('#techModal').classList.add('is-on');
+  renderTechFilter(); renderTechList();
+}
+function renderTechFilter(){
+  const wrap = $('#techFilter'); wrap.innerHTML = '';
+  const cats = [{key:'all',ko:'전체'}, ...PHASES.map(p=>({key:p.key,ko:p.ko}))];
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (techFilter===c.key?' is-on':'');
+    btn.textContent = c.ko;
+    btn.addEventListener('click', () => { techFilter=c.key; renderTechFilter(); renderTechList(); });
+    wrap.appendChild(btn);
+  });
+}
+function renderTechList(){
+  const wrap = $('#techList'); wrap.innerHTML = '';
+  const list = TECHS.filter(t => techFilter==='all' || t.phases.includes(techFilter));
+  list.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tech-card';
+    card.innerHTML = `<div class="tech-card__head"><span>${t.emoji}</span><h4 class="tech-card__ko">${t.ko}</h4></div>
+      <div class="tech-card__seed">"${esc(t.seed)}"</div>`;
+    card.addEventListener('click', () => {
+      if(!state.activeCell) return;
+      $('#cellQuestion').value = t.seed;
+      const it = currentItem(); it.seedApplied = true;
+      state.items[state.activeCell] = { ...it, question:t.seed };
+      saveCell();
+      $('#techModal').classList.remove('is-on');
+      toast(`✓ 「${t.ko}」 예시를 넣었습니다 — 학급 맥락에 맞게 다듬어 주세요`);
+    });
+    wrap.appendChild(card);
+  });
+}
+$('#btnOpenTech').addEventListener('click', openTechModal);
 
 /* ═════════ 지표 (완성도 · 디지털 소양 균형 · 열린 질문 비율) — 버튼을 눌러야만 표시 ═════════ */
 const MAIL = [
@@ -1577,6 +1632,18 @@ function addMsg(role, text){
   if((role==='ai'||role==='error') && !$('#coachPanel').classList.contains('is-open')) $('#coachFabBadge').classList.add('is-on');
   return el;
 }
+async function callClaudeRaw(userPrompt, sys){
+  const key = aiGetKey();
+  if(!key) throw new Error('NO_KEY');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model:AI_MODEL, max_tokens:700, system: sys || systemPrompt(), messages:[{ role:'user', content:userPrompt }] }),
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data?.error?.message || ('요청 실패 HTTP ' + res.status));
+  return (data.content || []).map(b => b.text || '').join('').trim();
+}
 async function sendToClaude(prompt, displayText){
   const key = aiGetKey();
   if(!key){ toast('⚠ Anthropic API 키를 먼저 입력해 주세요'); updateKeyRow(); $('#coachKey').focus(); return; }
@@ -1617,11 +1684,28 @@ $('#btnFindStandard').addEventListener('click', () => {
   openCoach();
   sendToClaude(quickPrompt('find-standard'), '🤖 성취기준 찾기 요청');
 });
-$('#btnGradeFit').addEventListener('click', () => {
+$('#btnGradeFit').addEventListener('click', async () => {
   const q = $('#cellQuestion').value.trim();
   if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
-  openCoach();
-  sendToClaude(quickPrompt('grade-fit'), '🎯 학년 눈높이로 다듬기 요청');
+  if(!aiGetKey()){ toast('⚠ Anthropic API 키를 먼저 입력해 주세요'); openCoach(); updateKeyRow(); $('#coachKey').focus(); return; }
+  const btn = $('#btnGradeFit');
+  const origLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = '🎯 다듬는 중…';
+  try{
+    const text = await callClaudeRaw(quickPrompt('grade-fit'));
+    const m = text.match(/「([^」]{4,})」/);
+    if(m){
+      $('#cellQuestion').value = m[1];
+      saveCell();
+      toast('✓ 학년 눈높이에 맞게 문항을 바꿨어요 — 마음에 안 들면 다시 눌러보세요');
+    } else {
+      toast('⚠ 적절한 제안을 찾지 못했어요 — 아래 코치 패널에서 다시 물어보세요');
+    }
+  }catch(e){
+    toast('⚠ ' + (e.message || '오류가 발생했습니다'));
+  }finally{
+    btn.disabled = false; btn.textContent = origLabel;
+  }
 });
 function sendFree(){
   const input = $('#coachInput'); const text = input.value.trim();
@@ -1765,7 +1849,7 @@ function renderPlanReview(){
 
   $('#planUnmatchedList').innerHTML = unmatched.length
     ? unmatched.map((c,i) => `<label class="ach-item" data-unit-idx="${c.unitIndex ?? ''}"><input type="checkbox" data-i="${i}">
-        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.subject} · 상세 설명은 목록에 없어요 — 직접입력에 코드만 추가됩니다${unitChip(c.unitIndex)}</span></label>`).join('')
+        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.aiDesc ? esc(c.aiDesc)+' <b style="color:var(--coach)">(AI 추정)</b>' : (c.subject+' · 목록에 없는 코드입니다 — 위 "AI로 설명 찾기"를 눌러보세요')}${unitChip(c.unitIndex)}</span></label>`).join('')
     : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">(없음)</div>`;
   $('#planUnmatchedWrap').classList.toggle('hidden', unmatched.length===0);
 
@@ -1781,6 +1865,27 @@ function renderPlanReview(){
   unitSel.onchange = () => { $('#planUnitText').value = units[+unitSel.value] || ''; recalcChecksForUnit(); };
   recalcChecksForUnit();
 }
+$('#btnPlanFindUnmatched').addEventListener('click', async () => {
+  if(!planParsed || !planParsed.unmatched.length) return;
+  if(!aiGetKey()){ toast('⚠ 코치 패널(우하단 💬)에서 Anthropic API 키를 먼저 입력해 주세요'); return; }
+  const btn = $('#btnPlanFindUnmatched');
+  const origLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = '🤖 찾는 중…';
+  try{
+    const codes = planParsed.unmatched.map(c => c.code).join(', ');
+    const prompt = `2022 개정 교육과정 성취기준 코드입니다: ${codes}\n학년: ${$('#planGrade').value} · 과목: ${$('#planSubject').value}\n\n각 코드가 실제로 어떤 성취기준일지 알고 있는 만큼만 아래 형식으로 답해 주세요. 확신이 없는 코드는 건너뛰고 답하지 마세요.\n[코드] 설명 문장`;
+    const text = await callClaudeRaw(prompt);
+    const found = new Map([...text.matchAll(/\[([3-6][가-힣]\d{2}-\d{2})\]\s*([^\n]+)/g)].map(m => [m[1], m[2].trim()]));
+    let n = 0;
+    planParsed.unmatched.forEach(c => { if(found.has(c.code)){ c.aiDesc = found.get(c.code); n++; } });
+    renderPlanReview();
+    toast(n ? `✓ ${n}개 성취기준 설명을 찾았습니다 — AI 추정이니 NCIC에서 확인해 주세요` : '⚠ 찾지 못했습니다 — 직접입력을 이용해 주세요');
+  }catch(e){
+    toast('⚠ ' + (e.message || '오류가 발생했습니다'));
+  }finally{
+    btn.disabled = false; btn.textContent = origLabel;
+  }
+});
 $('#btnPlanApply').addEventListener('click', () => {
   if(!planParsed) return;
   const { matched, unmatched } = planParsed;
@@ -1806,7 +1911,10 @@ $('#btnPlanApply').addEventListener('click', () => {
   const rawLines = [];
   $$('#planUnmatchedList input:checked').forEach(cb => {
     const c = unmatched[+cb.dataset.i];
-    if(c) rawLines.push(`[${c.code}] (${c.subject} — 평가계획 PDF, 원문 설명 없음)`);
+    if(!c) return;
+    rawLines.push(c.aiDesc
+      ? `[${c.code}] ${c.aiDesc} (AI 추정 — NCIC 원문 대조 필요)`
+      : `[${c.code}] (${c.subject} — 평가계획 PDF, 원문 설명 없음)`);
   });
   if(rawLines.length){
     state.standardCustom = (state.standardCustom ? state.standardCustom+'\n' : '') + rawLines.join('\n');
