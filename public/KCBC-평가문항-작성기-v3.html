@@ -96,6 +96,7 @@ button{ font:inherit; color:inherit; }
 .field__label .req{ color:var(--rose); }
 .field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; line-height:1.5; }
 .field__hint a{ color:var(--accent); text-decoration:underline; }
+.field__hint a#ncicDirectLink{ display:inline-block; margin-top:4px; font-weight:700; }
 .input,.select,.textarea{
   width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px;
   background:var(--panel); color:var(--ink); font-size:13.5px; font-family:inherit;
@@ -457,7 +458,8 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <label class="field__label">✏️ 직접 입력 <span style="font-weight:500;color:var(--muted)">— 어떤 교과·학년의 성취기준이든 여기에 붙여넣으면 됩니다</span></label>
         <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
         <div class="verb-flag" id="verbFlag"></div>
-        <p class="field__hint">정확한 원문은 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 검색해 복사·붙여넣기 하시면 가장 정확합니다.</p>
+        <p class="field__hint">정확한 원문은 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 검색해 복사·붙여넣기 하시면 가장 정확합니다.
+          <a id="ncicDirectLink" href="#" target="_blank" rel="noopener">📄 <span id="ncicDirectLabel">사회과 교육과정 별책 PDF</span> 바로 열기 ↗</a></p>
       </div>
     </div>
   </section>
@@ -772,6 +774,31 @@ function ghostFor(phase, level){
   if(level === 'transfer' && profile?.rowSignal === 'low') return LOW_ROW_GHOST;
   return GHOST[cellKey(phase, level)];
 }
+/* 과목별 2022 개정 교육과정 별책 PDF 공식 다운로드 링크 (NCIC, 교육부 고시 제2022-33호) */
+const SUBJECT_NCIC = {
+  '국어': { annex:5,  url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003553&orgType=ogi4' },
+  '사회': { annex:7,  url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003800&orgType=ogi4' },
+  '도덕': { annex:6,  url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003738&orgType=ogi4' },
+  '수학': { annex:8,  url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003559&orgType=ogi4' },
+  '과학': { annex:9,  url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003551&orgType=ogi4' },
+  '체육': { annex:11, url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003695&orgType=ogi4' },
+  '음악': { annex:12, url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003561&orgType=ogi4' },
+  '미술': { annex:13, url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003555&orgType=ogi4' },
+  '영어': { annex:14, url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003794&orgType=ogi4' },
+  '실과': { annex:10, url:'https://ncic.re.kr/inv/org/download.do?year=2022&seq=10003781&orgType=ogi4' },
+};
+function updateNcicLink(){
+  const info = SUBJECT_NCIC[state.subject];
+  const link = $('#ncicDirectLink');
+  if(!link) return;
+  if(info){
+    link.href = info.url;
+    link.classList.remove('hidden');
+    $('#ncicDirectLabel').textContent = `[별책${info.annex}] ${state.subject}과 교육과정`;
+  } else {
+    link.classList.add('hidden');
+  }
+}
 function gradeBand(g){ return (g==='3학년'||g==='4학년') ? 'g34' : 'g56'; }
 const ACHIEVEMENTS = {
   g34: {
@@ -1000,7 +1027,7 @@ function checkVerb(){
   else { flag.className = 'verb-flag is-on'; flag.textContent = '⚠ 행동 동사(이해한다·설명할 수 있다 등)가 보이지 않습니다.'; }
 }
 $('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); save(); });
-$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); save(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); updateNcicLink(); save(); });
 $('#title').addEventListener('input', e => { state.title = e.target.value; save(); });
 $('#unitQuestion').addEventListener('input', e => { state.unitQuestion = e.target.value; updateConceptBadge(); save(); });
 $('#scenario').addEventListener('input', e => { state.scenario = e.target.value; save(); });
@@ -1790,7 +1817,7 @@ $('#btnPlanApply').addEventListener('click', () => {
     addedRaw = rawLines.length;
   }
 
-  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); save();
+  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); updateNcicLink(); save();
   $('#planModal').classList.remove('is-on');
   switchTab('setup');
   toast(`✓ 성취기준 ${addedMatched}개 자동 체크${addedRaw?`, ${addedRaw}개는 직접입력에 추가`:''}했습니다`);
@@ -1801,7 +1828,7 @@ function applyStateToUI(){
   $('#grade').value = state.grade; $('#subject').value = state.subject;
   $('#title').value = state.title; $('#unitQuestion').value = state.unitQuestion;
   $('#scenario').value = state.scenario; $('#standardCustom').value = state.standardCustom;
-  renderAchievements(); checkVerb(); renderBoard();
+  renderAchievements(); checkVerb(); renderBoard(); updateNcicLink();
   updateConceptBadge();
   updateKeyRow();
 }
