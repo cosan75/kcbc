@@ -423,7 +423,10 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
   <!-- ═════ 탭 1: 단원 정보 ═════ -->
   <section class="panel is-on" id="panel-setup">
     <div class="card">
-      <h2 class="card__title">📘 단원 정보</h2>
+      <h2 class="card__title">📘 단원 정보
+        <button class="btn-mini" id="btnPlanPdf" style="margin-left:auto;" title="평가계획 PDF에서 단원명·성취기준을 가져옵니다">📎 평가계획 불러오기</button>
+        <input type="file" id="planPdfInput" accept="application/pdf" class="hidden" />
+      </h2>
       <div class="row">
         <div class="field"><label class="field__label">학년</label>
           <select class="select" id="grade"><option>3학년</option><option selected>4학년</option><option>5학년</option><option>6학년</option></select>
@@ -433,7 +436,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         </div>
       </div>
       <div class="field"><label class="field__label" for="title">단원명</label>
-        <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" />
+        <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" autocomplete="off" />
       </div>
       <div class="field"><label class="field__label" for="unitQuestion">핵심 질문 (단원 질문)</label>
         <textarea class="textarea" id="unitQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?" style="min-height:44px"></textarea>
@@ -450,7 +453,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
       <div class="phase-hint" id="phaseHint"></div>
       <div class="field" style="margin-top:12px;">
         <label class="field__label">직접 입력 <span style="font-weight:500;color:var(--muted)">(목록 병행 가능)</span></label>
-        <textarea class="textarea" id="standardCustom" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
+        <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
         <div class="verb-flag" id="verbFlag"></div>
       </div>
     </div>
@@ -523,6 +526,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     </div>
     <button class="btn-tech" id="btnOpenTech">💡 예시 문구 가져오기</button>
     <button class="btn-tech" id="btnCellCoach" style="border-color:var(--coach);color:var(--coach)">💬 코치 피드백</button>
+    <button class="btn-tech" id="btnGradeFit" style="border-color:#c98a16;color:#a06e0e" title="학년 수준 문항 작성 가이드 5원칙 적용">🎯 학년 눈높이로</button>
 
     <label class="check-include" style="margin-top:12px;">
       <input type="checkbox" id="cellInclude"> ☑ 이 질문을 평가문항으로 뽑기
@@ -622,6 +626,49 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
   </div>
 </div>
 
+<!-- ═════ 평가계획 PDF 검토 팝업 ═════ -->
+<div class="modal" id="planModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" style="max-width:600px">
+    <div class="modal__head">
+      <h3 class="modal__title">📎 평가계획에서 가져오기</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <p class="field__hint" style="margin:-4px 0 12px;">PDF에서 찾은 내용입니다 · 체크·수정 후 적용하면 반영됩니다 (자동으로 확정되지 않아요).</p>
+    <div id="planLoading" class="hidden" style="text-align:center; padding:24px; font-size:12.5px; color:var(--muted);">📄 PDF 분석 중…</div>
+    <div id="planResult" class="hidden">
+      <div class="field">
+        <label class="field__label">학년·과목 (감지됨)</label>
+        <div class="row">
+          <select class="select" id="planGrade"><option>3학년</option><option>4학년</option><option>5학년</option><option>6학년</option></select>
+          <select class="select" id="planSubject"><option>국어</option><option>사회</option><option>과학</option><option>수학</option><option>영어</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label">단원명 후보 <span style="font-weight:500;color:var(--muted)">(선택 또는 직접 수정)</span></label>
+        <select class="select" id="planUnitSelect"></select>
+        <input class="input" id="planUnitText" style="margin-top:6px;" />
+      </div>
+      <div class="field">
+        <label class="field__label">
+          <input type="checkbox" id="planScenarioUse" checked style="margin-right:4px;">
+          🎬 과제 상황에 참고 문구로 넣기
+        </label>
+        <textarea class="textarea" id="planScenarioText" style="min-height:44px"></textarea>
+      </div>
+      <div class="field">
+        <label class="field__label">성취기준 — 목록에서 찾은 항목 <span class="card__hint">체크된 것만 자동 선택됩니다</span></label>
+        <div class="ach-list" id="planMatchedList"></div>
+      </div>
+      <div class="field" id="planUnmatchedWrap">
+        <label class="field__label">목록에 없는 성취기준 코드 <span style="font-weight:500;color:var(--muted)">(직접입력에 원문 그대로 추가됩니다)</span></label>
+        <div class="ach-list" id="planUnmatchedList"></div>
+      </div>
+      <button class="btn-primary-lg" id="btnPlanApply" style="width:100%; justify-content:center;">이 내용으로 적용</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═════ 이론적 배경 팝업 ═════ -->
 <div class="info-pop" id="infoPop">
   <div class="info-pop__scrim" data-close></div>
@@ -656,6 +703,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     <button class="coach-quick-btn" data-ask="align">📐 성취기준 정렬</button>
     <button class="coach-quick-btn" data-ask="criterion">📋 도달기준 제안</button>
     <button class="coach-quick-btn" data-ask="sample">✨ 예시 답안 초안</button>
+    <button class="coach-quick-btn" data-ask="grade-fit">🎯 학년 눈높이로</button>
   </div>
   <div class="coach-inputrow">
     <textarea id="coachInput" rows="1" placeholder="자유롭게 질문하세요… (Enter 전송)"></textarea>
@@ -1451,10 +1499,28 @@ function currentDraft(){
   }
   return '';
 }
+/* 학년 수준 문항 작성 가이드 (5대 원칙) — 모든 코치 응답에 항상 적용 */
+const GRADE_SPEC = {
+  g34: { 지시문:'1~2문장', 그림자료:'그림 권장', 문항유형:'○표·고르기·짧은 답', 서술분량:'1줄', 문장도움말:'필수', 보기문장:'20자 이내' },
+  g56: { 지시문:'2문장', 그림자료:'자료 제시형', 문항유형:'고르기·서술 1개', 서술분량:'2~3줄', 문장도움말:'권장', 보기문장:'30자 이내' },
+};
+function gradeSpec(){ return GRADE_SPEC[gradeBand(state.grade)]; }
+function difficultyRules(){
+  const s = gradeSpec();
+  return `난이도 규칙 (모든 문항에 반드시 적용 — 학년 수준 문항 작성 가이드):
+1. 어휘는 ${state.grade} 학생의 일상어 수준으로 (전문용어 → 쉬운 말, 한 문장에 새 낱말 1개 이하)
+2. 상황은 글보다 그림·사진·표로 제시하도록 제안 (이 학년군: ${s.그림자료})
+3. 문항 순서는 고르기 → 연결하기 → 서술 순으로, 서술형은 마지막 1개만 두고 문장 시작 도움말을 ${s.문장도움말}로 제공
+4. 한 문항에는 한 가지만 묻기 — 지시문은 ${s.지시문} 이내, ①②③ 같은 복합 조건 금지
+5. 문항 내용이 ${state.grade} 성취기준과 맞는지 반드시 확인하고, 다른 학년 내용이 섞였으면 "이 내용은 다른 학년 성취기준입니다"라고 경고
+이 학년군 참고 사양: 문항 유형 ${s.문항유형} · 서술 분량 ${s.서술분량} · 보기 문장 ${s.보기문장}`;
+}
 function systemPrompt(){
   return `당신은 대한민국 초등교사의 개념기반 탐구 문항 개발 코치입니다.
 목표: 교사의 문항 초안을 성취기준에 정렬하고, SOLO 3수준(사실 확인/연결·설명/전이·일반화) 도달 판단 기준과 예시 답안 초안을 제안합니다.
 원칙: 교사를 저자로 존중 — 지시가 아닌 제안. 2022 개정 교육과정과 「질문하는 학교」 정책 기반. 한국어 5문장 이내, 간결하게.
+
+${difficultyRules()}
 
 컨텍스트:
 학년·과목: ${state.grade} ${state.subject}
@@ -1468,6 +1534,7 @@ function quickPrompt(type){
   if(type==='align') return `교사의 문항 초안:\n${draft||'(초안 없음)'}\n\n이 문항이 성취기준의 어떤 행동 동사를 측정하나요? 부족한 부분과 개선 제안 한 줄을 알려주세요.`;
   if(type==='criterion') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 문항의 '도달 판단 기준' 한 문장을 SOLO 수준 어법으로 제안해 주세요. (예: "~요소 간 관계를 근거를 들어 설명한다")`;
   if(type==='sample') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 수준의 학생 예시 답안 특징을 1~2문장으로 제안해 주세요. (실제 정답이 아닌, 답안의 특징 서술)`;
+  if(type==='grade-fit') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 문항을 ${state.grade} 학생 눈높이에 맞게 다시 써 주세요. 학년 수준 문항 작성 가이드의 5원칙(쉬운 어휘·그림 우선·고르기→서술 순서·한 가지만 묻기·학년-성취기준 일치)을 그대로 적용하고, 다듬은 문항을 「」 안에 제시해 주세요.`;
   return '';
 }
 function addMsg(role, text){
@@ -1525,6 +1592,12 @@ $('#btnCellCoach').addEventListener('click', () => {
   openCoach();
   sendToClaude(quickPrompt('align'), '📐 셀 문항 피드백 요청');
 });
+$('#btnGradeFit').addEventListener('click', () => {
+  const q = $('#cellQuestion').value.trim();
+  if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  openCoach();
+  sendToClaude(quickPrompt('grade-fit'), '🎯 학년 눈높이로 다듬기 요청');
+});
 function sendFree(){
   const input = $('#coachInput'); const text = input.value.trim();
   if(!text) return;
@@ -1534,6 +1607,172 @@ function sendFree(){
 }
 $('#coachSend').addEventListener('click', sendFree);
 $('#coachInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFree(); } });
+
+/* ═════════ 평가계획 PDF 가져오기 ═════════ */
+const SUBJECT_CHAR = { '국':'국어', '사':'사회', '과':'과학', '수':'수학', '영':'영어' };
+let pdfjsLoadPromise = null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  if(pdfjsLoadPromise) return pdfjsLoadPromise;
+  pdfjsLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve();
+    };
+    s.onerror = () => reject(new Error('pdf.js 로드 실패 — 인터넷 연결을 확인해 주세요'));
+    document.head.appendChild(s);
+  });
+  return pdfjsLoadPromise;
+}
+async function extractPdfText(file){
+  await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for(let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  // pdf.js는 글자 사이에 개별 공백을 끼워 넣는 경우가 많아(예: "[4 영 02-08]") 하나로 정리한다
+  return text.replace(/\s+/g, ' ').trim();
+}
+function parsePlanText(text){
+  const codeRe = /\[?\s*([3-6])\s*([국사과수영])\s*(\d{2}\s*-\s*\d{2})\s*\]?/g;
+  const seen = new Map();
+  let m;
+  while((m = codeRe.exec(text))){
+    const digits = m[3].replace(/\s+/g, '');
+    const code = `${m[1]}${m[2]}${digits}`;
+    if(!seen.has(code)) seen.set(code, { code, grade:m[1], subject:SUBJECT_CHAR[m[2]] });
+  }
+  const codes = [...seen.values()];
+  const unitRe = /(\d{1,2})\s*[.．]\s*([A-Za-z가-힣][^\n]{1,26}?)(?=\s{2,}|\n|표현|이해|평가|하기|기르기|익히기|$)/g;
+  const unitSeen = new Set(); const units = [];
+  let um;
+  while((um = unitRe.exec(text)) && units.length < 8){
+    const label = `${um[1]}. ${um[2].trim()}`;
+    if(label.length >= 4 && label.length <= 34 && !unitSeen.has(label)){ unitSeen.add(label); units.push(label); }
+  }
+  const scenarioRe = /([가-힣][가-힣·\s]{3,20}(?:하기|읽기|쓰기|말하기|만들기))/g;
+  const scenarioSeen = new Set(); const scenarios = [];
+  let sm;
+  while((sm = scenarioRe.exec(text)) && scenarios.length < 5){
+    const t = sm[1].trim().replace(/\s+/g,' ');
+    if(t.length>=5 && !scenarioSeen.has(t)){ scenarioSeen.add(t); scenarios.push(t); }
+  }
+  return { codes, units, scenarios };
+}
+function matchAchievements(codes){
+  const matched = [], unmatched = [];
+  codes.forEach(c => {
+    const band = (c.grade==='3'||c.grade==='4') ? 'g34' : 'g56';
+    const a = (ACHIEVEMENTS[band]?.[c.subject]||[]).find(x => x.code===c.code);
+    if(a) matched.push({ ...a, subject:c.subject, band });
+    else unmatched.push(c);
+  });
+  return { matched, unmatched };
+}
+let planParsed = null;
+$('#btnPlanPdf').addEventListener('click', () => $('#planPdfInput').click());
+$('#planPdfInput').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  e.target.value = '';
+  $('#planModal').classList.add('is-on');
+  $('#planLoading').classList.remove('hidden');
+  $('#planResult').classList.add('hidden');
+  try{
+    const text = await extractPdfText(f);
+    const { codes, units, scenarios } = parsePlanText(text);
+    const { matched, unmatched } = matchAchievements(codes);
+    if(codes.length === 0 && units.length === 0){
+      toast('⚠ PDF에서 성취기준·단원명을 찾지 못했습니다 — 표 형식 평가계획 PDF인지 확인해 주세요');
+      $('#planModal').classList.remove('is-on');
+      return;
+    }
+    planParsed = { matched, unmatched, units, scenarios };
+    renderPlanReview();
+  }catch(err){
+    toast('⚠ ' + (err.message || 'PDF를 읽는 중 오류가 발생했습니다'));
+    $('#planModal').classList.remove('is-on');
+  }finally{
+    $('#planLoading').classList.add('hidden');
+  }
+});
+function renderPlanReview(){
+  const { matched, unmatched, units, scenarios } = planParsed;
+  $('#planResult').classList.remove('hidden');
+  const bandOf = g => (g==='3'||g==='4') ? 'g34' : 'g56';
+  const detectedBand = matched[0]?.band || (unmatched[0] ? bandOf(unmatched[0].grade) : null);
+  const gradeGuess = (detectedBand && gradeBand(state.grade) !== detectedBand)
+    ? (detectedBand==='g34' ? '4학년' : '6학년')
+    : state.grade;
+  const subjectGuess = matched[0]?.subject || unmatched[0]?.subject || state.subject;
+  $('#planGrade').value = gradeGuess;
+  $('#planSubject').value = subjectGuess;
+
+  const unitSel = $('#planUnitSelect');
+  unitSel.innerHTML = units.length
+    ? units.map((u,i) => `<option value="${i}">${esc(u)}</option>`).join('')
+    : `<option value="-1">감지된 단원명 없음</option>`;
+  $('#planUnitText').value = units[0] || '';
+  unitSel.addEventListener('change', () => { $('#planUnitText').value = units[+unitSel.value] || ''; });
+
+  $('#planScenarioText').value = scenarios[0] ? `(${scenarios[0]} 관련 상황을 구체적으로 적어보세요)` : '';
+  $('#planScenarioUse').checked = false;
+
+  $('#planMatchedList').innerHTML = matched.length
+    ? matched.map((a,i) => `<label class="ach-item"><input type="checkbox" data-i="${i}" checked>
+        <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}</span></label>`).join('')
+    : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">목록과 일치하는 성취기준을 찾지 못했습니다.</div>`;
+
+  $('#planUnmatchedList').innerHTML = unmatched.length
+    ? unmatched.map((c,i) => `<label class="ach-item"><input type="checkbox" data-i="${i}" checked>
+        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.subject} · 상세 설명은 목록에 없어요 — 직접입력에 코드만 추가됩니다</span></label>`).join('')
+    : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">(없음)</div>`;
+  $('#planUnmatchedWrap').classList.toggle('hidden', unmatched.length===0);
+}
+$('#btnPlanApply').addEventListener('click', () => {
+  if(!planParsed) return;
+  const { matched, unmatched } = planParsed;
+  const newGrade = $('#planGrade').value, newSubject = $('#planSubject').value;
+  const gradeChanged = newGrade !== state.grade, subjectChanged = newSubject !== state.subject;
+  state.grade = newGrade; state.subject = newSubject;
+  if(gradeChanged || subjectChanged) state.achievements = [];
+  $('#grade').value = newGrade; $('#subject').value = newSubject;
+
+  const unitText = $('#planUnitText').value.trim();
+  if(unitText){ state.title = unitText; $('#title').value = unitText; }
+
+  if($('#planScenarioUse').checked){
+    const sc = $('#planScenarioText').value.trim();
+    if(sc){ state.scenario = (state.scenario ? state.scenario+'\n' : '') + sc; $('#scenario').value = state.scenario; }
+  }
+
+  let addedMatched = 0, addedRaw = 0;
+  $$('#planMatchedList input:checked').forEach(cb => {
+    const a = matched[+cb.dataset.i];
+    if(a && !state.achievements.includes(a.code)){ state.achievements.push(a.code); addedMatched++; }
+  });
+  const rawLines = [];
+  $$('#planUnmatchedList input:checked').forEach(cb => {
+    const c = unmatched[+cb.dataset.i];
+    if(c) rawLines.push(`[${c.code}] (${c.subject} — 평가계획 PDF, 원문 설명 없음)`);
+  });
+  if(rawLines.length){
+    state.standardCustom = (state.standardCustom ? state.standardCustom+'\n' : '') + rawLines.join('\n');
+    $('#standardCustom').value = state.standardCustom;
+    addedRaw = rawLines.length;
+  }
+
+  renderAchievements(); checkVerb(); updateConceptBadge(); save();
+  $('#planModal').classList.remove('is-on');
+  switchTab('setup');
+  toast(`✓ 성취기준 ${addedMatched}개 자동 체크${addedRaw?`, ${addedRaw}개는 직접입력에 추가`:''}했습니다`);
+});
 
 /* ═════════ 초기화 ═════════ */
 function applyStateToUI(){
