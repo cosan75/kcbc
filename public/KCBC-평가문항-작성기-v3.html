@@ -95,6 +95,7 @@ button{ font:inherit; color:inherit; }
 .field__label{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
 .field__label .req{ color:var(--rose); }
 .field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; line-height:1.5; }
+.field__hint a{ color:var(--accent); text-decoration:underline; }
 .input,.select,.textarea{
   width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px;
   background:var(--panel); color:var(--ink); font-size:13.5px; font-family:inherit;
@@ -432,7 +433,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
           <select class="select" id="grade"><option>3학년</option><option selected>4학년</option><option>5학년</option><option>6학년</option></select>
         </div>
         <div class="field"><label class="field__label">과목</label>
-          <select class="select" id="subject"><option>국어</option><option selected>사회</option><option>과학</option><option>수학</option><option>영어</option></select>
+          <select class="select" id="subject"><option>국어</option><option selected>사회</option><option>도덕</option><option>수학</option><option>과학</option><option>체육</option><option>음악</option><option>미술</option><option>영어</option><option>실과</option></select>
         </div>
       </div>
       <div class="field"><label class="field__label" for="title">단원명</label>
@@ -443,18 +444,20 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
       </div>
       <div class="field"><label class="field__label" for="scenario">🎬 과제 상황 <span class="concept-badge" id="conceptBadge">개념어: —</span></label>
         <textarea class="textarea" id="scenario" placeholder="예: 너는 우리 학교 기상 관측 도우미입니다. 계절마다 그림자 길이가 달라지는 까닭을 궁금해하는 1학년 동생에게 설명하는 자료를 만들어 봅시다." style="min-height:56px"></textarea>
-        <p class="field__hint">개념어는 핵심 질문에서 자동으로 뽑았어요 — 과제 상황을 이 개념과 연결해 쓰면 문항의 맥락이 살아납니다. (선택 입력 · 넣으면 평가지 첫 문장으로 반영됩니다)</p>
+        <p class="field__hint">개념어는 핵심 질문에서 추출하며, 과제 상황을 이 개념과 연결해 쓰면 문항의 맥락이 살아납니다. (선택 입력 형태로 평가지 첫문장 반영)</p>
       </div>
     </div>
 
     <div class="card">
       <h2 class="card__title">🎯 성취기준 <span class="card__hint">선택 <b id="achCount" style="color:var(--accent)">0</b>개</span></h2>
       <div class="ach-list" id="achList"></div>
+      <p class="field__hint">자주 쓰는 예시 몇 개만 담았어요 · 찾는 성취기준이 없으면 아래 직접 입력을 이용해 주세요.</p>
       <div class="phase-hint" id="phaseHint"></div>
       <div class="field" style="margin-top:12px;">
-        <label class="field__label">직접 입력 <span style="font-weight:500;color:var(--muted)">(목록 병행 가능)</span></label>
+        <label class="field__label">✏️ 직접 입력 <span style="font-weight:500;color:var(--muted)">— 어떤 교과·학년의 성취기준이든 여기에 붙여넣으면 됩니다</span></label>
         <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
         <div class="verb-flag" id="verbFlag"></div>
+        <p class="field__hint">정확한 원문은 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 검색해 복사·붙여넣기 하시면 가장 정확합니다.</p>
       </div>
     </div>
   </section>
@@ -641,7 +644,7 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <label class="field__label">학년·과목 (감지됨)</label>
         <div class="row">
           <select class="select" id="planGrade"><option>3학년</option><option>4학년</option><option>5학년</option><option>6학년</option></select>
-          <select class="select" id="planSubject"><option>국어</option><option>사회</option><option>과학</option><option>수학</option><option>영어</option></select>
+          <select class="select" id="planSubject"><option>국어</option><option>사회</option><option>도덕</option><option>수학</option><option>과학</option><option>체육</option><option>음악</option><option>미술</option><option>영어</option><option>실과</option></select>
         </div>
       </div>
       <div class="field">
@@ -750,6 +753,25 @@ const GHOST = {
   'reflect:link':'질문이 처음과 어떻게 달라졌는지 돌아보게 하려면?',
   'reflect:transfer':'오늘 배운 걸 다음에 어떻게 쓸지 묻는다면?',
 };
+/* 교과별 신호 프로파일 — KCBC-매트릭스-정교화-v2.md §2 표를 그대로 옮김(가공·추정 없음) */
+const SUBJECT_PROFILE = {
+  '체육':   { rowSignal:'full',    orderSignal:'none' },
+  '미술':   { rowSignal:'full',    orderSignal:'none' },
+  '음악':   { rowSignal:'full',    orderSignal:'none' },
+  '도덕':   { rowSignal:'full',    orderSignal:'strong' },
+  '수학':   { rowSignal:'low',     orderSignal:'soft' },
+  '과학':   { rowSignal:'low',     orderSignal:'soft' },
+  '사회':   { rowSignal:'low',     orderSignal:'none' },
+  '실과':   { rowSignal:'minimal', orderSignal:'soft' },
+  '국어':   { rowSignal:'gapped',  orderSignal:'soft' },
+  '영어':   { rowSignal:'gapped',  orderSignal:'soft' },
+};
+const LOW_ROW_GHOST = '이 행은 데이터가 채울 수 없는, 선생님만 만들 수 있는 발문 영역입니다.';
+function ghostFor(phase, level){
+  const profile = SUBJECT_PROFILE[state.subject];
+  if(level === 'transfer' && profile?.rowSignal === 'low') return LOW_ROW_GHOST;
+  return GHOST[cellKey(phase, level)];
+}
 function gradeBand(g){ return (g==='3학년'||g==='4학년') ? 'g34' : 'g56'; }
 const ACHIEVEMENTS = {
   g34: {
@@ -978,7 +1000,7 @@ function checkVerb(){
   else { flag.className = 'verb-flag is-on'; flag.textContent = '⚠ 행동 동사(이해한다·설명할 수 있다 등)가 보이지 않습니다.'; }
 }
 $('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); save(); });
-$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); save(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); save(); });
 $('#title').addEventListener('input', e => { state.title = e.target.value; save(); });
 $('#unitQuestion').addEventListener('input', e => { state.unitQuestion = e.target.value; updateConceptBadge(); save(); });
 $('#scenario').addEventListener('input', e => { state.scenario = e.target.value; save(); });
@@ -1006,7 +1028,7 @@ function renderBoard(){
              ${it.image ? '<span class="chip-mini">📎 이미지</span>' : ''}
            </div>
            ${it.included ? '<div class="stamp">평가<br>문항</div>' : ''}`
-        : `<div class="board-cell__ghost">${GHOST[key]}</div>`;
+        : `<div class="board-cell__ghost">${ghostFor(P.key, L.key)}</div>`;
       div.addEventListener('click', () => openCellModal(P.key, L.key));
       wrap.appendChild(div);
     });
@@ -1027,7 +1049,7 @@ function openCellModal(phase, level){
   $('#cellModalTitle').textContent = `✎ ${P.ko} × ${L.ko}`;
   const it = state.items[state.activeCell] || { question:'', included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null };
   $('#cellQuestion').value = it.question || '';
-  $('#cellQuestion').placeholder = GHOST[state.activeCell];
+  $('#cellQuestion').placeholder = ghostFor(phase, level);
   $('#cellInclude').checked = !!it.included;
   $('#cellScore').value = it.score || '';
   $('#cellStarter').value = it.starter || '';
@@ -1609,7 +1631,7 @@ $('#coachSend').addEventListener('click', sendFree);
 $('#coachInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFree(); } });
 
 /* ═════════ 평가계획 PDF 가져오기 ═════════ */
-const SUBJECT_CHAR = { '국':'국어', '사':'사회', '과':'과학', '수':'수학', '영':'영어' };
+const SUBJECT_CHAR = { '국':'국어', '사':'사회', '도':'도덕', '수':'수학', '과':'과학', '체':'체육', '음':'음악', '미':'미술', '영':'영어', '실':'실과' };
 let pdfjsLoadPromise = null;
 function loadPdfJs(){
   if(window.pdfjsLib) return Promise.resolve();
@@ -1640,7 +1662,7 @@ async function extractPdfText(file){
   return text.replace(/\s+/g, ' ').trim();
 }
 function parsePlanText(text){
-  const codeRe = /\[?\s*([3-6])\s*([국사과수영])\s*(\d{2}\s*-\s*\d{2})\s*\]?/g;
+  const codeRe = /\[?\s*([3-6])\s*([국사도수과체음미영실])\s*(\d{2}\s*-\s*\d{2})\s*\]?/g;
   const seen = new Map();
   let m;
   while((m = codeRe.exec(text))){
@@ -1768,7 +1790,7 @@ $('#btnPlanApply').addEventListener('click', () => {
     addedRaw = rawLines.length;
   }
 
-  renderAchievements(); checkVerb(); updateConceptBadge(); save();
+  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); save();
   $('#planModal').classList.remove('is-on');
   switchTab('setup');
   toast(`✓ 성취기준 ${addedMatched}개 자동 체크${addedRaw?`, ${addedRaw}개는 직접입력에 추가`:''}했습니다`);
