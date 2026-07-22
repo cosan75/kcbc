@@ -1,0 +1,2800 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>단계형 평가문항 제작 도구 · KCBC Standalone</title>
+  <style>
+    /* ═════ Design Tokens ═════ */
+    :root{
+      --bg:#f6f7fb; --panel:#ffffff; --line:#e6e8f0; --line-soft:#eef0f7;
+      --ink:#1a1d29; --ink-soft:#4b5163; --muted:#8c93a8;
+      --brand:#111827; --brand-hover:#0d1220;
+      --accent:#3a57e8; --accent-soft:#eef1ff;
+      --ok:#2ea66c; --warn:#c98a16; --violet:#7048e8; --teal:#0e8f8a; --rose:#d6336c;
+      --tag-gray:#f1f2f6; --tag-blue:#e5edff; --tag-violet:#ede4ff; --tag-teal:#dff4f2; --tag-rose:#ffe1ec;
+      --shadow-sm:0 1px 2px rgba(15,18,32,.04);
+      --shadow-md:0 6px 24px rgba(15,18,32,.08);
+      --radius:10px; --radius-lg:14px;
+      --sidebar-w:420px;
+      --canvas-max:820px;
+      --app-max:1320px;
+    }
+    *,*::before,*::after{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink);
+      font-family:"Pretendard","Apple SD Gothic Neo","Segoe UI",system-ui,sans-serif;
+      font-size:14px; line-height:1.55;
+    }
+    button{ font:inherit; color:inherit; }
+    a{ color:inherit; }
+
+    /* ═════ Layout ═════ */
+    .gnb{
+      position:sticky; top:0; z-index:40;
+      display:flex; align-items:center; gap:12px;
+      padding:10px max(16px, calc((100vw - var(--app-max)) / 2));
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+      height:56px;
+    }
+    .gnb__title{
+      font-size:14.5px; font-weight:800; margin:0; letter-spacing:-.3px;
+      padding:8px 18px; border-radius:999px;
+      background:linear-gradient(120deg, #fce4ff 0%, #fff2d9 45%, #d8f4e9 100%);
+      color:#3d3f5c;
+      box-shadow:
+        0 2px 6px rgba(150,150,200,.18),
+        inset 0 0 0 1px rgba(255,255,255,.7);
+      white-space:nowrap;
+    }
+    .gnb__spacer{ flex:1; }
+    .gnb__actions{ display:flex; gap:4px; }
+    .icon-btn{
+      width:34px; height:34px; border:1px solid var(--line); background:var(--panel);
+      border-radius:8px; cursor:pointer; display:inline-grid; place-items:center;
+      color:var(--ink-soft); transition:.15s;
+    }
+    .icon-btn:hover{ background:var(--line-soft); }
+    .icon-btn.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+    .gnb__crumb{ font-size:12px; color:var(--muted); }
+    .gnb__crumb b{ color:var(--ink-soft); font-weight:600; }
+
+    .app{
+      display:grid;
+      grid-template-columns:var(--sidebar-w) 1fr;
+      min-height:calc(100vh - 56px - 40px);
+      max-width:var(--app-max);
+      margin:0 auto;
+    }
+    @media (max-width:640px){
+      .app{ grid-template-columns:1fr; }
+      .chat{ position:static !important; height:auto !important; }
+      .gnb__title{ font-size:13px; padding:6px 12px; }
+      .gnb__crumb{ display:none; }
+      .canvas{ padding:12px; }
+      .matrix{ grid-template-columns:64px repeat(3, minmax(0,1fr)); gap:4px; }
+      .matrix__row-label{ font-size:11px; padding:3px 4px; }
+      .matrix__cell{ min-height:56px; padding:6px; }
+      .matrix__cell-content{ font-size:11px; }
+      .matrix__cell-add{ width:22px; height:22px; top:4px; right:4px; }
+      .action-btn{ font-size:11px; padding:7px 3px; }
+      .action-btn__ico{ font-size:14px; }
+      .radar-card svg{ max-width:130px; }
+      .radar-card h3{ font-size:12px; }
+      .radar-card__score{ font-size:18px; }
+      .ws__page{ padding:22px 18px 18px; font-size:12px; }
+      .ws__title{ font-size:19px; margin-bottom:12px; }
+      .ws__gradebox th, .ws__gradebox td{ padding:3px 12px; font-size:11.5px; }
+      .ws__scoreinfo{ font-size:11.5px; }
+      .ws__info th, .ws__info td{ padding:4px 6px; font-size:11.5px; }
+      .ws__info th{ width:52px; }
+      .ws__section{ font-size:12.5px; }
+      .ws__q-head{ font-size:12px; padding-left:20px; text-indent:-20px; }
+      .ws__q-space{ min-height:140px; }
+      .radio-group{ gap:8px; }
+      .radio{ font-size:12px; }
+      .field__label{ font-size:12.5px; }
+      .input, .select, .textarea{ font-size:14px; } /* iOS auto-zoom 방지 */
+    }
+    @media (max-width:400px){
+      .radars{ grid-template-columns:1fr; gap:6px; }
+      .action-grid{ grid-template-columns:repeat(2, 1fr); }
+    }
+
+    /* ═════ 자동 저장 인디케이터 (GNB 우측) ═════ */
+    .save-ind{
+      display:inline-flex; align-items:center; gap:5px;
+      padding:5px 10px; border-radius:999px;
+      background:#eaf7ef; color:#1f7a4a; font-size:11px; font-weight:600;
+      white-space:nowrap;
+    }
+    .save-ind__dot{
+      width:6px; height:6px; border-radius:50%; background:#2ea66c;
+      box-shadow:0 0 0 3px rgba(46,166,108,.18);
+    }
+    @media (max-width:640px){ .save-ind{ display:none; } }
+
+    /* ═════ 상단 스텝바 (sticky) ═════ */
+    .stepbar{
+      position:sticky; top:56px; z-index:35; background:#fff;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; gap:8px;
+      padding:9px max(16px, calc((100vw - var(--app-max)) / 2));
+      overflow-x:auto;
+      scrollbar-width:thin;
+    }
+    .stepbar-select{
+      padding:5px 8px; border:1px solid var(--line); border-radius:6px;
+      background:var(--panel); font-size:12px; color:var(--ink-soft);
+      cursor:pointer; margin:0 2px; font-weight:600; letter-spacing:-.2px;
+    }
+    .stepbar-select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    .stepbar__item{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px; border-radius:999px; background:transparent;
+      border:1px solid transparent; cursor:pointer;
+      color:var(--muted); font-size:12px; font-weight:600;
+      white-space:nowrap; transition:.15s;
+    }
+    .stepbar__item:disabled{ cursor:not-allowed; opacity:.55; }
+    .stepbar__item:hover:not(:disabled){ background:var(--line-soft); color:var(--ink-soft); }
+    .stepbar__item.is-current{
+      background:var(--accent-soft); color:var(--accent); border-color:var(--accent);
+    }
+    .stepbar__item.is-done{ color:#1f7a4a; }
+    .stepbar__item.is-done .stepbar__num{ background:#2ea66c; color:#fff; }
+    .stepbar__num{
+      width:20px; height:20px; border-radius:50%;
+      background:var(--line); color:var(--ink-soft);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700;
+    }
+    .stepbar__item.is-current .stepbar__num{ background:var(--accent); color:#fff; }
+    .stepbar__sep{
+      display:inline-block; width:1px; height:18px; flex-shrink:0;
+      background:var(--ink-soft); opacity:.28; margin:0 2px;
+      font-size:0; user-select:none;
+    }
+
+    /* 30초 예시 + 새로 작성 — 캔버스 툴바 우측, 한 줄 */
+    .canvas__toolbar-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .demo-banner__inline{
+      display:flex; align-items:center; gap:8px; min-width:0;
+    }
+    .demo-banner__inline.is-hidden{ display:none; }
+    .demo-banner__title{
+      font-size:12px; font-weight:600; margin:0; color:var(--ink-soft);
+      white-space:nowrap;
+    }
+    .demo-btn{
+      padding:7px 14px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:12px; color:var(--ink-soft);
+      font-weight:600; transition:.15s; display:inline-flex; align-items:center; gap:4px;
+      white-space:nowrap; flex-shrink:0;
+    }
+    .demo-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    @media (max-width:768px){
+      .demo-banner__title{ display:none; }
+    }
+
+    /* G2 · 빠른 질문 버튼 3개 */
+    .ai-quick-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+    .ai-quick-btn{
+      padding:6px 10px; border-radius:999px; border:1px solid var(--accent);
+      background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:700;
+      cursor:pointer; white-space:nowrap;
+    }
+    .ai-quick-btn:hover{ background:var(--accent); color:#fff; }
+
+    /* ═════ 사이드바 4단계 아코디언 ═════ */
+    .step-acc{
+      border-bottom:1px solid var(--line-soft);
+    }
+    .step-acc__head{
+      width:100%; display:flex; align-items:center; gap:8px;
+      padding:12px 4px; background:transparent; border:none; cursor:pointer;
+      text-align:left; color:var(--ink-soft); font-size:13px; font-weight:700;
+      transition:.12s;
+    }
+    .step-acc__head:hover{ color:var(--accent); }
+    .step-acc__num{
+      width:22px; height:22px; border-radius:50%;
+      background:var(--line); color:var(--ink-soft);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; flex-shrink:0;
+    }
+    .step-acc.is-current .step-acc__head{ color:var(--accent); }
+    .step-acc.is-current .step-acc__num{ background:var(--accent); color:#fff; }
+    .step-acc.is-done .step-acc__num{ background:#2ea66c; color:#fff; }
+    .step-acc__caret{ margin-left:auto; color:var(--muted); font-size:11px; transition:.15s; }
+    .step-acc.is-open .step-acc__caret{ transform:rotate(180deg); }
+    .step-acc__body{ display:none; padding:4px 4px 12px; }
+    .step-acc.is-open .step-acc__body{ display:block; }
+
+    /* ═════ 매트릭스 가로 스크롤 (모바일/태블릿) ═════ */
+    .matrix-scroll{ position:relative; }
+    .matrix-hint{
+      display:none; align-items:center; gap:4px;
+      font-size:11px; color:var(--accent); font-weight:600;
+      margin-top:6px; padding:4px 8px; background:var(--accent-soft);
+      border-radius:6px; width:fit-content;
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{ 0%,100%{opacity:.9;} 50%{opacity:.5;} }
+    @media (max-width:768px){
+      .matrix-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .matrix{ min-width:520px; }
+      .matrix-hint{ display:inline-flex; }
+    }
+
+    /* ═════ 수준 라벨 (상/중/하) 색상 + 텍스트 병기 ═════ */
+    .level-badge{
+      display:inline-block; padding:1px 6px; border-radius:4px;
+      font-size:10px; font-weight:700; margin-right:4px;
+    }
+    .level-badge--high{ background:#dff4f2; color:var(--teal); }
+    .level-badge--mid{ background:#eef1ff; color:var(--accent); }
+    .level-badge--low{ background:#ffe1ec; color:var(--rose); }
+
+    /* ═════ 완성 단계 안내 ═════ */
+    .step4-info{
+      padding:14px; background:var(--accent-soft); border-radius:8px;
+      font-size:11.5px; color:var(--ink-soft); line-height:1.6;
+    }
+    .step4-info b{ color:var(--accent); }
+    .step4-info ul{ margin:6px 0 0; padding-left:20px; }
+    .step4-info li{ margin-bottom:3px; }
+
+    /* ═════ R1 · 정책 프레임 배지 (Step 1 상단) ═════ */
+    .policy-badge{
+      padding:10px 12px; background:linear-gradient(120deg, #f0f7ff, #ecfff7);
+      border-left:3px solid var(--accent); border-radius:6px;
+      font-size:11.5px; color:var(--ink-soft); line-height:1.55;
+      margin-bottom:14px;
+    }
+    .policy-badge b{ color:var(--accent); font-weight:700; }
+
+    /* ═════ R2 · 성취기준 학년군 배지 + 검증 워터마크 ═════ */
+    .ach-band-badge{
+      display:inline-block; font-size:9.5px; padding:1px 6px; border-radius:3px;
+      background:var(--line-soft); color:var(--muted); font-weight:600;
+      margin-left:6px; letter-spacing:0;
+    }
+    .ach-item__warn{
+      font-size:9px; color:var(--warn); padding:1px 4px;
+      border:1px solid var(--warn); border-radius:3px; opacity:.75;
+      margin-left:auto; flex-shrink:0; white-space:nowrap; font-weight:600;
+      align-self:flex-start; margin-top:2px;
+    }
+    .field__hint a{ color:var(--accent); text-decoration:underline; }
+
+    /* ═════ R7·R8 · 예시 & 자동시드 워터마크 ═════ */
+    .seed-warn, .demo-watermark{
+      padding:9px 12px; border-radius:8px;
+      font-size:11.5px; font-weight:600;
+      margin-bottom:10px; display:none; align-items:center; gap:6px;
+      line-height:1.4;
+    }
+    .seed-warn.is-on, .demo-watermark.is-on{ display:flex; }
+    .seed-warn{ background:#fef3c7; border:1px solid #f5c542; color:#7a5a10; }
+    .demo-watermark{ background:linear-gradient(120deg, #fef3c7, #fef9e0); border:1px solid #f5c542; color:#7a5a10; justify-content:space-between; }
+    .demo-watermark__x{
+      background:transparent; border:none; cursor:pointer; color:#7a5a10;
+      font-weight:700; font-size:14px; padding:2px 6px; border-radius:4px;
+    }
+    .demo-watermark__x:hover{ background:rgba(122,90,16,.1); }
+
+    /* ═════ R4 · 자유 모드 토글 ═════ */
+    .mode-toggle{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:5px 10px; border:1px solid var(--line); border-radius:999px;
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft);
+      font-weight:600; white-space:nowrap;
+    }
+    .mode-toggle input{ accent-color:var(--accent); margin:0; }
+    .mode-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+    @media (max-width:640px){ .mode-toggle{ display:none; } }
+
+    /* ═════ R5 · iOS 자동 확대 방지 폰트 16px 승격 ═════ */
+    @media (max-width:640px){
+      .input, .select, .textarea{ font-size:16px !important; }
+      .stepbar-select{ font-size:15px; }
+    }
+
+    /* ═════ 컨텍스트 바 (학년과목·단원질문·성취기준) ═════ */
+    .ctx__item{
+      font-size:12px; color:var(--ink-soft); font-weight:600;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width:32vw;
+    }
+    .ctx__item--grade{ color:var(--accent); flex-shrink:0; }
+    .ctx__select{
+      appearance:none; -webkit-appearance:none;
+      padding:5px 22px 5px 10px; border:1px solid var(--line); border-radius:999px;
+      background:var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%234b5163' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 7px center;
+      background-size:10px; font-size:11.5px; font-weight:600; color:var(--ink-soft);
+      cursor:pointer; flex-shrink:0; max-width:34vw; text-overflow:ellipsis;
+    }
+    .ctx__select:hover{ border-color:var(--accent); color:var(--accent); }
+    .ctx__select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    @media (max-width:768px){ .ctx__select{ max-width:40vw; } }
+
+    /* ═════ AI 질문 도우미 (Claude API) — 토글은 컨텍스트 바 안, 패널만 아래 펼침 ═════ */
+    .ai-helper__toggle{
+      flex-shrink:0; border:none; background:transparent; cursor:pointer;
+      display:inline-flex; align-items:center; gap:5px; padding:4px 10px;
+      font-size:12px; font-weight:700; color:var(--accent); white-space:nowrap;
+      border-radius:999px; background:var(--accent-soft);
+    }
+    .ai-helper__toggle:hover{ background:var(--accent); color:#fff; }
+    .ai-helper__caret{ transition:.15s; color:inherit; display:inline-block; }
+    #aiHelperToggle[aria-expanded="true"] .ai-helper__caret{ transform:rotate(180deg); }
+    /* 패널 섹션 — 닫혀 있을 때는 공간을 차지하지 않음 */
+    .ai-helper{ }
+    .ai-helper__inner{
+      max-width:var(--app-max); margin:0 auto; width:100%;
+      padding:0 max(16px, calc((100vw - var(--app-max)) / 2));
+    }
+    @media (max-width:640px){ .ai-helper__inner{ padding:0 12px; } }
+    .ai-helper__panel{
+      padding:10px 10px 12px; margin:8px 0; background:var(--panel);
+      border-radius:10px; border:1px solid var(--line);
+      box-shadow:var(--shadow-md);
+    }
+    .ai-helper__panel.hidden{ display:none; }
+    .ai-helper__keyrow{ display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .ai-helper__keyrow.hidden{ display:none; }
+    .ai-helper__keyrow input{ flex:1; min-width:180px; }
+    .ai-helper__keynote{ font-size:10px; color:var(--muted); white-space:nowrap; }
+    .ai-helper__keynote a{ color:var(--accent); text-decoration:underline; }
+    .ai-helper__chat{
+      max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
+      margin-bottom:8px;
+    }
+    .ai-msg{ max-width:88%; padding:8px 11px; border-radius:10px; font-size:12px; line-height:1.55; white-space:pre-wrap; word-break:keep-all; }
+    .ai-msg--user{ align-self:flex-end; background:var(--accent-soft); color:var(--ink); border-bottom-right-radius:2px; }
+    .ai-msg--ai{ align-self:flex-start; background:var(--line-soft); color:var(--ink); border-bottom-left-radius:2px; }
+    .ai-msg--error{ align-self:flex-start; background:#fef3c7; color:#7a5a10; }
+    .ai-msg--loading{ align-self:flex-start; background:var(--line-soft); color:var(--muted); font-style:italic; }
+    .ai-helper__inputrow{ display:flex; gap:6px; align-items:flex-end; }
+    .ai-helper__inputrow textarea{ flex:1; min-height:34px; max-height:90px; resize:vertical; }
+    .ai-helper__send{ flex-shrink:0; background:var(--ink); color:#fff; border-color:var(--ink); }
+    .ai-helper__send:hover{ background:var(--brand-hover); }
+    .ai-helper__send:disabled{ opacity:.5; cursor:not-allowed; }
+    .ai-helper__keychange{ font-size:10px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:0; }
+
+    /* ═════ 셀 편집기 · 단원질문/성취기준 컨텍스트 + 평가지 반영 체크 ═════ */
+    .cell-editor__ctx{
+      padding:8px 10px; background:var(--panel); border:1px solid var(--line);
+      border-radius:8px; font-size:11px; color:var(--ink-soft);
+      margin-bottom:10px; line-height:1.7; word-break:keep-all;
+    }
+    .cell-editor__ctx b{ color:var(--ink); margin-right:4px; }
+    .cell-include{
+      display:flex; align-items:center; gap:6px; padding:8px 10px;
+      background:#f0fff7; border:1px solid #b7ebcd; border-radius:8px;
+      font-size:12px; font-weight:700; color:#1f7a4a; cursor:pointer;
+      margin-top:8px;
+    }
+    .cell-include input{ accent-color:#2ea66c; margin:0; }
+    .matrix__inc-badge{
+      font-size:9.5px; padding:2px 5px; border-radius:4px;
+      background:#dff4e8; color:#1f7a4a; font-weight:700;
+    }
+
+    /* ═════ 평가지 편집기 (텍스트 → 이미지 → 펜, 3단계) ═════ */
+    .ws__page{ position:relative; }
+    .ws__page.is-editing{ outline:2px dashed var(--accent); outline-offset:4px; }
+    .ws__draw{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+    .ws__draw.is-pen{ pointer-events:auto; cursor:crosshair; }
+    .ws-editor-bar{
+      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+      max-width:760px; margin:0 auto 8px;
+      padding:8px 10px; background:var(--accent-soft);
+      border:1px solid var(--accent); border-radius:8px;
+    }
+    .ws-editor-bar input[type="color"]{
+      width:30px; height:26px; border:none; background:none; cursor:pointer; padding:0;
+    }
+
+    /* ═════ Left Sidebar (Chat) ═════ */
+    .chat{
+      background:var(--panel); border-right:1px solid var(--line);
+      display:flex; height:calc(100vh - 56px - 40px); position:sticky; top:56px;
+    }
+    .lnb{
+      width:52px; border-right:1px solid var(--line-soft);
+      display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px;
+      background:#fbfbfd;
+    }
+    .lnb__item{
+      width:36px; height:36px; border:none; background:transparent; border-radius:8px;
+      cursor:pointer; display:grid; place-items:center; font-size:16px; color:var(--ink-soft);
+    }
+    .lnb__item:hover{ background:var(--line-soft); }
+    .lnb__item.is-on{ background:var(--accent-soft); color:var(--accent); }
+    .lnb__sep{ width:24px; height:1px; background:var(--line); margin:6px 0; }
+
+    .chat__inner{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .chat__scroll{ flex:1; overflow-y:auto; padding:18px 18px 12px; }
+    .chat__title{ font-size:15px; font-weight:700; margin:0 0 4px; }
+    .chat__desc{ font-size:12px; color:var(--muted); margin:0 0 16px; }
+
+    .field{ margin-bottom:14px; }
+    .field__label{
+      display:flex; align-items:center; gap:4px;
+      font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;
+    }
+    .field__label .req{ color:var(--rose); }
+    .field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; }
+
+    .input, .select, .textarea{
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
+      background:var(--panel); color:var(--ink); font-size:13px; transition:.15s;
+    }
+    .input:focus, .select:focus, .textarea:focus{
+      outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
+    }
+    .textarea{ min-height:64px; resize:vertical; font-family:inherit; }
+    .select{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%234b5163' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"); background-repeat:no-repeat; background-position:right 10px center; background-size:12px; padding-right:28px; }
+
+    /* Radio group — 1줄 강제 */
+    .radio-group{ display:flex; gap:10px; flex-wrap:nowrap; }
+    .radio{
+      display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft);
+      cursor:pointer; white-space:nowrap;
+    }
+    .radio input{ accent-color:var(--teal); }
+
+    /* Multi-select chips */
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:4px;
+      padding:5px 10px; border-radius:999px; border:1px solid var(--line);
+      background:var(--panel); font-size:12px; color:var(--ink-soft); cursor:pointer;
+      transition:.15s;
+    }
+    .chip:hover{ border-color:var(--accent); color:var(--accent); }
+    .chip.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+    /* Cell editor */
+    .cell-editor{
+      margin-top:12px; padding:14px; border:1px dashed var(--accent);
+      border-radius:var(--radius); background:var(--accent-soft);
+    }
+    .cell-editor__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .cell-editor__title{ font-size:13px; font-weight:700; margin:0; }
+    .cell-editor__close{ background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:16px; }
+    .cell-editor .field{ margin-bottom:8px; }
+    .cell-editor__row{ display:flex; gap:8px; margin-top:8px; }
+    .btn-tech{
+      flex:1; padding:9px 8px; border-radius:8px; border:1.5px solid var(--accent);
+      background:var(--panel); color:var(--accent); font-weight:700; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      transition:.15s; font-size:11.5px; white-space:nowrap; letter-spacing:-.2px;
+    }
+    .btn-tech:hover{ background:var(--accent); color:#fff; }
+
+    /* 성취기준 리스트 */
+    .ach-list{
+      max-height:170px; overflow-y:auto;
+      border:1px solid var(--line); border-radius:8px;
+      padding:5px; background:var(--panel);
+    }
+    .ach-item{
+      display:flex; gap:7px; padding:6px 6px 6px 4px; border-radius:6px;
+      align-items:flex-start; cursor:pointer;
+    }
+    .ach-item:hover{ background:var(--line-soft); }
+    .ach-item input{ margin-top:3px; accent-color:var(--accent); flex-shrink:0; }
+    .ach-item__code{
+      font-size:9.5px; padding:2px 5px; border-radius:4px; background:var(--accent-soft);
+      color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0;
+      margin-top:1px;
+    }
+    .ach-item__desc{
+      font-size:11.5px; color:var(--ink-soft); line-height:1.45;
+      word-break:keep-all;
+    }
+    .ach-count{
+      font-size:10.5px; color:var(--muted); font-weight:600;
+      margin-left:auto; padding:0 2px;
+    }
+    .ach-count b{ color:var(--accent); }
+
+    details.adv{
+      margin-top:8px; border:1px solid var(--line); border-radius:8px; background:var(--panel);
+    }
+    details.adv > summary{
+      cursor:pointer; padding:8px 10px; font-size:12px; color:var(--ink-soft);
+      list-style:none;
+    }
+    details.adv > summary::-webkit-details-marker{ display:none; }
+    details.adv[open] > summary{ border-bottom:1px solid var(--line); }
+    details.adv > div{ padding:8px 10px; }
+
+    /* Footer inside chat — 컴팩트 5-액션 그리드 */
+    .chat__footer{ padding:10px 12px 12px; border-top:1px solid var(--line); background:var(--panel); }
+    .action-grid{
+      display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px;
+    }
+    .action-btn{
+      padding:8px 2px; border:1px solid var(--line); border-radius:7px;
+      background:var(--panel); cursor:pointer; font-size:10.5px; color:var(--ink-soft);
+      display:flex; align-items:center; justify-content:center; gap:3px;
+      transition:.15s; font-weight:600; white-space:nowrap; overflow:hidden; min-width:0;
+    }
+    .action-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .action-btn.is-primary{
+      background:var(--brand); color:#fff; border-color:var(--brand);
+    }
+    .action-btn.is-primary:hover{ background:var(--brand-hover); color:#fff; border-color:var(--brand-hover); }
+    .action-btn__ico{ font-size:13px; line-height:1; flex-shrink:0; }
+    .action-btn__lbl{ overflow:hidden; text-overflow:ellipsis; }
+    .action-desc{
+      margin:6px 0 0; padding:0; list-style:none;
+      display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:5px;
+    }
+    .action-desc li{
+      font-size:9.5px; color:var(--muted); text-align:center; line-height:1.35;
+      word-break:keep-all;
+    }
+
+    /* 평가지(수행평가지 워크시트) — 인쇄용 스타일 */
+    .assessment-card{ background:transparent; border:none; padding:0; box-shadow:none; }
+    .assessment-empty{
+      font-size:11px; color:var(--muted); text-align:center; padding:14px 12px;
+      background:var(--panel); border:1px dashed var(--line); border-radius:10px;
+      line-height:1.5; word-break:keep-all;
+    }
+    .btn-mini{
+      padding:6px 12px; border-radius:6px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:11px; color:var(--ink-soft); font-weight:600;
+    }
+    .btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
+
+    .ws__topbar{
+      display:flex; align-items:center; gap:6px; margin-bottom:12px; flex-wrap:wrap;
+    }
+    .ws__back{
+      padding:8px 14px; border-radius:8px; background:var(--ink); color:#fff;
+      border:none; cursor:pointer; font-weight:700; font-size:12px;
+      display:inline-flex; align-items:center; gap:4px;
+    }
+    .ws__back:hover{ background:var(--brand-hover); }
+
+    /* 실제 평가지 페이지 (A4 시안) */
+    .ws__page{
+      background:#fff; padding:36px 44px 28px; margin:0 auto; max-width:760px;
+      border:1px solid #d0d3dd; box-shadow:0 4px 24px rgba(15,18,32,.08);
+      color:#000; line-height:1.65;
+      font-family:"Batang","Malgun Gothic","Apple SD Gothic Neo",serif;
+      font-size:13px;
+    }
+    .ws__title{
+      text-align:center; font-size:24px; font-weight:700; margin:0 0 18px;
+      text-decoration:underline; text-underline-offset:5px; letter-spacing:.5px;
+    }
+    .ws__header{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      margin-bottom:14px; gap:16px;
+    }
+    .ws__gradebox{ border-collapse:collapse; }
+    .ws__gradebox th, .ws__gradebox td{
+      border:1.5px solid #000; padding:3px 22px; text-align:center;
+      font-weight:700; font-size:13px;
+    }
+    .ws__gradebox td{ height:26px; }
+    .ws__scoreinfo{ text-align:right; font-size:13px; line-height:1.9; }
+    .ws__info{ width:100%; border-collapse:collapse; margin-bottom:0; }
+    .ws__info th, .ws__info td{
+      border:1.5px solid #000; padding:6px 10px; font-size:13px; font-weight:400;
+    }
+    .ws__info th{
+      background:#dadada; font-weight:700; width:64px;
+      text-align:center; white-space:nowrap;
+    }
+    .ws__section{
+      background:#c0c0c0; text-align:center; padding:7px;
+      border:1.5px solid #000; border-top:none; font-weight:700; font-size:14px;
+    }
+    .ws__questions{
+      border:1.5px solid #000; border-top:none; padding:20px 18px 30px;
+      min-height:520px;
+    }
+    .ws__q{ margin-bottom:24px; }
+    .ws__q-head{ padding-left:22px; text-indent:-22px; font-size:13px; line-height:1.7; }
+    .ws__q-space{ min-height:180px; }
+    .ws__pagenum{ text-align:center; margin-top:14px; font-size:12px; color:#000; }
+
+    /* 루브릭 접이식 (교사 참조) */
+    .ws__rubric-details{
+      margin-top:14px; max-width:760px; margin-left:auto; margin-right:auto;
+      background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    }
+    .ws__rubric-details > summary{
+      cursor:pointer; padding:10px 14px; font-size:12px; font-weight:600; color:var(--ink-soft);
+      list-style:none;
+    }
+    .ws__rubric-details > summary::-webkit-details-marker{ display:none; }
+    .ws__rubric-details[open] > summary{ border-bottom:1px solid var(--line); }
+    .ws__rubric-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+    .ws__rubric-table th, .ws__rubric-table td{
+      text-align:left; padding:6px 10px; border-top:1px solid var(--line); vertical-align:top;
+    }
+    .ws__rubric-table th{ background:var(--line-soft); color:var(--ink-soft); font-weight:600; font-size:11px; }
+    .rubric__grade{
+      display:inline-block; padding:2px 6px; border-radius:4px;
+      font-size:10px; font-weight:700; white-space:nowrap;
+    }
+    .rubric__grade--high{ background:#dff4f2; color:var(--teal); }
+    .rubric__grade--mid{ background:#eef1ff; color:var(--accent); }
+    .rubric__grade--low{ background:#ffe1ec; color:var(--rose); }
+
+    /* 캔버스 툴바 리셋 버튼 */
+    .btn-reset{
+      padding:7px 14px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel); cursor:pointer; font-size:12px; color:var(--ink-soft);
+      font-weight:600; transition:.15s; display:inline-flex; align-items:center; gap:4px;
+      white-space:nowrap;
+    }
+    .btn-reset:hover{ border-color:var(--rose); color:var(--rose); background:#fff5f8; }
+
+    /* 인쇄 시 워크시트만 남기고 나머지 숨김 */
+    @media print{
+      body{ background:#fff; }
+      .gnb, .chat, .footer, .canvas__toolbar,
+      .canvas > .card:not(.assessment-card), .canvas > .radars,
+      .stepbar, .demo-banner, .seed-warn, .demo-watermark, .ws-editor-bar,
+      .ws__topbar, .ws__rubric-details, .toast, .drawer, .tech-modal{
+        display:none !important;
+      }
+      .app{ display:block; }
+      .canvas{ max-width:none; padding:0; margin:0; }
+      .ws__page{ border:none; box-shadow:none; padding:20mm; max-width:none; }
+    }
+
+    /* ═════ Right Canvas (페이지 스크롤로 자연 이어보기 · 폭 제한) ═════ */
+    .canvas{ padding:16px 22px 24px; min-width:0; display:flex; flex-direction:column; gap:12px;
+      max-width:var(--canvas-max); width:100%; margin:0 auto; }
+    .canvas__toolbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .canvas__title{ font-size:15px; font-weight:700; margin:0; }
+    .canvas__meta{ font-size:11px; color:var(--muted); }
+    .canvas__meta b{ color:var(--ink-soft); font-weight:600; }
+
+    .card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+      padding:12px 14px; box-shadow:var(--shadow-sm);
+    }
+    .card__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .card__title{ font-size:13px; font-weight:700; margin:0; }
+    .card__sub{ font-size:11px; color:var(--muted); }
+
+    /* Matrix (컴팩트) */
+    .matrix{
+      display:grid;
+      grid-template-columns:80px repeat(3, minmax(0,1fr));
+      gap:5px;
+    }
+    .matrix__cell{
+      border:1px solid var(--line); border-radius:8px;
+      padding:8px; min-height:62px; background:var(--panel);
+      display:flex; flex-direction:column; gap:4px; position:relative;
+      cursor:pointer; transition:.15s;
+    }
+    .matrix__cell:hover{ border-color:var(--accent); background:#fbfcff; }
+    .matrix__cell.is-active{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    .matrix__cell.is-filled{ background:#fbfbfd; }
+    .matrix__cell.is-open{ background:#f4fff9; border-color:#c8ecd6; }
+
+    .matrix__row-label{
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; color:var(--ink-soft);
+      background:var(--tag-gray); border-radius:8px;
+      writing-mode:horizontal-tb;
+      padding:4px 8px;
+    }
+    .matrix__col-label{
+      font-size:11px; color:var(--muted); text-align:center; padding-bottom:4px;
+    }
+    .matrix__cell-add{
+      position:absolute; top:6px; right:6px;
+      width:26px; height:26px; border-radius:999px; background:var(--accent-soft);
+      border:1.5px solid var(--accent); color:var(--accent);
+      display:inline-flex; align-items:center; justify-content:center; padding:0;
+      cursor:pointer; transition:.15s; box-shadow:0 0 0 0 rgba(58,87,232,.25);
+      font-size:0; /* 텍스트 대신 SVG 사용 */
+    }
+    .matrix__cell-add svg{ display:block; }
+    .matrix__cell-add:hover{ background:var(--accent); color:#fff; transform:scale(1.06); box-shadow:0 0 0 6px rgba(58,87,232,.15); }
+    .matrix__cell.is-filled .matrix__cell-add{ background:var(--panel); }
+
+    .matrix__cell-content{ font-size:11px; line-height:1.4; color:var(--ink); flex:1; padding-right:28px; word-break:keep-all; }
+    .matrix__cell-content.is-empty{ color:var(--muted); font-style:italic; }
+    .matrix__tag-row{ display:flex; gap:4px; flex-wrap:wrap; }
+    .matrix__mail-tag{
+      font-size:10px; padding:2px 6px; border-radius:4px;
+      font-weight:600; color:var(--ink-soft);
+    }
+    .mail-ethics{ background:var(--tag-gray); }
+    .mail-access{ background:var(--tag-blue); }
+    .mail-analyze{ background:var(--tag-violet); }
+    .mail-participate{ background:var(--tag-teal); }
+    .mail-create{ background:var(--tag-rose); }
+    .matrix__open-badge{ font-size:10px; color:var(--ok); font-weight:700; }
+
+    /* Convert bridge */
+    .bridge{
+      margin-top:4px; padding:12px 14px; background:linear-gradient(90deg, var(--tag-gray), var(--accent-soft));
+      border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .bridge__text{ font-size:11px; color:var(--ink-soft); line-height:1.4; }
+    .bridge__text b{ color:var(--ink); }
+    .btn-bridge{
+      padding:8px 14px; border-radius:8px; border:none; background:var(--ink); color:#fff;
+      font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap;
+    }
+    .btn-bridge:hover{ background:var(--brand-hover); }
+
+    /* Radars — 항상 가로 3열 */
+    .radars{
+      display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px;
+    }
+    .radar-card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+      padding:10px 8px 8px; text-align:center; box-shadow:var(--shadow-sm);
+      min-width:0;
+    }
+    .radar-card h3{ font-size:12px; margin:0 0 2px; }
+    .radar-card p{ font-size:10px; color:var(--muted); margin:0 0 4px; }
+    .radar-card svg{ width:100%; height:auto; max-width:160px; }
+    .radar-card__score{
+      display:inline-block; font-size:20px; font-weight:800; margin-top:2px;
+      color:var(--ink); line-height:1;
+    }
+    .radar-card__unit{ font-size:11px; color:var(--muted); font-weight:600; margin-left:2px; }
+
+    /* Drawer (navigation) */
+    .drawer{ position:fixed; inset:0; z-index:60; display:none; }
+    .drawer.is-on{ display:block; }
+    .drawer__scrim{ position:absolute; inset:0; background:rgba(15,18,32,.45); animation:fade .2s ease; }
+    .drawer__panel{
+      position:absolute; top:0; right:0; height:100vh; width:min(480px, 92vw);
+      background:var(--panel); box-shadow:-8px 0 24px rgba(15,18,32,.12);
+      padding:22px 24px; overflow-y:auto; animation:slideL .25s ease;
+    }
+    @keyframes fade{ from{opacity:0;} to{opacity:1;} }
+    @keyframes slideL{ from{transform:translateX(20px); opacity:.6;} to{transform:translateX(0); opacity:1;} }
+
+    .drawer h3{ font-size:14px; margin:0 0 4px; }
+    .drawer__sub{ font-size:12px; color:var(--muted); margin:0 0 16px; }
+    .mega{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .mega__col h4{ font-size:12px; color:var(--muted); margin:0 0 8px; letter-spacing:.5px; text-transform:uppercase; }
+    .mega__col a{ display:block; padding:6px 8px; border-radius:6px; text-decoration:none; color:var(--ink); font-size:13px; margin-bottom:2px; }
+    .mega__col a:hover{ background:var(--line-soft); color:var(--accent); }
+
+    /* Technique library modal */
+    .tech-modal{
+      position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center;
+    }
+    .tech-modal.is-on{ display:flex; }
+    .tech-modal__scrim{ position:absolute; inset:0; background:rgba(15,18,32,.5); }
+    .tech-modal__panel{
+      position:relative; width:min(900px, 92vw); max-height:88vh; overflow-y:auto;
+      background:var(--panel); border-radius:14px; padding:24px; box-shadow:var(--shadow-md);
+    }
+    .tech-modal__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .tech-modal__title{ font-size:16px; font-weight:700; margin:0; }
+    .tech-filter{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+    .tech-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:640px){ .tech-list{ grid-template-columns:1fr; } .mega{grid-template-columns:1fr;} }
+    .tech-card{
+      border:1px solid var(--line); border-radius:10px; padding:12px;
+      cursor:pointer; transition:.15s; background:var(--panel);
+    }
+    .tech-card:hover{ border-color:var(--accent); background:#fbfcff; }
+    .tech-card__head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .tech-card__emoji{ font-size:18px; }
+    .tech-card__ko{ font-size:13px; font-weight:700; margin:0; }
+    .tech-card__one{ font-size:11px; color:var(--muted); margin:0 0 6px; }
+    .tech-card__seed{ font-size:11px; color:var(--ink-soft); background:var(--line-soft); padding:6px 8px; border-radius:6px; }
+    .tech-card__tags{ display:flex; gap:4px; margin-top:6px; }
+    .tech-card__tag{ font-size:10px; padding:2px 6px; border-radius:4px; background:var(--tag-blue); color:var(--accent); font-weight:600; }
+
+    /* Toast */
+    .toast{
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px;
+      font-size:13px; z-index:80; box-shadow:var(--shadow-md);
+      opacity:0; transition:opacity .2s;
+    }
+    .toast.is-on{ opacity:1; }
+
+    /* Footer */
+    .footer{
+      height:40px; display:flex; align-items:center; justify-content:center;
+      font-size:11px; color:var(--muted); background:var(--panel);
+      border-top:1px solid var(--line);
+    }
+    .footer b{ color:var(--ink-soft); font-weight:600; }
+
+    /* Utility */
+    .row{ display:flex; gap:8px; flex-wrap:nowrap; }
+    .row > *{ flex:1; min-width:0; }
+    .hidden{ display:none !important; }
+
+    /* 학년·과목 인라인 (라벨+셀렉트를 옆으로 붙여 한 줄) */
+    .row--inline{ display:flex; gap:14px; align-items:center; margin-bottom:14px; flex-wrap:nowrap; }
+    .field--inline{
+      display:flex; align-items:center; gap:6px; flex:1; min-width:0; margin-bottom:0;
+    }
+    .field--inline .field__label{
+      margin-bottom:0; white-space:nowrap; flex-shrink:0;
+    }
+    .field--inline .select{
+      flex:1; min-width:0; padding:6px 24px 6px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═════ GNB ═════ -->
+<header class="gnb">
+  <h1 class="gnb__title">✨ 단계형 평가문항 제작 도구</h1>
+  <span class="gnb__crumb">「질문하는 학교」 · <b>학생 질문 능력 계발 모델</b></span>
+  <div class="gnb__spacer"></div>
+  <label class="mode-toggle" title="여러 단계를 동시에 펼쳐 자유롭게 편집">
+    <input type="checkbox" id="freeMode" aria-label="자유 모드 · 여러 단계 동시 편집">
+    <span>🔓 자유 모드</span>
+  </label>
+  <div class="save-ind" id="saveInd" aria-live="polite">
+    <span class="save-ind__dot" aria-hidden="true"></span>
+    <span id="saveIndText">자동 저장됨 · 방금 전</span>
+  </div>
+  <div class="gnb__actions">
+    <button class="icon-btn" id="btnReset" title="초기화" aria-label="초기화">↻</button>
+    <button class="icon-btn" id="btnSidebar" title="사이드바 토글" aria-label="사이드바 토글">▤</button>
+    <button class="icon-btn" id="btnDrawer" title="메뉴 (네비게이션 드로어)" aria-label="네비게이션 드로어 열기">☰</button>
+  </div>
+</header>
+
+<!-- ═════ 컨텍스트 바 (학년·과목 / 모델 / 5요소 / 단원 질문 / 성취기준) ═════ -->
+<nav class="stepbar" id="contextBar" aria-label="작성 정보 요약">
+  <span class="ctx__item ctx__item--grade" id="ctxGrade">4학년 · 사회</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <select class="ctx__select" id="modelInline" aria-label="적용 모델 선택">
+    <option value="play">🎮 놀이형</option>
+    <option value="experiment">🔬 실험·실습</option>
+    <option value="discuss">💬 토의형</option>
+    <option value="reflect" selected>🔍 성찰형</option>
+  </select>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <select class="ctx__select" id="mailFilterInline" aria-label="디지털 소양 5요소 필터 선택">
+    <option value="ethics" selected>반성·성찰</option>
+    <option value="access">접근·선택</option>
+    <option value="analyze">이해·분석·평가</option>
+    <option value="participate">공유·참여</option>
+    <option value="create">의사소통·생산</option>
+  </select>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <span class="ctx__item" id="ctxQuestion" title="단원 질문">단원 질문 미입력</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <span class="ctx__item" id="ctxAch" title="선택된 성취기준">성취기준 미선택</span>
+  <span class="stepbar__sep" aria-hidden="true">|</span>
+  <button class="ai-helper__toggle" id="aiHelperToggle" aria-expanded="false" aria-controls="aiHelperPanel">
+    <span aria-hidden="true">💬</span>
+    <span>AI 질문 도우미</span>
+    <span class="ai-helper__caret" aria-hidden="true">▾</span>
+  </button>
+</nav>
+
+<!-- ═════ AI 질문 도우미 패널 ═════ -->
+<section class="ai-helper" id="aiHelper" aria-label="AI 질문 도우미">
+  <div class="ai-helper__inner">
+    <div class="ai-helper__panel hidden" id="aiHelperPanel">
+      <div class="ai-helper__keyrow" id="aiHelperKeyRow">
+        <input type="password" class="input" id="aiHelperKey" placeholder="Anthropic API 키 (sk-ant-...)" aria-label="Anthropic API 키 입력" autocomplete="off">
+        <button class="btn-mini" id="aiHelperKeySave">저장</button>
+        <span class="ai-helper__keynote">
+          🔒 이 브라우저 세션에만 저장 · 서버 전송 없음 ·
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">API 키 발급받기 ↗</a>
+        </span>
+      </div>
+      <div class="ai-quick-row" role="group" aria-label="빠른 질문">
+        <button class="ai-quick-btn" data-quick="align" title="성취기준 정렬">📐 성취기준 정렬</button>
+        <button class="ai-quick-btn" data-quick="rubric" title="채점기준표 제안">📋 채점기준표</button>
+        <button class="ai-quick-btn" data-quick="open" title="개방성 높이기">✨ 개방성 높이기</button>
+      </div>
+      <div class="ai-helper__chat" id="aiHelperChat" aria-live="polite"></div>
+      <div class="ai-helper__inputrow">
+        <textarea class="textarea" id="aiHelperInput" rows="1" placeholder="예: 3학년 사회 눈높이에 맞는 개방형 질문 예시를 들어줘"></textarea>
+        <button class="btn-mini ai-helper__send" id="aiHelperSend" aria-label="질문 전송">➤ 질문하기</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════ App ═════ -->
+<div class="app">
+  <!-- 왼쪽 사이드바 (Chat) -->
+  <aside class="chat">
+    <!-- LNB -->
+    <nav class="lnb" aria-label="로컬 네비게이션">
+      <button class="lnb__item is-on" data-tab="setup" title="단원 정보" aria-label="단원 정보 설정">📘</button>
+      <button class="lnb__item" data-tab="matrix" title="매트릭스 편집" aria-label="매트릭스 편집으로 이동">🧩</button>
+      <button class="lnb__item" data-tab="techniques" title="기법 라이브러리" aria-label="기법 라이브러리 열기">💡</button>
+      <div class="lnb__sep" aria-hidden="true"></div>
+      <button class="lnb__item" data-tab="analysis" title="분석" aria-label="분석 지표 보기">📊</button>
+    </nav>
+
+    <div class="chat__inner">
+      <div class="chat__scroll">
+        <h2 class="chat__title">평가문항 시작하기</h2>
+        <p class="chat__desc">4단계 위저드로 진행 · 단원의 <b>단원 질문</b> 한 줄로 시작해 매트릭스로 서·논술형 평가문항까지, 약 3분.</p>
+
+        <!-- ═══════ Step 1: 학년·과목·다양성·모델 ═══════ -->
+        <div class="step-acc is-open is-current" data-step="1">
+          <button class="step-acc__head" data-step-toggle="1" aria-expanded="true" aria-controls="step-body-1">
+            <span class="step-acc__num" aria-hidden="true">1</span>
+            <span>학년·과목 선택</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-1">
+
+        <!-- R1 · 정책 프레임 배지 -->
+        <div class="policy-badge">
+          💡 이 도구는 <b>「질문하는 학교」</b> 정책의 <b>①질문 배우기 + ②질문으로 배우기</b> 영역에서, 교사가 만드는 <b>서·논술형 평가문항</b>을 지원합니다. (이화여자대학교 산학협력단, 2024)
+        </div>
+
+        <!-- 학습자 다양성 (Radio) -->
+        <div class="field">
+          <label class="field__label">학습자 다양성 <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio"><input type="radio" name="diversity" value="general" checked> 🎓 일반</label>
+            <label class="radio"><input type="radio" name="diversity" value="special"> 🧩 통합</label>
+            <label class="radio"><input type="radio" name="diversity" value="multicultural"> 🌏 다문화</label>
+          </div>
+          <p class="field__hint">토글 변경 시 시드 문구가 자동 조정됩니다.</p>
+        </div>
+
+        <!-- 적용 모델 (Drop-down) -->
+        <div class="field">
+          <label class="field__label">적용 모델 <span class="req">*</span></label>
+          <select class="select" id="model">
+            <option value="play">🎮 질문 놀이형</option>
+            <option value="experiment">🔬 실험·실습 연계형</option>
+            <option value="discuss">💬 질문 토의형</option>
+            <option value="reflect" selected>🔍 질문 성찰형</option>
+          </select>
+        </div>
+
+        <!-- 학년·과목 인라인 한 줄 배치 -->
+        <div class="row row--inline">
+          <div class="field field--inline">
+            <label class="field__label" for="grade">학년</label>
+            <select class="select" id="grade" aria-label="학년 선택">
+              <option>3학년</option><option selected>4학년</option>
+              <option>5학년</option><option>6학년</option>
+            </select>
+          </div>
+          <div class="field field--inline">
+            <label class="field__label" for="subject">과목</label>
+            <select class="select" id="subject" aria-label="과목 선택">
+              <option>국어</option><option selected>사회</option>
+              <option>과학</option><option>수학</option><option>영어</option>
+            </select>
+          </div>
+        </div>
+
+          </div><!-- /Step 1 body -->
+        </div><!-- /Step 1 -->
+
+        <!-- ═══════ Step 2: 질문 만들기 ═══════ -->
+        <div class="step-acc" data-step="2">
+          <button class="step-acc__head" data-step-toggle="2" aria-expanded="false" aria-controls="step-body-2">
+            <span class="step-acc__num" aria-hidden="true">2</span>
+            <span>질문 만들기</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-2">
+
+        <div class="field">
+          <label class="field__label">단원명</label>
+          <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">단원 질문 <span class="req">*</span></label>
+          <textarea class="textarea" id="importantQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?"></textarea>
+        </div>
+
+        <!-- 성취기준 (학년·과목별 자동 로드) -->
+        <div class="field">
+          <label class="field__label">
+            성취기준 (2022 개정)
+            <span class="ach-band-badge" id="achBandBadge">3-4학년군</span>
+            <span class="req">*</span>
+            <span class="ach-count" id="achCount">선택 <b>0</b>개</span>
+          </label>
+          <div class="ach-list" id="achList"></div>
+          <p class="field__hint">
+            학년·과목 변경 시 자동 로드 · <a href="https://ncic.re.kr/mobile.dwn.ogf.inventoryList.do" target="_blank" rel="noopener">국가교육과정정보센터에서 원문 확인 →</a>
+          </p>
+        </div>
+
+          </div><!-- /Step 2 body -->
+        </div><!-- /Step 2 -->
+
+        <!-- ═══════ Step 3: 평가 매트릭스 ═══════ -->
+        <div class="step-acc" data-step="3">
+          <button class="step-acc__head" data-step-toggle="3" aria-expanded="false" aria-controls="step-body-3">
+            <span class="step-acc__num" aria-hidden="true">3</span>
+            <span>평가 매트릭스</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-3">
+
+        <!-- 디지털 소양 5요소 필터 -->
+        <div class="field">
+          <label class="field__label">디지털 소양 5요소 필터</label>
+          <select class="select" id="mailFilter" aria-label="디지털 소양 5요소 필터">
+            <option value="ethics" selected>반성·성찰</option>
+            <option value="access">접근·선택</option>
+            <option value="analyze">이해·분석·평가</option>
+            <option value="participate">공유·참여</option>
+            <option value="create">의사소통·생산</option>
+          </select>
+          <p class="field__hint">
+            셀 미리보기가 필터링됩니다 · <span title="2022 개정 총론 · 디지털 소양 5요소 · PISA 2029 MAIL 국문 재해석" style="cursor:help; color:var(--muted);">출처 ⓘ</span>
+          </p>
+        </div>
+
+        <!-- ═════ Cell Editor (초기 hidden) ═════ -->
+        <div class="cell-editor hidden" id="cellEditor">
+          <div class="cell-editor__head">
+            <h3 class="cell-editor__title" id="cellEditorTitle">셀 편집</h3>
+            <button class="cell-editor__close" id="cellEditorClose" title="닫기" aria-label="셀 편집기 닫기">✕</button>
+          </div>
+
+          <!-- 단원질문·성취기준 연동 컨텍스트 -->
+          <div class="cell-editor__ctx" id="cellCtx"></div>
+
+          <div class="field">
+            <label class="field__label">학생용 질문</label>
+            <textarea class="textarea" id="cellQuestion" placeholder="예: 놀이터 시설이 고장 나 위험합니다. 어느 기관에 도움을 요청해야 할지 쓰고, 그 이유를 설명해 보세요."></textarea>
+            <p class="field__hint">좋은 발문 = <b>생활 속 상황 + 판단·근거 요구</b> · "~란 무엇인가?"(암기 확인)는 피하세요.</p>
+          </div>
+
+          <!-- ★ 기법 라이브러리 연동 강조 -->
+          <div class="cell-editor__row">
+            <button class="btn-tech" id="btnOpenTech">
+              💡 기법에서 시드 가져오기 <span style="opacity:.7">→</span>
+            </button>
+          </div>
+
+          <div class="row" style="margin-top:8px;">
+            <div class="field">
+              <label class="field__label">디지털 소양 요소</label>
+              <select class="select" id="cellCompetency" aria-label="디지털 소양 요소 선택">
+                <option value="ethics">반성·성찰</option>
+                <option value="access">접근·선택</option>
+                <option value="analyze" selected>이해·분석·평가</option>
+                <option value="participate">공유·참여</option>
+                <option value="create">의사소통·생산</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label">채점 힌트</label>
+            <input class="input" id="cellScore" placeholder="예: 자료 2개 이상 근거 + 자기 해석" />
+          </div>
+
+          <!-- 평가지 반영 선택 -->
+          <label class="cell-include">
+            <input type="checkbox" id="cellInclude" aria-label="이 셀을 평가지에 반영">
+            📄 이 셀을 평가지에 반영
+          </label>
+
+          <!-- KCBC 5요소 접이식 -->
+          <details class="adv">
+            <summary>▸ 고급 태그 · KCBC 5요소 (정혜승 2022·2024)</summary>
+            <div>
+              <div class="chips" id="krChips" role="group" aria-label="KCBC 5요소 태그 선택">
+                <button class="chip" data-kr="type" aria-label="질문 유형 태그">유형</button>
+                <button class="chip" data-kr="method" aria-label="질문 방법 태그">방법</button>
+                <button class="chip" data-kr="content" aria-label="질문 내용 태그">내용</button>
+                <button class="chip" data-kr="use" aria-label="질문 활용 태그">활용</button>
+                <button class="chip" data-kr="meta" aria-label="메타 질문 태그">메타</button>
+              </div>
+            </div>
+          </details>
+        </div>
+
+          </div><!-- /Step 3 body -->
+        </div><!-- /Step 3 -->
+
+        <!-- ═══════ Step 4: 완성 ═══════ -->
+        <div class="step-acc" data-step="4">
+          <button class="step-acc__head" data-step-toggle="4" aria-expanded="false" aria-controls="step-body-4">
+            <span class="step-acc__num" aria-hidden="true">4</span>
+            <span>완성</span>
+            <span class="step-acc__caret" aria-hidden="true">▼</span>
+          </button>
+          <div class="step-acc__body" id="step-body-4">
+            <div class="step4-info">
+              🎉 <b>완성 단계</b>입니다.
+              <ul>
+                <li>오른쪽 캔버스의 <b>📄 평가지 미리보기</b>로 실제 A4 수행평가지 확인</li>
+                <li>하단 액션으로 <b>마크다운·JSON·구글드라이브</b> 내보내기</li>
+                <li>언제든 스텝바에서 앞 단계로 돌아가 다시 다듬기</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 액션 — 4개 · 짧은 1줄 라벨 -->
+      <div class="chat__footer">
+        <div class="action-grid" role="group" aria-label="내보내기 액션">
+          <button class="action-btn is-primary" id="btnAutoSeed" title="4국면 × 3수준 12셀 자동 시드" aria-label="12셀 자동 시드 채우기">
+            <span class="action-btn__ico" aria-hidden="true">✨</span><span class="action-btn__lbl">시드</span>
+          </button>
+          <button class="action-btn" id="btnExport" title="마크다운(.md) 파일로 저장" aria-label="마크다운으로 내보내기">
+            <span class="action-btn__ico" aria-hidden="true">📄</span><span class="action-btn__lbl">MD</span>
+          </button>
+          <button class="action-btn" id="btnExportJson" title="현재 상태를 JSON으로 저장" aria-label="JSON으로 내보내기">
+            <span class="action-btn__ico" aria-hidden="true">🧬</span><span class="action-btn__lbl">JSON</span>
+          </button>
+          <button class="action-btn" id="btnDrive" title="구글드라이브 새 탭 + 클립보드 복사" aria-label="구글 드라이브에 저장">
+            <span class="action-btn__ico" aria-hidden="true">☁️</span><span class="action-btn__lbl">Drive</span>
+          </button>
+        </div>
+        <ul class="action-desc" aria-hidden="true">
+          <li>12셀 예시 문구 채우기</li>
+          <li>.md 파일 저장</li>
+          <li>전체 데이터 저장</li>
+          <li>새 탭+복사</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 오른쪽 캔버스 -->
+  <main class="canvas">
+    <div class="canvas__toolbar">
+      <div>
+        <h2 class="canvas__title">🧭 매트릭스 미리보기</h2>
+        <p class="canvas__meta">4국면 <b id="mDomains">0/4</b> · 12셀 <b id="mCells">0/12</b> · 5요소 <b id="mMail">0/5</b> · <span title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요.">열린 질문 비율 <b id="mOpen">0%</b> <span aria-hidden="true" style="cursor:help; color:var(--muted);">ⓘ</span></span></p>
+      </div>
+      <div class="canvas__toolbar-actions">
+        <div class="demo-banner__inline" id="demoBanner">
+          <span class="demo-banner__title" title="4학년 사회 「우리 고장의 어제와 오늘」 · 12셀 자동 시드 + 성취기준 2개 + 완성 평가지 미리보기">⏱ 30초 예시 보기 · 자동 시드+평가지 미리보기</span>
+          <button class="demo-btn demo-btn--ghost" id="btnLoadDemo" aria-label="30초 예시 데이터 로드">📄 예시 열기</button>
+        </div>
+        <button class="btn-reset" id="btnResetCanvas" title="매트릭스·평가지·입력값 모두 지우고 새로 작성" aria-label="새로 작성 시작">🔄 새로 작성</button>
+      </div>
+    </div>
+
+    <!-- Matrix Card -->
+    <section class="card">
+      <div class="card__head">
+        <h3 class="card__title">국면 × 수준</h3>
+        <span class="card__sub">셀의 + 를 눌러 기법 라이브러리에서 시드를 가져오세요</span>
+      </div>
+      <div class="seed-warn" id="seedWarn" role="alert">
+        <span aria-hidden="true">⚠</span>
+        <span>이 시드는 <b>예시 문구</b>입니다. 반드시 학급 맥락·학생 수준에 맞춰 <b>직접 다듬어</b> 주세요.</span>
+      </div>
+      <div class="demo-watermark" id="demoWatermark" role="status">
+        <span>🎭 <b>예시 데이터</b>로 채워졌습니다 · 자기 학급 상황에 맞게 수정해 주세요</span>
+        <button class="demo-watermark__x" id="demoWatermarkClose" aria-label="예시 알림 닫기">✕</button>
+      </div>
+      <div class="matrix-scroll" role="region" aria-label="4국면 × 3수준 매트릭스" tabindex="0">
+        <div class="matrix" id="matrix"></div>
+      </div>
+      <div class="matrix-hint" aria-hidden="true">← 옆으로 밀어 나머지 셀 보기 →</div>
+    </section>
+
+    <!-- 조립된 수행평가지 (워크시트) -->
+    <section class="assessment-card" id="assessmentCard">
+      <div class="assessment-empty" id="assessmentEmpty">
+        셀을 채우고 셀 편집에서 <b>📄 평가지에 반영</b>을 체크한 뒤 아래 <b>📄 평가지 미리보기</b>를 누르면 여기에 <b>수행평가지</b>가 조립됩니다.
+      </div>
+      <div id="assessmentBody" class="hidden"></div>
+    </section>
+
+    <!-- Radars -->
+    <section class="radars">
+      <div class="radar-card">
+        <h3>완성도</h3>
+        <p>국면·수준·다양성</p>
+        <svg viewBox="-120 -120 240 240" id="rad-completion" aria-label="완성도 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreCompletion">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>디지털 소양 균형</h3>
+        <p>5요소 · 반성/접근/분석/공유/생산</p>
+        <svg viewBox="-120 -120 240 240" id="rad-mail" role="img" aria-label="디지털 소양 5요소 균형 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreMail">0</span><span class="radar-card__unit">/100</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>열린 질문 비율 <span aria-hidden="true" title="왜/어떻게/만약 같은 열린 질문 표현이 얼마나 포함됐는지 보여주는 참고 지표입니다. 실제 질문의 깊이는 교사가 직접 확인해주세요." style="cursor:help; color:var(--muted); font-weight:400;">ⓘ</span></h3>
+        <p>왜/어떻게/만약/비교/평가/영향</p>
+        <svg viewBox="-120 -120 240 240" id="rad-open" role="img" aria-label="열린 질문 비율 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+    </section>
+
+    <!-- 다듬기 단계 → 평가지 브릿지 (페이지 맨 아래) -->
+    <div class="bridge">
+      <div class="bridge__text">
+        <b>다듬기 단계(더 나은 질문 만들기)</b>의 채운 셀이 서·논술형 문항 + 3단 루브릭으로 조립됩니다.
+      </div>
+      <button class="btn-bridge" id="btnConvert" aria-label="평가지 미리보기 열기">📄 평가지 미리보기</button>
+    </div>
+  </main>
+</div>
+
+<!-- ═════ Navigation Drawer + Mega Menu ═════ -->
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="drawer__scrim" data-close></div>
+  <nav class="drawer__panel" aria-label="Mega Menu">
+    <h3>🧭 KCBC 네비게이션</h3>
+    <p class="drawer__sub">「질문하는 학교」 → 질문 배우기 → 학생 질문 능력 계발 모델</p>
+    <div class="mega">
+      <div class="mega__col">
+        <h4>작성기</h4>
+        <a href="#" data-scroll="setup">📘 단원 정보 설정</a>
+        <a href="#" data-scroll="matrix">🧩 4×3 매트릭스</a>
+        <a href="#" data-scroll="analysis">📊 완성도·5요소·열린질문</a>
+        <a href="#" id="megaConvert">🔧 평가문항 변환</a>
+        <a href="#" id="megaExport">📤 마크다운 내보내기</a>
+      </div>
+      <div class="mega__col">
+        <h4>기법 라이브러리</h4>
+        <a href="#" data-cat="play">🎮 놀이형</a>
+        <a href="#" data-cat="experiment">🔬 실험·실습</a>
+        <a href="#" data-cat="discuss">💬 토의형</a>
+        <a href="#" data-cat="reflect">🔍 성찰형</a>
+        <a href="#" data-cat="general">🧠 창의 사고법</a>
+        <a href="#" data-cat="all">✨ 전체 보기</a>
+      </div>
+      <div class="mega__col">
+        <h4>참고 자료</h4>
+        <a href="./question-focus-worksheet.html" target="_blank">📝 질문 초점 워크시트</a>
+        <a href="./grasps-worksheet.html" target="_blank">📋 GRASPS 6요소</a>
+        <a href="./essay-assessment-dashboard-v3.html" target="_blank">📊 서·논술형 대시보드</a>
+      </div>
+      <div class="mega__col">
+        <h4>정책 프레임</h4>
+        <a href="#" onclick="return false">「질문하는 학교」 (이화여대)</a>
+        <a href="#" onclick="return false">디지털 소양 5요소</a>
+        <a href="#" onclick="return false">정혜승 KCBC 5요소</a>
+        <a href="#" onclick="return false">UbD GRASPS</a>
+      </div>
+    </div>
+  </nav>
+</div>
+
+<!-- ═════ Technique Library Modal ═════ -->
+<div class="tech-modal" id="techModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="tech-modal__scrim" data-close></div>
+  <div class="tech-modal__panel">
+    <div class="tech-modal__head">
+      <h3 class="tech-modal__title">💡 기법 라이브러리 — 시드 선택</h3>
+      <button class="icon-btn" data-close aria-label="기법 라이브러리 닫기">✕</button>
+    </div>
+    <p class="chat__desc" id="techTargetLabel">셀에 적용할 기법을 선택하면 학생용 질문 시드가 자동 삽입됩니다.</p>
+    <div class="tech-filter" id="techFilter"></div>
+    <div class="tech-list" id="techList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Footer -->
+<footer class="footer">
+  <span>© KCBC Builder Studio · <b>「질문하는 학교」</b> 이화여자대학교 산학협력단 · Standalone Prototype</span>
+</footer>
+
+<script>
+/* ═════════ 데이터 ═════════ */
+const STAGES = [
+  { key:'generate', ko:'자유롭게 질문 만들기', short:'생성' },
+  { key:'refine',   ko:'더 나은 질문 만들기',  short:'정교화' },
+  { key:'inquire',  ko:'질문에 답 찾기',        short:'탐구' },
+  { key:'reflect',  ko:'성찰과 다음 배움',       short:'성찰' },
+];
+const LEVELS = [
+  { key:'low',  ko:'낮음', short:'하' },
+  { key:'mid',  ko:'중간', short:'중' },
+  { key:'high', ko:'높음', short:'상' },
+];
+/** 디지털 소양 5요소 (교육부 2022 개정 · MAIL 프레임 국문 재해석) */
+const MAIL = [
+  { key:'ethics',      ko:'반성·성찰',     short:'성찰', cssTag:'mail-ethics' },
+  { key:'access',      ko:'접근·선택',     short:'접근', cssTag:'mail-access' },
+  { key:'analyze',     ko:'이해·분석·평가', short:'분석', cssTag:'mail-analyze' },
+  { key:'participate', ko:'공유·참여',     short:'공유', cssTag:'mail-participate' },
+  { key:'create',      ko:'의사소통·생산',  short:'생산', cssTag:'mail-create' },
+];
+
+/* 기법 라이브러리 — 대표 12기법 (개념 전이 시드) */
+const TECHS = [
+  { id:'first-letter', ko:'질문 첫 글자 뽑기', emoji:'🎲', category:'play', stages:['generate'],
+    one:'단원 핵심어의 첫 글자로 질문 시작',
+    seed:'자료에서 핵심 단어를 한 글자씩 뽑아, 그 글자로 시작하는 질문을 5개 이상 만들어 보세요. 다른 단원·생활 상황에도 적용 가능한 질문을 ★표 하세요.' },
+  { id:'auction', ko:'질문 경매', emoji:'🏷', category:'play', stages:['refine'],
+    one:'가상 화폐로 질문의 가치 평가',
+    seed:'내 질문 중 다른 학년·다른 단원에서도 통할 만큼 일반화 가능한 질문 3개를 경매에 부쳐 봅시다. 가장 가치 있는 질문은 무엇이며 왜 그렇게 생각하나요?' },
+  { id:'dice',    ko:'질문 배틀 (주사위)', emoji:'🎯', category:'play', stages:['inquire'],
+    one:'주사위 면으로 답 찾기 방법 선택',
+    seed:'주사위 6면(책·인터뷰·관찰·실험·비교·가설) 중 하나를 굴려, 그 방법으로 자기 질문에 답을 찾아 보세요. 다른 상황에도 그 방법이 통할까요?' },
+  { id:'concept-lens', ko:'개념 렌즈 바꾸기', emoji:'🔍', category:'experiment', stages:['refine','inquire'],
+    one:'다른 개념으로 자료 다시 보기',
+    seed:'같은 자료를 "원인·결과", "부분·전체", "변화·안정" 렌즈로 각각 다시 보고 질문을 하나씩 만들어 보세요.' },
+  { id:'observe-loop', ko:'관찰-질문-관찰 순환', emoji:'🔄', category:'experiment', stages:['inquire'],
+    one:'관찰 → 질문 → 재관찰의 순환',
+    seed:'첫 관찰 → 떠오른 질문 기록 → 그 질문을 확인하려 다시 관찰 → 새 질문 만들기 순환을 세 번 반복해 보세요.' },
+  { id:'socratic', ko:'소크라테스 질문법', emoji:'💬', category:'discuss', stages:['refine','reflect'],
+    one:'6종 질문으로 사고를 파고들기',
+    seed:'친구의 주장에 대해 (1)명료화 (2)근거 확인 (3)대안 관점 (4)함의 (5)메타 질문 (6)증거 질문 중 3개 이상 물어보세요.' },
+  { id:'6-hats', ko:'여섯 색깔 모자', emoji:'🎩', category:'discuss', stages:['refine'],
+    one:'6가지 사고 관점으로 다각 검토',
+    seed:'같은 질문을 사실(흰)·감정(빨)·비판(검)·긍정(노)·창의(초)·관리(파) 관점으로 각각 재작성해 봅시다.' },
+  { id:'kwl', ko:'K-W-L 차트', emoji:'📊', category:'reflect', stages:['reflect'],
+    one:'아는 것/궁금한 것/배운 것 정리',
+    seed:'수업 전에는 "아는 것(K)/궁금한 것(W)"을 채우고, 수업 후에는 "새로 배운 것(L)/더 알고 싶은 새 질문"을 추가해 보세요.' },
+  { id:'meta-log', ko:'질문 성찰 로그', emoji:'📝', category:'reflect', stages:['reflect'],
+    one:'내가 만든 질문 스스로 채점',
+    seed:'오늘 내가 만든 질문 3개를 (1)명료성 (2)답을 여는 개방성 (3)다른 상황 전이 가능성 3점 척도로 스스로 평가하고 이유를 적어 봅시다.' },
+  { id:'mind-map', ko:'마인드맵', emoji:'🧠', category:'general', stages:['generate','refine'],
+    one:'주제 중심 방사형 확장',
+    seed:'중심 개념을 가운데 두고 5개 가지를 뻗은 뒤, 각 가지에서 다시 개방형 질문(왜/어떻게/만약)을 하나씩 만들어 보세요.' },
+  { id:'lateral', ko:'수평적 읽기', emoji:'🌐', category:'general', stages:['inquire','refine'],
+    one:'같은 사건의 여러 자료 교차 확인',
+    seed:'같은 사건을 다룬 자료 2~3개를 나란히 놓고, 공통점·차이점·의문점을 각각 3개씩 뽑아 보세요.' },
+  { id:'why-5', ko:'왜냐고 5번 묻기', emoji:'❓', category:'general', stages:['refine','inquire'],
+    one:'표면 답에서 근본 원인까지',
+    seed:'첫 질문에 답한 뒤 그 답에 다시 "왜?"를 5번 이어 물어, 표면적 답 뒤의 근본 원인·개념을 드러내 보세요.' },
+];
+const CATS = [
+  { key:'all',        ko:'전체', emoji:'✨' },
+  { key:'play',       ko:'놀이형', emoji:'🎮' },
+  { key:'experiment', ko:'실험/실습', emoji:'🔬' },
+  { key:'discuss',    ko:'토의형', emoji:'💬' },
+  { key:'reflect',    ko:'성찰형', emoji:'🔍' },
+  { key:'general',    ko:'창의 사고법', emoji:'🧠' },
+];
+
+/* 학습자 다양성별 시드 오버라이드 */
+const SEED_BASE = {
+  generate:{low:'자료에서 궁금한 점을 자유롭게 3개 이상 적어 보세요.',
+            mid:'왜/어떻게로 시작하는 개방형 질문을 만들어 보세요.',
+            high:'다른 단원·생활 상황에도 통할 일반화 가능한 질문을 만들어 보세요.'},
+  refine:  {low:'내 질문을 사실/개념/전이로 분류해 보세요.',
+            mid:'질문에 개념 렌즈(원인·결과 등)를 하나 붙여 다듬어 보세요.',
+            high:'같은 질문을 3가지 개념 렌즈로 재작성하고 가장 좋은 것을 골라 이유를 쓰세요.'},
+  inquire: {low:'질문에 답하기 위해 볼 자료 2개를 정하세요.',
+            mid:'자료 근거 2개 이상으로 자기 답을 완성해 보세요.',
+            high:'서로 다른 자료 3개의 근거와 관점 차이를 비교해 자기 답을 완성하세요.'},
+  reflect: {low:'수업에서 새로 알게 된 것 하나를 적어 보세요.',
+            mid:'내 질문이 어떻게 바뀌었는지 전·후를 비교해 쓰세요.',
+            high:'오늘 배운 개념을 다른 상황에 전이해 적용할 수 있는 새 질문을 하나 만드세요.'},
+};
+const SEED_DIV = {
+  special: {
+    generate:{low:'그림 자료 하나를 보고 궁금한 점을 하나 적어 보세요.',
+              mid:'그림 속 인물이 무엇을 할지 예상하는 질문을 만들어 보세요.',
+              high:'그림 속 상황이 우리 반에서도 일어날지 상상하는 질문을 만들어 보세요.'},
+  },
+  multicultural:{
+    generate:{low:'내가 자란 곳과 자료가 비슷한 점을 하나 찾아 질문을 만들어 보세요.',
+              mid:'우리 가족의 경험과 자료를 비교해 물어볼 수 있는 질문을 만들어 보세요.',
+              high:'우리 문화와 자료 속 문화가 만나면 무엇이 달라질지 묻는 질문을 만들어 보세요.'},
+  }
+};
+const OPEN_RE = /(왜|어떻게|어떤|어디|만약|어떨까|생각|판단|비교|평가|대안|이유|영향|연결|관점)/;
+
+/* ═════════ 성취기준 (2022 개정 · 데모용 대표 항목) ═════════ */
+function gradeBand(g){
+  return (g === '3학년' || g === '4학년') ? 'g34' : 'g56';
+}
+const ACHIEVEMENTS = {
+  g34: {
+    '국어': [
+      { code:'4국01-04', desc:'상대의 말을 요약하며 듣고 자신의 의견을 조리 있게 말한다.' },
+      { code:'4국02-03', desc:'글에서 낱말의 의미나 생략된 내용을 짐작한다.' },
+      { code:'4국03-02', desc:'중심 문장과 뒷받침 문장을 갖추어 문단을 쓴다.' },
+      { code:'4국05-03', desc:'인물의 마음이나 생각을 짐작하고 이를 자신과 비교하며 작품을 감상한다.' },
+    ],
+    '사회': [
+      { code:'4사03-01', desc:'우리 고장의 지리적 특성을 조사하고, 이것이 주민 생활에 미치는 영향을 파악한다.' },
+      { code:'4사04-04', desc:'옛사람들의 생활 도구나 주거 형태 등의 변화상을 알아본다.' },
+      { code:'4사06-01', desc:'우리 사회의 다양한 문화 현상을 조사·비교하고, 문화 다양성 존중의 태도를 갖는다.' },
+    ],
+    '과학': [
+      { code:'4과01-01', desc:'물체를 이루는 물질을 알아보기 위한 관찰·실험을 수행할 수 있다.' },
+      { code:'4과02-02', desc:'식물의 생김새와 특징을 비교하여 여러 가지 방법으로 분류할 수 있다.' },
+      { code:'4과14-01', desc:'물의 상태 변화를 관찰하고 상태 변화 과정에서의 에너지 출입을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'4수01-05', desc:'곱셈과 나눗셈의 관계를 이해하고 활용하여 문제를 해결한다.' },
+      { code:'4수02-06', desc:'분수의 덧셈과 뺄셈의 계산 원리를 이해하고 계산할 수 있다.' },
+      { code:'4수03-11', desc:'수직·평행 관계를 이해하고 이를 활용하여 도형을 설명한다.' },
+    ],
+    '영어': [
+      { code:'4영01-03', desc:'낱말이나 어구, 문장을 듣고 정확하게 따라 말한다.' },
+      { code:'4영02-05', desc:'그림이나 실물, 동작에 관한 쉬운 낱말과 표현을 듣고 이해한다.' },
+      { code:'4영04-02', desc:'주변의 사물이나 사람에 대해 쉽고 간단한 문장을 쓴다.' },
+    ],
+  },
+  g56: {
+    '국어': [
+      { code:'6국01-04', desc:'자료를 정리하여 말할 내용을 체계적으로 구성한다.' },
+      { code:'6국02-04', desc:'글을 읽고 내용의 타당성과 표현의 적절성을 판단한다.' },
+      { code:'6국03-04', desc:'적절한 근거와 알맞은 표현을 사용하여 주장하는 글을 쓴다.' },
+      { code:'6국05-05', desc:'작품에 대한 이해와 감상을 바탕으로 다른 사람과 의견을 나눈다.' },
+    ],
+    '사회': [
+      { code:'6사01-01', desc:'우리나라의 위치와 영역을 지도에서 찾고, 그 특징을 설명한다.' },
+      { code:'6사04-02', desc:'조선 후기의 사회·문화 변화상을 시대적 배경 속에서 파악한다.' },
+      { code:'6사07-04', desc:'우리 경제 체제의 특징을 시장 원리와 관련지어 설명한다.' },
+    ],
+    '과학': [
+      { code:'6과03-01', desc:'우리 몸의 각 기관이 어떻게 관련되어 있는지 조사하여 발표할 수 있다.' },
+      { code:'6과11-02', desc:'전지와 전구, 전선을 연결하여 전구에 불이 켜지는 조건을 설명할 수 있다.' },
+      { code:'6과16-02', desc:'지구와 달의 크기, 자전과 공전의 특징을 설명할 수 있다.' },
+    ],
+    '수학': [
+      { code:'6수02-06', desc:'원의 지름과 반지름, 원주율의 관계를 이해하고 원의 둘레와 넓이를 구할 수 있다.' },
+      { code:'6수03-04', desc:'비와 비율의 개념을 이해하고 이를 실생활 문제 해결에 활용한다.' },
+      { code:'6수04-03', desc:'평균의 의미를 알고, 자료의 평균을 구할 수 있다.' },
+    ],
+    '영어': [
+      { code:'6영01-04', desc:'대상이나 상황에 대한 간단한 설명을 듣고 세부 정보를 이해한다.' },
+      { code:'6영02-06', desc:'일상생활에 관한 자신의 의견이나 감정을 간단히 표현한다.' },
+      { code:'6영04-04', desc:'자신이나 주변 사람, 일상생활을 쉬운 문장으로 쓴다.' },
+    ],
+  },
+};
+
+/* ═════════ 상태 ═════════ */
+const state = {
+  diversity:'general',
+  model:'reflect',
+  grade:'4학년',
+  subject:'사회',
+  title:'',
+  importantQuestion:'',
+  mailFilter:'ethics',
+  items:{},           // { "generate:mid": {question, competency, score, kr:[]} }
+  activeCell:null,    // "generate:mid"
+  achievements:new Set(),  // 선택된 성취기준 코드 집합
+};
+
+/* ═════════ Helpers ═════════ */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const cellKey = (s,l) => `${s}:${l}`;
+const getItem = (s,l) => state.items[cellKey(s,l)] || null;
+const upsertItem = (s,l,patch) => {
+  const k = cellKey(s,l);
+  state.items[k] = { question:'', competency:'analyze', score:'', kr:[], ...(state.items[k]||{}), ...patch };
+};
+const removeItem = (s,l) => { delete state.items[cellKey(s,l)]; };
+const detectOpen = (t) => OPEN_RE.test(t||'');
+const toast = (msg) => {
+  const el = $('#toast'); el.textContent = msg; el.classList.add('is-on');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('is-on'), 2200);
+};
+
+/* ═════════ Render: Matrix ═════════ */
+function renderMatrix(){
+  const wrap = $('#matrix');
+  wrap.innerHTML = '';
+  // Header row (col labels · 상/중/하 병기)
+  wrap.appendChild(elFromHtml(`<div></div>`));
+  LEVELS.forEach(L => wrap.appendChild(elFromHtml(
+    `<div class="matrix__col-label"><span class="level-badge level-badge--${L.key==='high'?'high':L.key==='mid'?'mid':'low'}">${L.short}</span>${L.ko}</div>`
+  )));
+
+  STAGES.forEach(S => {
+    // Row label
+    wrap.appendChild(elFromHtml(`<div class="matrix__row-label">${S.ko}</div>`));
+    LEVELS.forEach(L => {
+      const it = getItem(S.key, L.key);
+      const filled = it && it.question.trim();
+      const open = filled && detectOpen(it.question);
+      const passesFilter = state.mailFilter==='all' || !it || it.competency===state.mailFilter;
+      const active = state.activeCell === cellKey(S.key, L.key);
+      const cell = elFromHtml(`
+        <div class="matrix__cell ${filled?'is-filled':''} ${open?'is-open':''} ${active?'is-active':''}"
+             data-stage="${S.key}" data-level="${L.key}">
+          <button class="matrix__cell-add" title="기법 라이브러리 열기" aria-label="기법에서 시드 가져오기"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="2.2" x2="6" y2="9.8"/><line x1="2.2" y1="6" x2="9.8" y2="6"/></svg></button>
+          <div class="matrix__cell-content ${filled?'':'is-empty'}">
+            ${filled ? escapeHtml(it.question.slice(0,90)) + (it.question.length>90?'…':'')
+                      : '<span>비어 있음 · <b>+</b>를 눌러 기법에서 시드 가져오기</span>'}
+          </div>
+          <div class="matrix__tag-row">
+            ${filled ? tagFor(it.competency) : ''}
+            ${filled && it.included ? '<span class="matrix__inc-badge">📄 평가지</span>' : ''}
+            ${open ? '<span class="matrix__open-badge">◇ 열린 질문</span>' : ''}
+          </div>
+        </div>
+      `);
+      if(!passesFilter) cell.style.opacity = '.35';
+      // Click cell → activate (open editor); click + → open tech modal
+      cell.addEventListener('click', (e) => {
+        if(e.target.classList.contains('matrix__cell-add')){
+          activateCell(S.key, L.key);
+          openTechModal();
+          return;
+        }
+        activateCell(S.key, L.key);
+      });
+      wrap.appendChild(cell);
+    });
+  });
+  renderCounters();
+  renderRadars();
+  renderAssessmentCard();
+}
+
+function tagFor(c){
+  const m = MAIL.find(x=>x.key===c);
+  return m ? `<span class="matrix__mail-tag ${m.cssTag}">${m.ko}</span>` : '';
+}
+function elFromHtml(html){
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstChild;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+/* ═════════ Cell Editor ═════════ */
+function activateCell(stage, level){
+  state.activeCell = cellKey(stage, level);
+  if(typeof gotoStep === 'function' && state.step !== 3) gotoStep(3);
+  const editor = $('#cellEditor');
+  editor.classList.remove('hidden');
+  const S = STAGES.find(x=>x.key===stage); const L = LEVELS.find(x=>x.key===level);
+  $('#cellEditorTitle').innerHTML = `✎ 셀 편집 <span style="color:var(--muted); font-weight:400">${S.ko} × ${L.ko}</span>`;
+  const it = getItem(stage, level) || { question:'', competency:'analyze', score:'', kr:[], included:false };
+  $('#cellQuestion').value = it.question;
+  $('#cellCompetency').value = it.competency;
+  $('#cellScore').value = it.score;
+  $('#cellInclude').checked = !!it.included;
+  $$('#krChips .chip').forEach(c => c.classList.toggle('is-on', it.kr && it.kr.includes(c.dataset.kr)));
+  // 단원질문·성취기준 연동 표시
+  const ctxEl = $('#cellCtx');
+  if(ctxEl){
+    const q = (state.importantQuestion || '').trim();
+    const codes = Array.from(state.achievements);
+    ctxEl.innerHTML =
+      `<div><b>단원 질문</b> ${q ? escapeHtml(q) : '<span style="color:var(--muted)">미입력 · 2단계에서 입력하세요</span>'}</div>` +
+      `<div><b>성취기준</b> ${codes.length ? codes.map(c=>`<span class="ach-item__code">${c}</span>`).join(' ') : '<span style="color:var(--muted)">미선택</span>'}</div>`;
+  }
+  renderMatrix();
+  // LNB switch
+  $$('.lnb__item').forEach(x=>x.classList.toggle('is-on', x.dataset.tab==='matrix'));
+}
+
+$('#cellEditorClose').addEventListener('click', () => {
+  state.activeCell = null;
+  $('#cellEditor').classList.add('hidden');
+  renderMatrix();
+});
+
+['#cellQuestion','#cellCompetency','#cellScore','#cellInclude'].forEach(sel => {
+  $(sel).addEventListener('input', () => saveActiveCell());
+  $(sel).addEventListener('change', () => saveActiveCell());
+});
+$('#krChips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  chip.classList.toggle('is-on');
+  saveActiveCell();
+});
+function saveActiveCell(){
+  if(!state.activeCell) return;
+  const [s,l] = state.activeCell.split(':');
+  const q = $('#cellQuestion').value;
+  const c = $('#cellCompetency').value;
+  const sc = $('#cellScore').value;
+  const inc = $('#cellInclude').checked;
+  const kr = $$('#krChips .chip.is-on').map(c=>c.dataset.kr);
+  if(!q.trim() && !sc.trim() && kr.length===0 && !inc){
+    removeItem(s,l);
+  } else {
+    upsertItem(s,l,{ question:q, competency:c, score:sc, kr, included:inc });
+  }
+  renderMatrix();
+  if(typeof markSaved === 'function') markSaved();
+}
+
+/* ═════════ Technique Modal ═════════ */
+let techFilter = 'all';
+function openTechModal(){
+  const modal = $('#techModal');
+  modal.classList.add('is-on');
+  modal.setAttribute('aria-hidden','false');
+  renderTechFilter(); renderTechList();
+  const [s,l] = (state.activeCell||'').split(':');
+  if(s && l){
+    const S = STAGES.find(x=>x.key===s); const L = LEVELS.find(x=>x.key===l);
+    const uq = (state.importantQuestion || '').trim();
+    $('#techTargetLabel').innerHTML = `<b>${S.ko} × ${L.ko}</b> 셀에 시드 자동 삽입${uq ? ` · 단원 질문: <b>${escapeHtml(uq.slice(0,42))}${uq.length>42?'…':''}</b>` : ''} · 국면과 맞지 않는 기법은 흐리게 표시됩니다.`;
+  } else {
+    $('#techTargetLabel').textContent = '셀을 먼저 선택하면 시드가 자동 삽입됩니다.';
+  }
+}
+function closeTechModal(){
+  const modal = $('#techModal');
+  modal.classList.remove('is-on');
+  modal.setAttribute('aria-hidden','true');
+}
+function renderTechFilter(){
+  const wrap = $('#techFilter'); wrap.innerHTML='';
+  CATS.forEach(c => {
+    const on = c.key === techFilter;
+    const btn = elFromHtml(`<button class="chip ${on?'is-on':''}" data-cat="${c.key}">${c.emoji} ${c.ko}</button>`);
+    btn.addEventListener('click', () => { techFilter=c.key; renderTechFilter(); renderTechList(); });
+    wrap.appendChild(btn);
+  });
+}
+function renderTechList(){
+  const wrap = $('#techList'); wrap.innerHTML='';
+  const [s] = (state.activeCell||'').split(':');
+  const filtered = TECHS.filter(t => techFilter==='all' || t.category===techFilter);
+  filtered.forEach(t => {
+    const stageOk = !s || t.stages.includes(s);
+    const card = elFromHtml(`
+      <div class="tech-card" style="${stageOk?'':'opacity:.5'}">
+        <div class="tech-card__head">
+          <span class="tech-card__emoji">${t.emoji}</span>
+          <h4 class="tech-card__ko">${t.ko}</h4>
+        </div>
+        <p class="tech-card__one">${t.one}</p>
+        <div class="tech-card__seed">"${escapeHtml(t.seed.slice(0,110))}${t.seed.length>110?'…':''}"</div>
+        <div class="tech-card__tags">
+          ${t.stages.map(sg => {
+            const S = STAGES.find(x=>x.key===sg);
+            return S ? `<span class="tech-card__tag">${S.short}</span>` : '';
+          }).join('')}
+        </div>
+      </div>
+    `);
+    card.addEventListener('click', () => applyTechnique(t));
+    wrap.appendChild(card);
+  });
+}
+function applyTechnique(t){
+  if(!state.activeCell){
+    // auto-pick a suitable cell if none active
+    const s = t.stages[0]; const l = 'mid';
+    activateCell(s, l);
+  }
+  const [s,l] = state.activeCell.split(':');
+  $('#cellQuestion').value = t.seed;
+  saveActiveCell();
+  closeTechModal();
+  toast(`✓ 「${t.ko}」 시드 적용 → ${STAGES.find(x=>x.key===s).ko} × ${LEVELS.find(x=>x.key===l).ko}`);
+}
+
+$('#btnOpenTech').addEventListener('click', openTechModal);
+$('#techModal').addEventListener('click', (e) => { if(e.target.dataset.close!==undefined) closeTechModal(); });
+
+/* ═════════ Counters + Radars ═════════ */
+function renderCounters(){
+  const items = Object.values(state.items).filter(x=>x.question.trim());
+  const usedStages = new Set(items.map(x => x._stage || null));
+  // recompute stages from keys
+  const stageSet = new Set(Object.entries(state.items).filter(([,v])=>v.question.trim()).map(([k])=>k.split(':')[0]));
+  const mailSet = new Set(items.map(x => x.competency));
+  const openCount = items.filter(x => detectOpen(x.question)).length;
+  $('#mDomains').textContent = `${stageSet.size}/4`;
+  $('#mCells').textContent = `${items.length}/12`;
+  $('#mMail').textContent = `${mailSet.size}/5`;
+  $('#mOpen').textContent = items.length ? Math.round(openCount/items.length*100)+'%' : '0%';
+}
+
+/* ═════════ Hex Radars ═════════ */
+function drawHexRadar(svgId, axisLabels, values, opts){
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  const R = 90; const rings = 4; // 4 concentric hexagons
+  const N = 6; // fixed hexagon 6 axes (labels re-used cyclically if fewer)
+  const color = opts.color || '#3a57e8';
+  const fillOp = opts.fillOp ?? 0.18;
+  let out = '';
+  // Concentric hexagons (background)
+  for(let r=1; r<=rings; r++){
+    const rr = (R * r) / rings;
+    out += `<polygon points="${hexPoints(rr)}" fill="none" stroke="#e6e8f0" stroke-width="1"/>`;
+  }
+  // Axes
+  for(let i=0; i<N; i++){
+    const [x,y] = axisXY(R, i, N);
+    out += `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e6e8f0" stroke-width="1"/>`;
+  }
+  // Data polygon (values are 0..1)
+  const pts = [];
+  for(let i=0; i<N; i++){
+    const v = values[i] ?? 0;
+    const [x,y] = axisXY(R * Math.max(0.02, Math.min(1, v)), i, N);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  out += `<polygon points="${pts.join(' ')}" fill="${color}" fill-opacity="${fillOp}" stroke="${color}" stroke-width="2"/>`;
+  // Points
+  for(let i=0; i<N; i++){
+    const v = values[i] ?? 0;
+    const [x,y] = axisXY(R * Math.max(0.02, Math.min(1, v)), i, N);
+    out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`;
+  }
+  // Labels
+  for(let i=0; i<N; i++){
+    const [x,y] = axisXY(R + 18, i, N);
+    const label = axisLabels[i] ?? '';
+    out += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#8c93a8" font-weight="600">${label}</text>`;
+  }
+  svg.innerHTML = out;
+}
+function hexPoints(r){
+  const pts = [];
+  for(let i=0; i<6; i++){
+    const angle = -Math.PI/2 + i * (Math.PI/3);
+    pts.push(`${(r*Math.cos(angle)).toFixed(1)},${(r*Math.sin(angle)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+function axisXY(r, i, N){
+  const angle = -Math.PI/2 + i * (2*Math.PI/N);
+  return [r*Math.cos(angle), r*Math.sin(angle)];
+}
+
+function renderRadars(){
+  const items = Object.entries(state.items).filter(([,v])=>v.question.trim()).map(([k,v])=>{
+    const [s,l] = k.split(':'); return { ...v, stage:s, level:l };
+  });
+  const total = 12;
+  // ─── Completion (6축) ───
+  const stageFill = {};
+  STAGES.forEach(S => { stageFill[S.key] = items.filter(x=>x.stage===S.key).length / 3; });
+  const scoreHintRate = items.length ? items.filter(x=>x.score.trim()).length / items.length : 0;
+  const diversityRate = (state.diversity==='general' ? 0.5 : 1); // 특수/다문화 활성 시 1
+  const compValues = [
+    stageFill.generate, stageFill.refine, stageFill.inquire, stageFill.reflect,
+    scoreHintRate, diversityRate
+  ];
+  const compLabels = ['생성','정교화','탐구','성찰','채점힌트','다양성'];
+  drawHexRadar('rad-completion', compLabels, compValues, { color:'#3a57e8' });
+  const compScore = Math.round(compValues.reduce((a,b)=>a+b,0)/6 * 100);
+  $('#scoreCompletion').textContent = compScore;
+
+  // ─── MAIL 균형 (5축 + 총커버) ───
+  const mailCount = { ethics:0, access:0, analyze:0, participate:0, create:0 };
+  items.forEach(x => mailCount[x.competency]++);
+  const maxU = Math.max(1, ...Object.values(mailCount));
+  const mailVals = MAIL.map(m => mailCount[m.key] / maxU);
+  const usedM = Object.values(mailCount).filter(c=>c>0).length;
+  mailVals.push(usedM / 5);
+  const mailLabels = ['윤리','접근','분석','참여','창조','커버'];
+  drawHexRadar('rad-mail', mailLabels, mailVals, { color:'#7048e8' });
+  // 균형점수: 커버리지 × 60 + 표준편차 역수 × 40
+  const counts = Object.values(mailCount);
+  const mean = counts.reduce((a,b)=>a+b,0) / 5;
+  const variance = counts.reduce((s,c)=>s + (c-mean)*(c-mean), 0) / 5;
+  const evenness = mean === 0 ? 0 : Math.max(0, 1 - Math.sqrt(variance)/mean);
+  const mailScore = Math.round((usedM/5)*60 + evenness*40);
+  $('#scoreMail').textContent = mailScore;
+
+  // ─── 개방형 신호 (6축: 왜/어떻게/만약/비교/평가/영향) ───
+  const KWS = [
+    { key:'왜', re:/왜/ },
+    { key:'어떻게', re:/어떻게/ },
+    { key:'만약', re:/만약|어떨/ },
+    { key:'비교', re:/비교|차이|공통/ },
+    { key:'평가', re:/평가|판단|타당/ },
+    { key:'영향', re:/영향|결과|바뀌/ },
+  ];
+  const n = items.length || 1;
+  const openVals = KWS.map(k => items.filter(x => k.re.test(x.question)).length / n);
+  const openLabels = KWS.map(k=>k.key);
+  drawHexRadar('rad-open', openLabels, openVals, { color:'#2ea66c' });
+  const openCount = items.filter(x => detectOpen(x.question)).length;
+  const openScore = items.length ? Math.round(openCount/items.length*100) : 0;
+  $('#scoreOpen').textContent = openScore;
+}
+
+/* ═════════ Setup Controls ═════════ */
+$$('input[name="diversity"]').forEach(r => r.addEventListener('change', e => {
+  state.diversity = e.target.value; renderRadars();
+  toast(`학습자 다양성: ${e.target.value==='general'?'일반': e.target.value==='special'?'통합형':'다문화교육형'}`);
+}));
+$('#model').addEventListener('change', e => syncModel(e.target.value));
+$('#grade').addEventListener('change', e => syncGrade(e.target.value));
+$('#subject').addEventListener('change', e => syncSubject(e.target.value));
+$('#title').addEventListener('input', e => { state.title = e.target.value; });
+$('#importantQuestion').addEventListener('input', e => { state.importantQuestion = e.target.value; });
+$('#mailFilter').addEventListener('change', e => syncMailFilter(e.target.value));
+
+/* ═════════ 성취기준 렌더링 ═════════ */
+function currentAchievements(){
+  const band = gradeBand(state.grade);
+  return ACHIEVEMENTS[band]?.[state.subject] ?? [];
+}
+function renderAchievements(){
+  const list = $('#achList');
+  const items = currentAchievements();
+  // R2 · 학년군 배지 갱신
+  const badge = $('#achBandBadge');
+  if(badge){
+    badge.textContent = gradeBand(state.grade) === 'g34' ? '3-4학년군' : '5-6학년군';
+  }
+  if(items.length === 0){
+    list.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--muted); text-align:center;">해당 학년·과목 성취기준이 준비 중입니다.</div>`;
+  } else {
+    list.innerHTML = items.map(a => {
+      const on = state.achievements.has(a.code);
+      return `
+        <label class="ach-item">
+          <input type="checkbox" data-code="${a.code}" ${on?'checked':''}>
+          <span class="ach-item__code">${a.code}</span>
+          <span class="ach-item__desc">${escapeHtml(a.desc)}</span>
+          <span class="ach-item__warn" title="이 문구는 데모용 요약입니다. 실제 배포 시 NCIC 원문과 대조하세요.">검증 필요</span>
+        </label>
+      `;
+    }).join('');
+    list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const code = cb.dataset.code;
+        if(cb.checked) state.achievements.add(code);
+        else state.achievements.delete(code);
+        updateAchCount();
+        renderAssessmentCard();
+        if(typeof markSaved === 'function') markSaved();
+      });
+    });
+  }
+  updateAchCount();
+}
+function updateAchCount(){
+  const el = $('#achCount');
+  if(el) el.innerHTML = `선택 <b>${state.achievements.size}</b>개`;
+}
+
+/* ═════════ 자동 시드 채우기 ═════════ */
+$('#btnAutoSeed').addEventListener('click', () => {
+  const div = state.diversity;
+  STAGES.forEach(S => LEVELS.forEach(L => {
+    const seed = (SEED_DIV[div]?.[S.key]?.[L.key]) ?? SEED_BASE[S.key][L.key];
+    // 다듬기(refine) 국면 셀은 평가지에 기본 반영되도록 명시적으로 체크
+    upsertItem(S.key, L.key, { question: seed, included: S.key === 'refine' });
+  }));
+  renderMatrix();
+  renderAssessmentCard();
+  if(typeof markSaved === 'function') markSaved();
+  if(typeof gotoStep === 'function') gotoStep(3);
+  // R8 · 자동시드 획일화 경고 배지 (8초 표시)
+  const warn = $('#seedWarn');
+  if(warn){
+    warn.classList.add('is-on');
+    setTimeout(() => warn.classList.remove('is-on'), 8000);
+  }
+  toast('✓ 12셀 자동 시드 완료 · 학급 맥락에 맞춰 다듬어 주세요');
+  setTimeout(() => document.querySelector('.matrix').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+});
+
+/* ═════════ 초기화 (새로 작성) ═════════ */
+function resetAll(){
+  state.items = {};
+  state.activeCell = null;
+  state.title = '';
+  state.importantQuestion = '';
+  state.mailFilter = 'ethics';
+  state.achievements.clear();
+  if(state.completedSteps) state.completedSteps.clear();
+  $('#title').value = '';
+  $('#importantQuestion').value = '';
+  $('#mailFilter').value = 'ethics';
+  $('#mailFilterInline').value = 'ethics';
+  $('#cellEditor').classList.add('hidden');
+  // 인라인 셀렉트도 기본값으로
+  if($('#gradeInline')) $('#gradeInline').value = state.grade;
+  if($('#subjectInline')) $('#subjectInline').value = state.subject;
+  // R7 워터마크·R8 시드 경고 감추기
+  const wm = $('#demoWatermark'); if(wm) wm.classList.remove('is-on');
+  const sw = $('#seedWarn'); if(sw) sw.classList.remove('is-on');
+  // R6 localStorage 삭제
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  renderAchievements();
+  renderMatrix();
+  renderAssessmentCard();
+  if(typeof gotoStep === 'function') gotoStep(1);
+  if(typeof markSaved === 'function') markSaved();
+  const banner = $('#demoBanner'); if(banner) banner.classList.remove('is-hidden');
+  toast('🔄 새로 작성 시작 · 저장본도 삭제');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+$('#btnReset').addEventListener('click', resetAll);
+$('#btnResetCanvas').addEventListener('click', resetAll);
+
+/* ═════════ 사이드바 토글 ═════════ */
+$('#btnSidebar').addEventListener('click', () => {
+  const root = document.documentElement;
+  const cur = root.style.getPropertyValue('--sidebar-w') || '380px';
+  root.style.setProperty('--sidebar-w', cur==='0px' ? '380px' : '0px');
+});
+
+/* ═════════ Drawer ═════════ */
+$('#btnDrawer').addEventListener('click', () => openDrawer());
+function openDrawer(){ $('#drawer').classList.add('is-on'); $('#drawer').setAttribute('aria-hidden','false'); }
+function closeDrawer(){ $('#drawer').classList.remove('is-on'); $('#drawer').setAttribute('aria-hidden','true'); }
+$('#drawer').addEventListener('click', e => {
+  if(e.target.dataset.close !== undefined) closeDrawer();
+});
+$$('#drawer [data-cat]').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  techFilter = a.dataset.cat;
+  closeDrawer(); openTechModal();
+}));
+$('#megaConvert')?.addEventListener('click', e => { e.preventDefault(); closeDrawer(); document.querySelector('.bridge').scrollIntoView({behavior:'smooth'}); });
+
+/* ═════════ 평가문항 조립 & 미리보기 ═════════ */
+function assembleAssessment(){
+  const STAGE_ORDER = ['generate','refine','inquire','reflect'];
+  const LEVEL_ORDER = ['low','mid','high'];
+  // 교사가 "평가지에 반영"으로 명시적으로 체크한 셀만 수집 (모든 국면 허용, 자동 폴백 없음)
+  let sel = Object.entries(state.items)
+    .filter(([,v]) => v.included && v.question && v.question.trim())
+    .map(([k,v]) => { const [s,l] = k.split(':'); return { ...v, stage:s, level:l }; });
+  if(sel.length === 0) return null;
+  sel.sort((a,b) =>
+    (STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage)) ||
+    (LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level)));
+
+  const type = sel.length >= 2 ? '논술형' : '서술형';
+  const perScore = sel.length >= 3 ? 5 : (sel.length === 2 ? 8 : 15);
+  const totalScore = perScore * sel.length;
+
+  return {
+    title: state.title || '(단원명 미입력)',
+    grade: state.grade,
+    subject: state.subject,
+    model: state.model,
+    material: state.importantQuestion || '(단원 질문을 입력하세요)',
+    type,
+    perScore,
+    totalScore,
+    subQuestions: sel.map((it, i) => ({
+      no: i + 1,
+      text: it.question,
+      score: perScore,
+      hint: it.score,
+      mail: it.competency,
+      stage: it.stage,
+      level: it.level,
+      kr: it.kr || [],
+    })),
+    // 분석적 루브릭 (평가요소 × 3수준) — 교육부·시도교육청 서·논술형 가이드 반영
+    rubric: [
+      { element:'개념 이해', high:'핵심 개념을 정확한 용어로 사용해 설명함', mid:'개념을 부분적으로 사용함', low:'개념 사용이 없거나 부정확함' },
+      { element:'근거 제시', high:'자료·경험 2개 이상을 근거로 연결함',     mid:'근거 1개를 제시함',        low:'근거 없이 주장만 씀' },
+      { element:'생활 적용', high:'새로운 생활 상황에 적용·전이함',         mid:'배운 상황 안에서만 설명함', low:'적용 시도가 없음' },
+    ],
+  };
+}
+
+function renderAssessmentCard(){
+  const a = assembleAssessment();
+  const empty = $('#assessmentEmpty');
+  const body = $('#assessmentBody');
+  if(!a){
+    empty.classList.remove('hidden');
+    body.classList.add('hidden');
+    body.innerHTML = '';
+    return;
+  }
+  empty.classList.add('hidden');
+  body.classList.remove('hidden');
+  const gradeClass = { '잘함':'high', '보통':'mid', '노력 요함':'low' };
+  const subject = escapeHtml(a.subject || '수학');
+  const gradeText = escapeHtml(a.grade || '6학년');
+  const unitName = escapeHtml(a.title || '(단원명 미입력)');
+  const taskName = escapeHtml((state.importantQuestion || a.title || '평가 과제').slice(0, 60));
+
+  // 반영 셀 요약 (국면×수준)
+  const cellsNote = a.subQuestions.map(q => {
+    const S = STAGES.find(s=>s.key===q.stage); const L = LEVELS.find(l=>l.key===q.level);
+    return `${S ? S.short : q.stage}×${L ? L.short : q.level}`;
+  }).join(', ');
+
+  body.innerHTML = `
+    <div class="ws__topbar">
+      <div style="flex:1; font-size:12px; color:var(--muted);">
+        📄 수행평가지 · 교사 선택 셀 <b style="color:#1f7a4a">${a.subQuestions.length}개</b> (${cellsNote})
+      </div>
+      <button class="btn-mini" id="btnEditWs" title="텍스트 수정 · 펜 그리기">✏️ 편집</button>
+      <button class="btn-mini" id="btnAddImageQuick" title="평가지에 이미지 추가">🖼 이미지 추가</button>
+      <button class="btn-mini" id="btnAssessmentCopy" title="문항+루브릭 클립보드 복사">📋 복사</button>
+      <button class="btn-mini" id="btnAssessmentPrint" title="인쇄">🖨 인쇄</button>
+    </div>
+
+    <details class="ws__rubric-details" open>
+      <summary>▸ 분석적 루브릭 (평가요소 × 3수준 · 교사 참조용, 학생 평가지에는 인쇄되지 않음)</summary>
+      <table class="ws__rubric-table">
+        <thead>
+          <tr>
+            <th style="width:80px">평가요소</th>
+            <th><span class="rubric__grade rubric__grade--high">잘함</span></th>
+            <th><span class="rubric__grade rubric__grade--mid">보통</span></th>
+            <th><span class="rubric__grade rubric__grade--low">노력 요함</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${a.rubric.map(r => `
+            <tr>
+              <td><b>${r.element}</b></td>
+              <td>${r.high}</td>
+              <td>${r.mid}</td>
+              <td>${r.low}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </details>
+
+    <details class="ws__rubric-details">
+      <summary>▸ 문항 품질 점검표 (교육부·시도교육청 서·논술형 가이드 공통)</summary>
+      <table class="ws__rubric-table">
+        <tbody>
+          ${[
+            '성취기준과 일치하는가',
+            '암기가 아닌 사고(비교·추론·근거 제시)를 평가하는가',
+            '생활 속 실제 맥락이 있는가',
+            '발문이 명확한가 (여러 해석 방지)',
+            '여러 가지 합리적인 답을 허용하는가',
+            '관찰 가능한 채점 기준이 있는가',
+            '학생 수준(구체적 사례·경험 중심)에 적절한가',
+          ].map((t,i) => `
+            <tr>
+              <td style="width:30px"><input type="checkbox" aria-label="${t}"></td>
+              <td>${t}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </details>
+
+    <div class="ws-editor-bar hidden" id="wsEditorBar" role="toolbar" aria-label="평가지 편집 도구">
+      <button class="btn-mini" id="wsAddImage" aria-label="이미지 추가">🖼 이미지</button>
+      <input type="file" id="wsImgInput" accept="image/*" style="display:none">
+      <button class="btn-mini" id="wsDrawToggle" aria-pressed="false" aria-label="펜 그리기 토글">✏️ 펜</button>
+      <input type="color" id="wsPenColor" value="#d6336c" title="펜 색상" aria-label="펜 색상">
+      <select class="stepbar-select" id="wsPenSize" aria-label="펜 굵기">
+        <option value="2">가는 펜</option><option value="4" selected>보통 펜</option><option value="8">굵은 펜</option>
+      </select>
+      <button class="btn-mini" id="wsDrawClear" aria-label="그림 지우기">🧹 그림 지우기</button>
+      <span style="flex:1"></span>
+      <button class="btn-mini" id="wsEditDone" aria-label="편집 완료">✅ 편집 완료</button>
+    </div>
+
+    <div class="ws__page">
+      <h1 class="ws__title">${subject}과 수행평가지</h1>
+
+      <div class="ws__header">
+        <table class="ws__gradebox">
+          <thead><tr><th>잘함</th><th>보통</th><th>노력요함</th></tr></thead>
+          <tbody><tr><td></td><td></td><td></td></tr></tbody>
+        </table>
+        <div class="ws__scoreinfo">
+          <div>점수: (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) 점</div>
+          <div>${gradeText}&nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;&nbsp;)반&nbsp;&nbsp;&nbsp;번&nbsp;&nbsp;&nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+        </div>
+      </div>
+
+      <table class="ws__info">
+        <tr>
+          <th>단원명</th><td>${unitName}</td>
+          <th>차시</th><td style="width:60px">6/11</td>
+          <th>평가일</th><td style="width:110px">년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일</td>
+        </tr>
+        <tr>
+          <th>과제명</th><td colspan="3">${taskName}</td>
+          <th>평가자</th><td>(인)</td>
+        </tr>
+        ${state.achievements.size ? `
+        <tr>
+          <th>성취기준</th>
+          <td colspan="5" style="font-size:12px; line-height:1.7;">
+            ${Array.from(state.achievements).map(code => {
+              const item = currentAchievements().find(a => a.code === code);
+              return item ? `<div>[${item.code}] ${escapeHtml(item.desc)}</div>` : '';
+            }).join('')}
+          </td>
+        </tr>` : ''}
+      </table>
+      <div class="ws__section">활동 과제</div>
+
+      <div class="ws__questions">
+        ${a.subQuestions.map((q, i) => `
+          <div class="ws__q">
+            <div class="ws__q-head">${i+1}. ${escapeHtml(q.text)} (${q.score}점)</div>
+            <div class="ws__q-space"></div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="ws__pagenum">- 1 -</div>
+    </div>
+  `;
+
+  document.getElementById('btnAssessmentCopy').addEventListener('click', async () => {
+    const txt = assessmentToText(a);
+    try{
+      await navigator.clipboard.writeText(txt);
+      toast('✓ 문항+루브릭 클립보드 복사 완료');
+    }catch(e){ toast('⚠ 클립보드 복사 실패'); }
+  });
+  document.getElementById('btnAssessmentPrint').addEventListener('click', () => window.print());
+
+  // ── 평가지 편집기 3단계: ① 텍스트(contenteditable) ② 이미지 삽입 ③ 펜 그리기 ──
+  const wsPage = body.querySelector('.ws__page');
+  const editorBar = body.querySelector('#wsEditorBar');
+  const imgInput = body.querySelector('#wsImgInput');
+  const drawBtn = body.querySelector('#wsDrawToggle');
+  let drawCanvas = null;
+
+  function ensureCanvas(){
+    if(drawCanvas) return drawCanvas;
+    drawCanvas = document.createElement('canvas');
+    drawCanvas.className = 'ws__draw';
+    drawCanvas.width = wsPage.clientWidth;
+    drawCanvas.height = wsPage.clientHeight;
+    wsPage.appendChild(drawCanvas);
+    const ctx = drawCanvas.getContext('2d');
+    let last = null;
+    const pos = e => { const r = drawCanvas.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; };
+    drawCanvas.addEventListener('pointerdown', e => { last = pos(e); drawCanvas.setPointerCapture(e.pointerId); });
+    drawCanvas.addEventListener('pointermove', e => {
+      if(!last) return;
+      const p = pos(e);
+      ctx.strokeStyle = body.querySelector('#wsPenColor').value;
+      ctx.lineWidth = Number(body.querySelector('#wsPenSize').value);
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      last = p;
+    });
+    drawCanvas.addEventListener('pointerup', () => { last = null; });
+    return drawCanvas;
+  }
+  function setEditing(on){
+    wsPage.setAttribute('contenteditable', on ? 'true' : 'false');
+    wsPage.classList.toggle('is-editing', on);
+    editorBar.classList.toggle('hidden', !on);
+    if(!on && drawCanvas){ drawCanvas.classList.remove('is-pen'); drawBtn.setAttribute('aria-pressed','false'); }
+  }
+  document.getElementById('btnEditWs').addEventListener('click', () => {
+    const on = wsPage.getAttribute('contenteditable') !== 'true';
+    setEditing(on);
+    if(on) toast('✏️ 편집 모드 · 텍스트 수정 + ✏️ 펜 (매트릭스 수정 시 재조립되어 초기화됩니다)');
+  });
+  document.getElementById('btnAddImageQuick').addEventListener('click', () => {
+    if(wsPage.getAttribute('contenteditable') !== 'true') setEditing(true);
+    imgInput.click();
+  });
+  body.querySelector('#wsEditDone').addEventListener('click', () => {
+    setEditing(false);
+    toast('✅ 편집 완료 · 🖨 인쇄로 출력하세요');
+  });
+  body.querySelector('#wsAddImage').addEventListener('click', () => imgInput.click());
+  imgInput.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = document.createElement('img');
+      img.src = reader.result;
+      img.style.maxWidth = '55%'; img.style.display = 'block'; img.style.margin = '8px auto';
+      const selObj = window.getSelection();
+      if(selObj.rangeCount && wsPage.contains(selObj.anchorNode)){
+        selObj.getRangeAt(0).insertNode(img);
+      } else {
+        (wsPage.querySelector('.ws__q-space') || wsPage).appendChild(img);
+      }
+      toast('🖼 이미지 삽입 완료');
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+  drawBtn.addEventListener('click', () => {
+    const canvas = ensureCanvas();
+    const on = !canvas.classList.contains('is-pen');
+    canvas.classList.toggle('is-pen', on);
+    drawBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    toast(on ? '✏️ 펜 모드 · 평가지 위에 자유롭게 그리세요' : '펜 모드 해제 · 텍스트 편집 가능');
+  });
+  body.querySelector('#wsDrawClear').addEventListener('click', () => {
+    if(drawCanvas) drawCanvas.getContext('2d').clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  });
+}
+
+function assessmentToText(a){
+  const lines = [];
+  lines.push(`# ${a.title} — ${a.type} 평가문항`);
+  lines.push(`${a.grade} · ${a.subject} · 총 ${a.totalScore}점`);
+  lines.push('');
+  lines.push(`[단원 질문 / 자료]`);
+  lines.push(a.material);
+  lines.push('');
+  lines.push('[하위 문항]');
+  a.subQuestions.forEach(q => {
+    lines.push(`${q.no}. ${q.text}  (${q.score}점)`);
+    if(q.hint) lines.push(`   · 채점 힌트: ${q.hint}`);
+  });
+  lines.push('');
+  lines.push('[분석적 루브릭 (평가요소 × 3수준)]');
+  a.rubric.forEach(r => {
+    lines.push(`- ${r.element}: 잘함=${r.high} / 보통=${r.mid} / 노력 요함=${r.low}`);
+  });
+  return lines.join('\n');
+}
+
+$('#btnConvert').addEventListener('click', () => {
+  const a = assembleAssessment();
+  if(!a){
+    toast('⚠ 평가지에 반영할 셀이 없어요 · 셀 편집에서 "📄 평가지에 반영"을 체크해 주세요');
+    return;
+  }
+  renderAssessmentCard();
+  gotoStep(4);
+  toast(`✓ ${a.subQuestions.length}문항 수행평가지 조립 완료 · 교사 선택 셀`);
+  setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+});
+
+/* ═════════ Export MD ═════════ */
+$('#btnExport').addEventListener('click', () => {
+  const lines = [];
+  lines.push(`# ${state.title || '(단원명 미입력)'} — 단계형 평가문항`);
+  lines.push('');
+  lines.push(`- 학년/과목: ${state.grade} · ${state.subject}`);
+  lines.push(`- 적용 모델: ${state.model}`);
+  lines.push(`- 학습자 다양성: ${state.diversity}`);
+  lines.push(`- 단원 질문: ${state.importantQuestion || '(미입력)'}`);
+  lines.push('');
+  STAGES.forEach(S => {
+    lines.push(`## ${S.ko}`);
+    LEVELS.forEach(L => {
+      const it = getItem(S.key, L.key);
+      if(!it || !it.question.trim()) return;
+      lines.push(`- **${L.ko}**: ${it.question}`);
+      if(it.score) lines.push(`  - 채점 힌트: ${it.score}`);
+      lines.push(`  - 디지털 소양: ${MAIL.find(m=>m.key===it.competency)?.ko}${it.kr?.length? ' · KCBC 5요소: '+it.kr.join(', ') : ''}`);
+    });
+    lines.push('');
+  });
+  const md = lines.join('\n');
+  const blob = new Blob([md], { type:'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `staged_${state.title || 'untitled'}.md`;
+  a.click();
+  toast('✓ 마크다운 다운로드');
+});
+
+/* ═════════ JSON 내보내기 ═════════ */
+function buildSnapshot(){
+  return {
+    tool:'KCBC Standalone · 단계형 평가문항 제작 도구',
+    version:'0.2',
+    exportedAt:new Date().toISOString(),
+    meta:{
+      diversity:state.diversity, model:state.model,
+      grade:state.grade, subject:state.subject,
+      title:state.title, importantQuestion:state.importantQuestion,
+      mailFilter:state.mailFilter,
+    },
+    items:Object.entries(state.items).map(([k,v])=>{
+      const [stage,level]=k.split(':');
+      return { stage, level, ...v };
+    }),
+  };
+}
+$('#btnExportJson').addEventListener('click', () => {
+  const json = JSON.stringify(buildSnapshot(), null, 2);
+  const blob = new Blob([json], { type:'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `staged_${state.title || 'untitled'}.json`;
+  a.click();
+  toast('✓ JSON 다운로드');
+});
+
+/* ═════════ 구글드라이브 저장 (클립보드 복사 + Drive 열기) ═════════ */
+$('#btnDrive').addEventListener('click', async () => {
+  const json = JSON.stringify(buildSnapshot(), null, 2);
+  try{
+    await navigator.clipboard.writeText(json);
+    toast('✓ JSON을 클립보드에 복사했습니다 · 새 창에서 Drive에 붙여넣으세요');
+  }catch(e){
+    // 클립보드 API 실패 시 다운로드로 폴백
+    const blob = new Blob([json], { type:'application/json;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `staged_${state.title || 'untitled'}.json`;
+    a.click();
+    toast('⚠ 클립보드 실패 → JSON 파일로 다운로드했습니다');
+  }
+  window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener');
+});
+
+/* ═════════ LNB 전환 ═════════ */
+$$('.lnb__item').forEach(btn => btn.addEventListener('click', () => {
+  $$('.lnb__item').forEach(x=>x.classList.remove('is-on'));
+  btn.classList.add('is-on');
+  const tab = btn.dataset.tab;
+  const target = {
+    setup: '.chat__title',
+    matrix: '.matrix',
+    techniques: null,
+    analysis: '.radars',
+  }[tab];
+  if(tab==='techniques'){ openTechModal(); return; }
+  if(target){
+    const el = document.querySelector(target);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}));
+
+/* ═════════ 4단계 위저드 (스텝바 + 아코디언) ═════════ */
+state.step = 1;
+state.completedSteps = new Set();
+
+function gotoStep(n){
+  state.step = n;
+  document.querySelectorAll('.step-acc').forEach(el => {
+    const s = Number(el.dataset.step);
+    el.classList.toggle('is-open', s === n);
+    el.classList.toggle('is-current', s === n);
+    const head = el.querySelector('.step-acc__head');
+    if(head) head.setAttribute('aria-expanded', s === n ? 'true' : 'false');
+  });
+  document.querySelectorAll('.stepbar__item').forEach(btn => {
+    const s = Number(btn.dataset.step);
+    btn.classList.toggle('is-current', s === n);
+    if(s === n) btn.setAttribute('aria-current', 'step');
+    else btn.removeAttribute('aria-current');
+  });
+  updateStepCompletion();
+}
+
+function updateStepCompletion(){
+  const cs = state.completedSteps;
+  if(state.grade && state.subject) cs.add(1); else cs.delete(1);
+  if(state.importantQuestion.trim() || state.achievements.size > 0 || state.title.trim()) cs.add(2); else cs.delete(2);
+  const hasCell = Object.values(state.items).some(x => x.question && x.question.trim());
+  if(hasCell) cs.add(3); else cs.delete(3);
+  const hasRefine = LEVELS.some(L => { const it = state.items[`refine:${L.key}`]; return it && it.question.trim(); });
+  const bodyHtml = ($('#assessmentBody') && $('#assessmentBody').innerHTML || '').trim();
+  if(hasRefine && bodyHtml.length > 0) cs.add(4); else cs.delete(4);
+  document.querySelectorAll('.step-acc').forEach(el => {
+    const s = Number(el.dataset.step);
+    el.classList.toggle('is-done', cs.has(s));
+  });
+  document.querySelectorAll('.stepbar__item').forEach(btn => {
+    const s = Number(btn.dataset.step);
+    btn.classList.toggle('is-done', cs.has(s));
+  });
+}
+
+document.querySelectorAll('.stepbar__item').forEach(btn => {
+  btn.addEventListener('click', () => gotoStep(Number(btn.dataset.step)));
+});
+document.querySelectorAll('[data-step-toggle]').forEach(head => {
+  head.addEventListener('click', () => {
+    const s = Number(head.dataset.stepToggle);
+    if(state.step === s){
+      // 이미 열려 있으면 위 화살표 클릭 → 닫기
+      state.step = 0;
+      document.querySelectorAll('.step-acc').forEach(el => {
+        el.classList.remove('is-open');
+        el.classList.remove('is-current');
+        const h = el.querySelector('.step-acc__head');
+        if(h) h.setAttribute('aria-expanded', 'false');
+      });
+      document.querySelectorAll('.stepbar__item').forEach(btn => {
+        btn.classList.remove('is-current');
+        btn.removeAttribute('aria-current');
+      });
+      updateStepCompletion();
+    } else {
+      gotoStep(s);
+    }
+  });
+});
+
+/* ═════════ 자동 저장 인디케이터 (R6 · localStorage 실제 저장) ═════════ */
+let lastSaveTime = Date.now();
+let lastSaveOk = true;
+function markSaved(){
+  // localStorage에 실제 저장 시도
+  lastSaveOk = (typeof saveToLocal === 'function') ? saveToLocal() : true;
+  lastSaveTime = Date.now();
+  updateSaveInd();
+  updateStepCompletion();
+  updateContextBar();
+}
+
+/* ═════════ 컨텍스트 바 갱신 (학년과목·단원질문·성취기준) ═════════ */
+function updateContextBar(){
+  const g = $('#ctxGrade'), q = $('#ctxQuestion'), a = $('#ctxAch');
+  if(g) g.textContent = `${state.grade} · ${state.subject}`;
+  if(q){
+    const t = (state.importantQuestion || '').trim();
+    q.textContent = t || '단원 질문 미입력';
+    q.title = t || '2단계에서 단원 질문을 입력하세요';
+    q.style.color = t ? '' : 'var(--muted)';
+  }
+  if(a){
+    const codes = Array.from(state.achievements);
+    a.textContent = codes.length ? `성취기준 ${codes.length}개 · ${codes.join(' ')}` : '성취기준 미선택';
+    a.style.color = codes.length ? '' : 'var(--muted)';
+  }
+}
+function updateSaveInd(){
+  const diff = Math.floor((Date.now() - lastSaveTime) / 1000);
+  let text;
+  if(!lastSaveOk) text = '⚠ 저장 실패 · 브라우저 저장소 확인';
+  else if(diff < 5) text = '자동 저장됨 · 방금 전';
+  else if(diff < 60) text = `자동 저장됨 · ${diff}초 전`;
+  else if(diff < 3600) text = `자동 저장됨 · ${Math.floor(diff/60)}분 전`;
+  else text = '자동 저장됨 · 오래 전';
+  const el = $('#saveIndText');
+  if(el) el.textContent = text;
+  const ind = $('#saveInd');
+  if(ind){
+    ind.style.background = lastSaveOk ? '' : '#fef3c7';
+    ind.style.color = lastSaveOk ? '' : '#a06e0e';
+  }
+}
+setInterval(updateSaveInd, 5000);
+
+// 주요 입력·변경 이벤트에 markSaved 부착
+['#title','#importantQuestion'].forEach(sel => {
+  const el = $(sel); if(el) el.addEventListener('input', markSaved);
+});
+['#grade','#subject','#model','#mailFilter'].forEach(sel => {
+  const el = $(sel); if(el) el.addEventListener('change', markSaved);
+});
+document.querySelectorAll('input[name="diversity"]').forEach(r => r.addEventListener('change', markSaved));
+
+/* ═════════ R7 · 30초 예시 배너 (과목별 3종 로테이션) ═════════ */
+const DEMO_DATASETS = [
+  { grade:'4학년', subject:'사회', diversity:'general', model:'reflect',
+    title:'우리 고장의 어제와 오늘',
+    importantQuestion:'우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?',
+    achievements:['4사03-01','4사04-04'] },
+  { grade:'5학년', subject:'국어', diversity:'general', model:'discuss',
+    title:'주장하는 글쓰기',
+    importantQuestion:'좋은 주장은 어떻게 근거를 갖추어야 할까?',
+    achievements:['6국02-04','6국03-04'] },
+  { grade:'6학년', subject:'과학', diversity:'general', model:'experiment',
+    title:'전기의 이용',
+    importantQuestion:'우리 주변의 전기는 어떻게 안전하게 활용될까?',
+    achievements:['6과11-02'] },
+];
+let demoIdx = 0;
+if($('#btnLoadDemo')){
+  $('#btnLoadDemo').addEventListener('click', () => {
+    const D = DEMO_DATASETS[demoIdx % DEMO_DATASETS.length];
+    demoIdx++;
+    state.items = {};
+    state.achievements.clear();
+    Object.assign(state, {
+      grade:D.grade, subject:D.subject,
+      diversity:D.diversity, model:D.model,
+      title:D.title, importantQuestion:D.importantQuestion,
+    });
+    D.achievements.forEach(c => state.achievements.add(c));
+    STAGES.forEach(S => LEVELS.forEach(L => {
+      const seed = SEED_BASE[S.key][L.key];
+      upsertItem(S.key, L.key, { question: seed, included: S.key === 'refine' });
+    }));
+    document.querySelector('input[name="diversity"][value="'+state.diversity+'"]').checked = true;
+    $('#model').value = state.model;
+    $('#modelInline').value = state.model;
+    $('#grade').value = state.grade;
+    $('#subject').value = state.subject;
+    $('#title').value = state.title;
+    $('#importantQuestion').value = state.importantQuestion;
+    renderAchievements();
+    renderMatrix();
+    renderAssessmentCard();
+    markSaved();
+    gotoStep(4);
+    // R7 · 워터마크 배너 표시 (사용자가 명시적으로 닫을 때까지)
+    const wm = $('#demoWatermark');
+    if(wm) wm.classList.add('is-on');
+    toast(`✨ 예시 ${demoIdx}/${DEMO_DATASETS.length} 로드 완료 · ${D.subject}과 예시`);
+    $('#demoBanner').classList.add('is-hidden');
+    setTimeout(() => $('#assessmentCard').scrollIntoView({ behavior:'smooth', block:'start' }), 200);
+  });
+}
+// R7 · 워터마크 닫기
+if($('#demoWatermarkClose')){
+  $('#demoWatermarkClose').addEventListener('click', () => {
+    $('#demoWatermark').classList.remove('is-on');
+  });
+}
+
+/* ═════════ 스텝바 인라인 셀렉트 동기화 ═════════ */
+function syncGrade(v){
+  state.grade = v;
+  const g = $('#grade'); if(g && g.value !== v) g.value = v;
+  const gi = $('#gradeInline'); if(gi && gi.value !== v) gi.value = v;
+  renderAchievements();
+  markSaved();
+}
+function syncSubject(v){
+  state.subject = v;
+  const s = $('#subject'); if(s && s.value !== v) s.value = v;
+  const si = $('#subjectInline'); if(si && si.value !== v) si.value = v;
+  renderAchievements();
+  markSaved();
+}
+function syncModel(v){
+  state.model = v;
+  const m = $('#model'); if(m && m.value !== v) m.value = v;
+  const mi = $('#modelInline'); if(mi && mi.value !== v) mi.value = v;
+  markSaved();
+}
+function syncMailFilter(v){
+  state.mailFilter = v;
+  const f = $('#mailFilter'); if(f && f.value !== v) f.value = v;
+  const fi = $('#mailFilterInline'); if(fi && fi.value !== v) fi.value = v;
+  renderMatrix();
+  markSaved();
+}
+if($('#gradeInline')) $('#gradeInline').addEventListener('change', e => syncGrade(e.target.value));
+if($('#subjectInline')) $('#subjectInline').addEventListener('change', e => syncSubject(e.target.value));
+if($('#modelInline')) $('#modelInline').addEventListener('change', e => syncModel(e.target.value));
+if($('#mailFilterInline')) $('#mailFilterInline').addEventListener('change', e => syncMailFilter(e.target.value));
+
+/* ═════════ R4 · 자유 모드 (모든 스텝 동시 펼침) ═════════ */
+if($('#freeMode')){
+  $('#freeMode').addEventListener('change', e => {
+    const on = e.target.checked;
+    state.freeMode = on;
+    if(on){
+      document.querySelectorAll('.step-acc').forEach(el => {
+        el.classList.add('is-open');
+        const h = el.querySelector('.step-acc__head');
+        if(h) h.setAttribute('aria-expanded', 'true');
+      });
+      toast('🔓 자유 모드 · 여러 단계를 동시에 편집하세요');
+    } else {
+      gotoStep(state.step || 1);
+      toast('🔒 위저드 모드 복귀');
+    }
+  });
+}
+
+/* ═════════ R5 · Escape 키로 모달·드로어 닫기 ═════════ */
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  const tm = $('#techModal');
+  const dr = $('#drawer');
+  if(tm && tm.classList.contains('is-on')){ closeTechModal(); return; }
+  if(dr && dr.classList.contains('is-on')){ closeDrawer(); return; }
+});
+
+/* ═════════ R6 · localStorage 실제 저장 & 복원 ═════════ */
+const STORAGE_KEY = 'kcbc-standalone:draft:v1';
+function saveToLocal(){
+  try{
+    const data = {
+      grade:state.grade, subject:state.subject,
+      diversity:state.diversity, model:state.model,
+      title:state.title, importantQuestion:state.importantQuestion,
+      mailFilter:state.mailFilter,
+      items:state.items,
+      achievements:Array.from(state.achievements),
+      timestamp:Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  }catch(e){ return false; }
+}
+function loadFromLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+function restoreState(){
+  const data = loadFromLocal();
+  if(!data) return false;
+  if(data.grade) state.grade = data.grade;
+  if(data.subject) state.subject = data.subject;
+  if(data.diversity) state.diversity = data.diversity;
+  if(data.model) state.model = data.model;
+  if(typeof data.title === 'string') state.title = data.title;
+  if(typeof data.importantQuestion === 'string') state.importantQuestion = data.importantQuestion;
+  if(data.mailFilter) state.mailFilter = data.mailFilter;
+  if(data.items) state.items = data.items;
+  if(Array.isArray(data.achievements)) state.achievements = new Set(data.achievements);
+  if(data.timestamp) lastSaveTime = data.timestamp;
+  // UI 값 반영
+  const setVal = (sel, v) => { const el = $(sel); if(el && v != null) el.value = v; };
+  setVal('#grade', state.grade);
+  setVal('#subject', state.subject);
+  setVal('#gradeInline', state.grade);
+  setVal('#subjectInline', state.subject);
+  setVal('#model', state.model);
+  setVal('#modelInline', state.model);
+  setVal('#title', state.title);
+  setVal('#importantQuestion', state.importantQuestion);
+  setVal('#mailFilter', state.mailFilter);
+  setVal('#mailFilterInline', state.mailFilter);
+  const rd = document.querySelector(`input[name="diversity"][value="${state.diversity}"]`);
+  if(rd) rd.checked = true;
+  return true;
+}
+
+// (markSaved / updateSaveInd 원본을 saveToLocal 훅 포함 형태로 수정 완료 — 재할당 삭제)
+
+/* ═════════ AI 질문 도우미 (Claude API 직접 호출) ═════════ */
+const AI_KEY_STORAGE = 'kcbc:ai-key-anthropic';
+const AI_MODEL = 'claude-sonnet-5';
+let aiChatHistory = []; // [{role:'user'|'assistant', content:string}]
+
+function aiGetKey(){
+  try{ return sessionStorage.getItem(AI_KEY_STORAGE) || ''; }catch(e){ return ''; }
+}
+function aiSetKey(k){
+  try{ sessionStorage.setItem(AI_KEY_STORAGE, k); }catch(e){}
+}
+function aiUpdateKeyRowVisibility(){
+  const row = $('#aiHelperKeyRow');
+  if(!row) return;
+  row.classList.toggle('hidden', !!aiGetKey());
+}
+function aiBuildSystemPrompt(){
+  const codes = Array.from(state.achievements);
+  const achLines = codes.map(c => {
+    const item = currentAchievements().find(a => a.code === c);
+    return item ? `[${item.code}] ${item.desc}` : c;
+  }).join('\n');
+  return [
+    '당신은 대한민국 초등학교 교사의 서·논술형 평가문항 제작을 돕는 도우미입니다.',
+    '「질문하는 학교」 정책 프레임과 2022 개정 교육과정 맥락에서, 암기 확인이 아닌 사고(비교·추론·근거 제시)를 평가하는',
+    '생활 맥락 발문 아이디어를 제안하세요. 답은 간결하게, 예시 위주로, 한국어로 답하세요.',
+    '',
+    `현재 작성 중: ${state.grade} ${state.subject} · 적용 모델: ${state.model}`,
+    `단원명: ${state.title || '(미입력)'}`,
+    `단원 질문: ${state.importantQuestion || '(미입력)'}`,
+    achLines ? `선택된 성취기준:\n${achLines}` : '성취기준: (미선택)',
+  ].join('\n');
+}
+function aiAppendMsg(role, text){
+  const chat = $('#aiHelperChat');
+  const cls = role === 'user' ? 'ai-msg--user' : role === 'error' ? 'ai-msg--error' : 'ai-msg--ai';
+  const el = elFromHtml(`<div class="ai-msg ${cls}">${escapeHtml(text)}</div>`);
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+function aiAppendLoading(){
+  const chat = $('#aiHelperChat');
+  const el = elFromHtml(`<div class="ai-msg ai-msg--loading">생각하는 중…</div>`);
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+async function aiSend(){
+  const input = $('#aiHelperInput');
+  const q = input.value.trim();
+  if(!q) return;
+  const key = aiGetKey();
+  if(!key){
+    toast('⚠ Anthropic API 키를 먼저 입력해 주세요');
+    aiUpdateKeyRowVisibility();
+    $('#aiHelperKey').focus();
+    return;
+  }
+  aiAppendMsg('user', q);
+  aiChatHistory.push({ role:'user', content:q });
+  input.value = '';
+  const sendBtn = $('#aiHelperSend');
+  sendBtn.disabled = true;
+  const loadingEl = aiAppendLoading();
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key': key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: 700,
+        system: aiBuildSystemPrompt(),
+        messages: aiChatHistory.slice(-8),
+      }),
+    });
+    const data = await res.json();
+    loadingEl.remove();
+    if(!res.ok){
+      const msg = data?.error?.message || `요청 실패 (HTTP ${res.status})`;
+      aiAppendMsg('error', `⚠ ${msg}`);
+      return;
+    }
+    const text = (data.content || []).map(b => b.text || '').join('').trim() || '(응답 없음)';
+    aiAppendMsg('assistant', text);
+    aiChatHistory.push({ role:'assistant', content:text });
+  }catch(e){
+    loadingEl.remove();
+    aiAppendMsg('error', '⚠ 네트워크 오류 · API 키와 연결 상태를 확인해 주세요');
+  }finally{
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+if($('#aiHelperToggle')){
+  $('#aiHelperToggle').addEventListener('click', () => {
+    const helper = $('#aiHelper');
+    const panel = $('#aiHelperPanel');
+    const open = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !open);
+    helper.classList.toggle('is-open', open);
+    $('#aiHelperToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open){ aiUpdateKeyRowVisibility(); $('#aiHelperKey').value = ''; }
+  });
+  $('#aiHelperKeySave').addEventListener('click', () => {
+    const v = $('#aiHelperKey').value.trim();
+    if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+    aiSetKey(v);
+    aiUpdateKeyRowVisibility();
+    toast('✓ API 키 저장 완료 (이 브라우저 세션 동안만 유지)');
+  });
+  $('#aiHelperSend').addEventListener('click', aiSend);
+  $('#aiHelperInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); aiSend(); }
+  });
+
+  // G2 · 빠른 질문 버튼 3개
+  const AI_QUICK_PROMPTS = {
+    align: '이 문항이 선택된 성취기준의 어떤 행동 동사(~할 수 있다, ~이해한다 등)를 측정하나요? 부족한 부분은?',
+    rubric: '이 문항의 3수준(잘함/보통/노력 요함) 채점기준을 만들어 주세요. 수준별로 무엇이 달라져야 하는지 명확하게.',
+    open: '이 문항을 더 개방형(학생의 다양한 사고와 표현을 허용하는)으로 바꿀 수 있을까요?',
+  };
+  $$('.ai-quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = $('#aiHelperPanel');
+      if(panel.classList.contains('hidden')) $('#aiHelperToggle').click();
+      $('#aiHelperInput').value = AI_QUICK_PROMPTS[btn.dataset.quick] || '';
+      aiSend();
+    });
+  });
+}
+
+/* ═════════ 초기 렌더 + localStorage 복원 ═════════ */
+const restored = restoreState();
+renderAchievements();
+renderMatrix();
+renderAssessmentCard();
+updateContextBar();
+gotoStep(1);
+updateSaveInd();
+if(restored){
+  toast('💾 이전 작업을 자동으로 복원했습니다');
+}
+</script>
+</body>
+</html>
