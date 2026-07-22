@@ -166,3 +166,15 @@ KCBC는 다루는 지식의 성격에 따라 설계 강조점이 달라진다.
 - C. Marschall & R. French, *Concept-Based Inquiry in Action*
 - 조호제 외, 『개념 기반 교육과정 수업 설계의 이론과 실제』
 - 2022 개정 교육과정 총론 — '깊이 있는 학습' 항목
+
+## AKM Knowledge System
+
+Knowledge system root: `C:\Users\user\akm` (AKM)
+
+- When you need knowledge, context, or procedures, first read AKM `99-system/INDEX.md` + `99-system/INDEX.local.md` and all files in `40-memory/` (all short)
+- Lookup: INDEX → layer folder (`20-knowledge` knowledge, `30-context` context, `50-procedures` procedures)
+- Before saving any knowledge, experience, or procedure, follow the classification tree in `99-system/ROUTER.md`. Never save to arbitrary locations
+- Before marking durable, public, or high-stakes work complete, apply the checks in `99-system/VERIFICATION.md`
+- On task failure or repeated mistakes, follow the Learn Back mapping in `99-system/LOOP.md`: record under `70-evaluation/` and fix the designated layer
+- Never modify originals in `10-sources/`. KCBC-specific: regeneration-forbidden assets and design principles live in AKM (`40-memory/kcbc-regen-forbidden-assets`, `30-context/projects/kcbc-design-principle`) — read before patching KCBC tools
+- Run `node scripts/lint.mjs` in AKM after adding/removing notes (must stay 0 errors)
