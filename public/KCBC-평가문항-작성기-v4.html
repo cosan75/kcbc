@@ -210,6 +210,9 @@ button{ font:inherit; color:inherit; }
   background:#f0fff7; border:1.5px solid #b7ebcd; font-size:12.5px; font-weight:800; color:#1f7a4a;
 }
 .check-include input{ accent-color:#2ea66c; width:16px; height:16px; }
+.cell-key-row{ margin-top:10px; padding:10px 12px; border-radius:9px; background:#fffaf0; border:1px solid #f0d9a0; font-size:12px; line-height:1.6; }
+.cell-key-row.is-flash{ animation:keyFlash 1.2s ease; }
+@keyframes keyFlash{ 0%,100%{ box-shadow:none; } 30%{ box-shadow:0 0 0 3px rgba(201,138,22,.35); } }
 details.adv{ margin-top:12px; border:1px solid var(--line); border-radius:10px; }
 details.adv > summary{ cursor:pointer; padding:9px 12px; font-size:12px; font-weight:700; color:var(--ink-soft); list-style:none; display:flex; align-items:center; gap:6px; }
 details.adv > summary::-webkit-details-marker{ display:none; }
@@ -556,6 +559,14 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     <button class="btn-tech" id="btnCellCoach" style="border-color:var(--coach);color:var(--coach)">💬 코치 피드백</button>
     <button class="btn-tech" id="btnGradeFit" style="border-color:#c98a16;color:#a06e0e" title="학년 수준 문항 작성 가이드 5원칙 적용">🎯 학년 눈높이로</button>
     <button class="btn-tech" id="btnValidate" style="border-color:#7048e8;color:#7048e8" title="V① 형식 검증(무료) → V② 최종 게이트(Opus). 반려 시 수정안 자동 제안(최대 2회)">🔬 검증</button>
+    <div class="cell-key-row hidden" id="cellKeyRow">
+      🔑 <b>🎯 학년 눈높이 · 💬 코치 · 🔬 V② 검증</b>은 AI 기능이라 Anthropic API 키가 한 번 필요해요.
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="password" class="input" id="cellKey" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-size:12px;">
+        <button class="btn-mini" id="cellKeySave">저장</button>
+      </div>
+      <span style="font-size:10px;color:var(--muted);">🔒 이 브라우저에만 저장 · 서버 전송 없음 · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent);">키 발급 ↗</a> · 키 없이도 문항 작성·근거 연결·평가지는 모두 됩니다</span>
+    </div>
     <div id="validationResult" class="hidden" style="margin-top:10px;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--line-soft);font-size:12px;line-height:1.6;"></div>
 
     <div class="field" id="evidenceField" style="margin:12px 0 0;">
@@ -1243,6 +1254,7 @@ function openCellModal(phase, level){
   renderEvidenceChips();
   if(it.validation && (it.validation.v1 || it.validation.v2)){ renderValidationResult(it); }
   else { $('#validationResult').classList.add('hidden'); $('#validationResult').innerHTML=''; }
+  $('#cellKeyRow').classList.add('hidden'); // 키 없어도 열 때는 숨김 — AI 버튼 누를 때만 펼침
   $('#cellModal').classList.add('is-on');
   renderBoard();
 }
@@ -1926,13 +1938,31 @@ $('#btnCopy').addEventListener('click', async () => {
 /* ═════════ AI 코치 ═════════ */
 function aiGetKey(){ try{ return sessionStorage.getItem(AI_KEY_STORAGE)||''; }catch(e){ return ''; } }
 function aiSetKey(k){ try{ sessionStorage.setItem(AI_KEY_STORAGE, k); }catch(e){} }
-function updateKeyRow(){ $('#coachKeyRow').classList.toggle('hidden', !!aiGetKey()); }
+function updateKeyRow(){
+  $('#coachKeyRow').classList.toggle('hidden', !!aiGetKey());
+  $('#cellKeyRow').classList.toggle('hidden', !!aiGetKey());
+}
 $('#coachKeySave').addEventListener('click', () => {
   const v = $('#coachKey').value.trim();
   if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
   aiSetKey(v); updateKeyRow();
   toast('✓ API 키 저장 완료 (이 브라우저 세션 동안만 유지)');
 });
+$('#cellKeySave').addEventListener('click', () => {
+  const v = $('#cellKey').value.trim();
+  if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+  aiSetKey(v); updateKeyRow(); $('#cellKey').value='';
+  toast('✓ API 키 저장 완료 — 이제 🎯 학년 눈높이·💬 코치·🔬 검증을 바로 쓸 수 있어요');
+});
+/* AI 버튼이 키 없을 때: 코치를 열지 않고 셀 안 키 입력행을 펼쳐 강조 */
+function ensureKeyInCell(){
+  if(aiGetKey()) return true;
+  const row = $('#cellKeyRow');
+  row.classList.remove('hidden');
+  row.classList.remove('is-flash'); void row.offsetWidth; row.classList.add('is-flash');
+  $('#cellKey').focus();
+  return false;
+}
 function openCoach(){ $('#coachPanel').classList.add('is-open'); $('#coachFabBadge').classList.remove('is-on'); }
 function closeCoach(){ $('#coachPanel').classList.remove('is-open'); }
 $('#coachFab').addEventListener('click', () => $('#coachPanel').classList.contains('is-open') ? closeCoach() : openCoach());
@@ -2116,9 +2146,9 @@ async function runValidation(){
     }
     if(!aiGetKey()){
       renderValidationResult(it); renderBoard(); save();
-      box.innerHTML += '<div style="margin-top:6px;color:#a06e0e;">V② AI 심사는 Anthropic API 키가 필요합니다 — 💬 코치에서 키를 저장한 뒤 다시 눌러주세요.</div>';
+      box.innerHTML += '<div style="margin-top:6px;color:#a06e0e;">V② AI 심사는 Anthropic API 키가 필요합니다 — 아래 🔑 칸에 키를 넣은 뒤 다시 🔬 검증을 눌러주세요.</div>';
       toast('V① 통과 — V② 심사는 API 키 저장 후 가능합니다');
-      openCoach(); updateKeyRow();
+      ensureKeyInCell();
       return;
     }
     /* ① 설계 검토 — SOLO 사고 요구량 근거 (sonnet) */
@@ -2255,6 +2285,7 @@ $('#btnCellCoach').addEventListener('click', () => {
   if(!standardText()){ toast('⚠ 먼저 성취기준을 입력해 주세요'); return; }
   const q = $('#cellQuestion').value.trim();
   if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  if(!ensureKeyInCell()){ toast('💬 코치 피드백은 AI 키가 필요해요 — 바로 아래에 키를 넣어주세요'); return; }
   openCoach();
   sendToClaude(quickPrompt('align'), '📐 셀 문항 피드백 요청');
 });
@@ -2268,7 +2299,7 @@ $('#btnFindStandard').addEventListener('click', () => {
 $('#btnGradeFit').addEventListener('click', async () => {
   const q = $('#cellQuestion').value.trim();
   if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
-  if(!aiGetKey()){ toast('🎯 이 버튼은 문항을 학년 눈높이로 바로 바꿔줍니다 — 우하단 💬에 AI 키를 저장한 뒤 다시 눌러주세요'); openCoach(); updateKeyRow(); $('#coachKey').focus(); return; }
+  if(!ensureKeyInCell()){ toast('🎯 학년 눈높이 다듬기는 AI 키가 필요해요 — 바로 아래에 키를 넣어주세요'); return; }
   const btn = $('#btnGradeFit');
   const origLabel = btn.textContent;
   btn.disabled = true; btn.textContent = '🎯 다듬는 중…';
