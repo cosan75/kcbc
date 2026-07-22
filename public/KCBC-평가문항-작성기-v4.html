@@ -132,6 +132,11 @@ button{ font:inherit; color:inherit; }
 /* ═════ 매트릭스 = 질문 보드 (가로:국면 4 / 세로:SOLO 3) ═════ */
 .board-topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .board-hint{ font-size:11.5px; color:var(--muted); margin:0; }
+.board-context{ background:linear-gradient(120deg,#eef1ff,#eefaf3); border:1px solid #cdd9f5; border-radius:12px; padding:11px 14px; margin-bottom:12px; font-size:12px; line-height:1.7; }
+.board-context.is-empty{ background:#fff8e6; border-color:#f0e2a0; }
+.board-context b{ color:var(--accent); }
+.board-context .bc-code{ display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px; background:var(--panel); border:1px solid var(--line); color:var(--ink-soft); margin:1px 2px 1px 0; }
+.board-context .bc-edit{ border:none; background:none; color:var(--accent); cursor:pointer; font-size:11.5px; text-decoration:underline; padding:0; margin-left:4px; }
 .radars{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin-top:4px; }
 @media (max-width:720px){ .radars{ grid-template-columns:1fr; } }
 .radar-card{
@@ -463,13 +468,14 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
         <div class="verb-flag" id="verbFlag"></div>
         <button class="btn-tech" id="btnFindStandard" style="margin-top:8px;border-color:var(--coach);color:var(--coach)">🤖 AI로 성취기준 찾기</button>
-        <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 찾아 드려요 — 반드시 <a href="https://ncic.re.kr" target="_blank" rel="noopener">국가교육과정정보센터(NCIC)</a>에서 원문과 대조해 주세요.</p>
+        <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 찾아 드려요.</p>
       </div>
     </div>
   </section>
 
   <!-- ═════ 탭 2: 매트릭스 (질문 보드) ═════ -->
   <section class="panel" id="panel-board">
+    <div class="board-context" id="boardContext"></div>
     <div class="board-topbar">
       <p class="board-hint">빈 칸을 눌러 학생용 질문을 적어보세요 · 다 채우지 않아도 됩니다.</p>
       <button class="btn-mini" id="btnRadars">📊 지표 보기</button>
@@ -681,8 +687,15 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
       </div>
       <div class="field">
         <label class="field__label">
+          <input type="checkbox" id="planUnitQUse" checked style="margin-right:4px;">
+          💭 핵심 질문(단원 질문) 초안 넣기 <span style="font-weight:500;color:var(--muted)">— 성취기준·단원명 기반, 다듬어 쓰세요</span>
+        </label>
+        <textarea class="textarea" id="planUnitQText" style="min-height:44px"></textarea>
+      </div>
+      <div class="field">
+        <label class="field__label">
           <input type="checkbox" id="planScenarioUse" checked style="margin-right:4px;">
-          🎬 과제 상황에 참고 문구로 넣기
+          🎬 과제 상황 초안 넣기 <span style="font-weight:500;color:var(--muted)">— GRASPS 빈칸 틀, 교사가 채우세요</span>
         </label>
         <textarea class="textarea" id="planScenarioText" style="min-height:44px"></textarea>
       </div>
@@ -1018,6 +1031,7 @@ $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.
 function switchTab(tab){
   $$('.tab-btn').forEach(b => b.classList.toggle('is-on', b.dataset.tab===tab));
   $$('.panel').forEach(p => p.classList.toggle('is-on', p.id === 'panel-'+tab));
+  if(tab === 'board') renderBoardContext();
   if(tab === 'done') renderDone();
 }
 $('#btnHome').addEventListener('click', () => {
@@ -1150,7 +1164,27 @@ $('#scenario').addEventListener('input', e => { state.scenario = e.target.value;
 $('#standardCustom').addEventListener('input', e => { state.standardCustom = e.target.value; checkVerb(); updatePhaseHint(); save(); });
 
 /* ═════════ 매트릭스 = 질문 보드 ═════════ */
+/* 매트릭스 상단 단원정보 연동 배너 — 단원정보 탭에서 정한 맥락을 매트릭스에서 보이게 */
+function renderBoardContext(){
+  const el = $('#boardContext');
+  if(!el) return;
+  const stds = availableStandards();
+  if(!state.title.trim() && !state.unitQuestion.trim() && !stds.length){
+    el.className = 'board-context is-empty';
+    el.innerHTML = `📘 <b>단원 정보가 아직 비어 있어요.</b> <button class="bc-edit" id="bcGoSetup">단원 정보 탭으로 가서 학년·단원·성취기준을 먼저 채우면</button> 이 매트릭스가 그 단원의 문항을 만드는 공간이 됩니다.`;
+  } else {
+    el.className = 'board-context';
+    const codes = stds.map(s => `<span class="bc-code" title="${esc(s.desc)}">${s.code}</span>`).join('') || '<span style="color:var(--muted)">성취기준 미선택</span>';
+    el.innerHTML = `📘 <b>${esc(state.grade)} ${esc(state.subject)}</b>${state.title.trim()?` · ${esc(state.title)}`:''}
+      ${state.unitQuestion.trim()?`<br>💭 핵심 질문: ${esc(state.unitQuestion)}`:''}
+      <br>🎯 이 단원의 성취기준 ${stds.length}개: ${codes}
+      <button class="bc-edit" id="bcGoSetup">✏ 단원 정보 수정</button>
+      <br><span style="font-size:11px;color:var(--muted)">아래 셀에 문항을 쓰고, 셀 편집에서 위 성취기준 중 <b>근거</b>를 연결하세요 — 그 연결이 완성 탭의 근거 행렬이 됩니다.</span>`;
+  }
+  el.querySelector('#bcGoSetup')?.addEventListener('click', () => { switchTab('setup'); window.scrollTo({top:0,behavior:'smooth'}); });
+}
 function renderBoard(){
+  renderBoardContext();
   const wrap = $('#board'); wrap.innerHTML = '';
   wrap.insertAdjacentHTML('beforeend', '<div class="board__corner"></div>');
   PHASES.forEach(P => wrap.insertAdjacentHTML('beforeend', `<div class="board__col-head">${P.ko}<span class="arrow">→</span></div>`));
@@ -2234,7 +2268,7 @@ $('#btnFindStandard').addEventListener('click', () => {
 $('#btnGradeFit').addEventListener('click', async () => {
   const q = $('#cellQuestion').value.trim();
   if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
-  if(!aiGetKey()){ toast('⚠ Anthropic API 키를 먼저 입력해 주세요'); openCoach(); updateKeyRow(); $('#coachKey').focus(); return; }
+  if(!aiGetKey()){ toast('🎯 이 버튼은 문항을 학년 눈높이로 바로 바꿔줍니다 — 우하단 💬에 AI 키를 저장한 뒤 다시 눌러주세요'); openCoach(); updateKeyRow(); $('#coachKey').focus(); return; }
   const btn = $('#btnGradeFit');
   const origLabel = btn.textContent;
   btn.disabled = true; btn.textContent = '🎯 다듬는 중…';
@@ -2330,14 +2364,25 @@ function parsePlanText(text){
     });
     c.unitIndex = best;
   });
-  const scenarioRe = /([가-힣][가-힣·\s]{3,20}(?:하기|읽기|쓰기|말하기|만들기))/g;
-  const scenarioSeen = new Set(); const scenarios = [];
-  let sm;
-  while((sm = scenarioRe.exec(text)) && scenarios.length < 5){
-    const t = sm[1].trim().replace(/\s+/g,' ');
-    if(t.length>=5 && !scenarioSeen.has(t)){ scenarioSeen.add(t); scenarios.push(t); }
-  }
-  return { codes, units:units.map(u=>u.label), scenarios };
+  return { codes, units:units.map(u=>u.label) };
+}
+/* 성취기준 설명 → 핵심(단원) 질문 초안. 무의미한 조각 대신 성취기준 내용을 열린 질문으로 변환 */
+function deriveUnitQuestion(desc, unitName){
+  const d = (desc||'').replace(/\s+/g,' ').trim();
+  const topic = (unitName||'').replace(/^\d+\s*[.．]\s*/,'').trim();
+  if(!d && !topic) return '';
+  if(/영향|미치/.test(d)) return `${topic||'이 단원의 배움'}은 우리 삶에 어떤 영향을 미칠까?`;
+  if(/변화|달라/.test(d)) return `${topic||'이것'}은 무엇이, 왜 변화할까?`;
+  if(/비교|차이|같/.test(d)) return `${topic||'이것들'}은 무엇이 같고 무엇이 다를까?`;
+  if(/관계|관련|연결/.test(d)) return `${topic||'이것들'}은 서로 어떻게 관계 맺고 있을까?`;
+  if(/까닭|이유|원인|왜/.test(d)) return `${topic||'이 현상'}이 나타나는 까닭은 무엇일까?`;
+  if(/방법|어떻게|과정/.test(d)) return `${topic||'이것'}은 어떻게 이루어질까?`;
+  return `${topic||'이 단원'}에서 우리는 무엇을, 왜 배울까?`;
+}
+/* 성취기준·단원명 → 과제 상황(GRASPS) 초안 스텁. 교사가 채울 빈칸 포함 */
+function deriveScenario(desc, unitName){
+  const topic = (unitName||'').replace(/^\d+\s*[.．]\s*/,'').trim() || '이 단원의 내용';
+  return `너는 (　　　　)이다. ${topic}에 대해 궁금해하는 (　　　　)에게, 배운 것을 바탕으로 (　　　　)을(를) 만들어 설명해 보자.`;
 }
 function matchAchievements(codes){
   const matched = [], unmatched = [];
@@ -2360,14 +2405,14 @@ $('#planPdfInput').addEventListener('change', async e => {
   $('#planResult').classList.add('hidden');
   try{
     const text = await extractPdfText(f);
-    const { codes, units, scenarios } = parsePlanText(text);
+    const { codes, units } = parsePlanText(text);
     const { matched, unmatched } = matchAchievements(codes);
     if(codes.length === 0 && units.length === 0){
       toast('⚠ PDF에서 성취기준·단원명을 찾지 못했습니다 — 표 형식 평가계획 PDF인지 확인해 주세요');
       $('#planModal').classList.remove('is-on');
       return;
     }
-    planParsed = { matched, unmatched, units, scenarios };
+    planParsed = { matched, unmatched, units };
     renderPlanReview();
   }catch(err){
     toast('⚠ ' + (err.message || 'PDF를 읽는 중 오류가 발생했습니다'));
@@ -2377,7 +2422,7 @@ $('#planPdfInput').addEventListener('change', async e => {
   }
 });
 function renderPlanReview(){
-  const { matched, unmatched, units, scenarios } = planParsed;
+  const { matched, unmatched, units } = planParsed;
   $('#planResult').classList.remove('hidden');
   const bandOf = g => (g==='1'||g==='2') ? 'g12' : (g==='3'||g==='4') ? 'g34' : 'g56';
   const detectedBand = matched[0]?.band || (unmatched[0] ? bandOf(unmatched[0].grade) : null);
@@ -2394,8 +2439,19 @@ function renderPlanReview(){
     : `<option value="-1">감지된 단원명 없음</option>`;
   $('#planUnitText').value = units[0] || '';
 
-  $('#planScenarioText').value = scenarios[0] ? `(${scenarios[0]} 관련 상황을 구체적으로 적어보세요)` : '';
-  $('#planScenarioUse').checked = false;
+  /* 선택된 단원과 짝지어진 성취기준 하나를 근거로 핵심질문·과제상황 초안 생성 */
+  function repDescForUnit(unitIdx){
+    const all = matched.concat(unmatched.map(u => ({ code:u.code, desc:'', unitIndex:u.unitIndex })));
+    const forUnit = all.filter(a => a.unitIndex === unitIdx && a.desc);
+    return (forUnit[0] || matched[0] || {}).desc || '';
+  }
+  function refreshDrafts(){
+    const unitIdx = units.length ? +unitSel.value : null;
+    const unitName = $('#planUnitText').value;
+    const desc = repDescForUnit(unitIdx);
+    $('#planUnitQText').value = deriveUnitQuestion(desc, unitName);
+    $('#planScenarioText').value = deriveScenario(desc, unitName);
+  }
 
   const unitChip = (idx) => (units.length > 1 && idx != null) ? `<span class="chip-mini" style="margin-left:6px;">🔗 ${esc(units[idx])}</span>` : '';
   $('#planMatchedList').innerHTML = matched.length
@@ -2418,8 +2474,10 @@ function renderPlanReview(){
       cb.checked = (units.length <= 1) || itemUnitIdx == null || itemUnitIdx === selIdx;
     });
   }
-  unitSel.onchange = () => { $('#planUnitText').value = units[+unitSel.value] || ''; recalcChecksForUnit(); };
+  unitSel.onchange = () => { $('#planUnitText').value = units[+unitSel.value] || ''; recalcChecksForUnit(); refreshDrafts(); };
+  $('#planUnitText').oninput = refreshDrafts;
   recalcChecksForUnit();
+  refreshDrafts();
 }
 $('#btnPlanFindUnmatched').addEventListener('click', async () => {
   if(!planParsed || !planParsed.unmatched.length) return;
@@ -2454,9 +2512,13 @@ $('#btnPlanApply').addEventListener('click', () => {
   const unitText = $('#planUnitText').value.trim();
   if(unitText){ state.title = unitText; $('#title').value = unitText; }
 
+  if($('#planUnitQUse').checked){
+    const uq = $('#planUnitQText').value.trim();
+    if(uq){ state.unitQuestion = uq; $('#unitQuestion').value = uq; }
+  }
   if($('#planScenarioUse').checked){
     const sc = $('#planScenarioText').value.trim();
-    if(sc){ state.scenario = (state.scenario ? state.scenario+'\n' : '') + sc; $('#scenario').value = state.scenario; }
+    if(sc){ state.scenario = sc; $('#scenario').value = sc; }
   }
 
   let addedMatched = 0, addedRaw = 0;
