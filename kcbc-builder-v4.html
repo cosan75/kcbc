@@ -1,0 +1,2595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KCBC 평가문항 작성기 v4</title>
+<style>
+:root{
+  --bg:#f6f7fb; --panel:#ffffff; --line:#e6e8f0; --line-soft:#eef0f7;
+  --ink:#1a1d29; --ink-soft:#4b5163; --muted:#8c93a8;
+  --brand:#111827; --brand-hover:#0d1220;
+  --accent:#3a57e8; --accent-soft:#eef1ff;
+  --ok:#2ea66c; --warn:#c98a16; --rose:#d6336c;
+  --coach:#1a5f80; --coach-soft:#e8f4fb; --coach-line:#a8d8f0;
+  --postit:#fff9db; --postit-line:#f0e2a0;
+  --stamp:#c92a2a;
+  --shadow-sm:0 1px 2px rgba(15,18,32,.05);
+  --shadow-md:0 6px 24px rgba(15,18,32,.10);
+  --radius:10px; --radius-lg:14px;
+  --app-max:1180px;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Segoe UI",system-ui,sans-serif;
+  font-size:14px; line-height:1.55;
+}
+button{ font:inherit; color:inherit; }
+.hidden{ display:none !important; }
+
+/* ═════ 헤더: 로고 + 탭3개 + ⋯메뉴 (사이드바 없음) ═════ */
+.gnb{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:6px;
+  padding:0 max(16px, calc((100vw - var(--app-max)) / 2));
+  background:var(--panel); border-bottom:1px solid var(--line); height:54px;
+}
+.gnb__title{
+  font-size:13.5px; font-weight:800; margin:0; letter-spacing:-.3px;
+  padding:7px 14px; border-radius:999px; flex-shrink:0; border:none;
+  background:linear-gradient(120deg,#fce4ff 0%,#fff2d9 45%,#d8f4e9 100%);
+  color:#3d3f5c; white-space:nowrap; cursor:pointer; font-family:inherit;
+}
+.gnb__title:hover{ filter:brightness(0.97); }
+.tabbar{ display:flex; gap:2px; margin-left:10px; }
+.tab-btn{
+  display:flex; align-items:center; gap:6px; padding:8px 14px; border:none; background:transparent;
+  border-radius:8px; cursor:pointer; font-size:13px; font-weight:700; color:var(--ink-soft);
+  white-space:nowrap; position:relative;
+}
+.tab-btn:hover{ background:var(--line-soft); }
+.tab-btn.is-on{ background:var(--accent-soft); color:var(--accent); }
+.tab-badge{
+  display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px;
+  padding:0 4px; border-radius:999px; background:var(--stamp); color:#fff; font-size:10px; font-weight:800;
+}
+.tab-badge.is-zero{ background:var(--line); color:var(--muted); }
+.gnb__spacer{ flex:1; }
+.more-menu{ position:relative; flex-shrink:0; }
+.more-btn{
+  width:34px; height:34px; border:1px solid var(--line); background:var(--panel); border-radius:8px;
+  cursor:pointer; color:var(--ink-soft); font-size:16px;
+}
+.more-btn:hover{ background:var(--line-soft); }
+.more-pop{
+  position:absolute; right:0; top:42px; width:220px; background:var(--panel);
+  border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-md); padding:6px;
+  display:none; z-index:50;
+}
+.more-pop.is-open{ display:block; }
+.more-pop a{
+  display:block; padding:9px 10px; border-radius:8px; text-decoration:none; color:var(--ink-soft);
+  font-size:12.5px; font-weight:600;
+}
+.more-pop a:hover{ background:var(--line-soft); color:var(--accent); }
+@media (max-width:640px){
+  .gnb__title{ font-size:11.5px; padding:6px 10px; }
+  .tab-btn span.tab-label{ display:none; }
+  .tab-btn{ padding:8px 10px; }
+}
+
+/* ═════ 작업 영역 (전체 폭, 사이드바 없음) ═════ */
+.wrap{ max-width:var(--app-max); margin:0 auto; padding:18px 16px 40px; }
+.panel{ display:none; flex-direction:column; gap:14px; }
+.panel.is-on{ display:flex; }
+
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:16px 18px; box-shadow:var(--shadow-sm);
+}
+.card__title{ font-size:14px; font-weight:800; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+.card__hint{ font-size:11px; color:var(--muted); font-weight:500; margin-left:auto; }
+
+.field{ margin-bottom:13px; }
+.field:last-child{ margin-bottom:0; }
+.field__label{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+.field__label .req{ color:var(--rose); }
+.field__hint{ font-size:11px; color:var(--muted); margin:4px 0 0; line-height:1.5; }
+.field__hint a{ color:var(--accent); text-decoration:underline; }
+.input,.select,.textarea{
+  width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px;
+  background:var(--panel); color:var(--ink); font-size:13.5px; font-family:inherit;
+}
+.input:focus,.select:focus,.textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.textarea{ min-height:56px; resize:vertical; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; }
+.row > *{ flex:1; min-width:140px; }
+
+.verb-flag{ display:none; margin-top:6px; padding:6px 10px; border-radius:7px; font-size:11px; font-weight:600; }
+.verb-flag.is-on{ display:block; background:#fef3c7; border:1px solid #f5c542; color:#7a5a10; }
+.verb-flag--ok{ background:#eaf7ef; border:1px solid #b7ebcd; color:#1f7a4a; }
+.phase-hint{
+  display:none; margin-top:6px; padding:6px 10px; border-radius:7px; font-size:11px; font-weight:600;
+  background:var(--accent-soft); color:var(--accent);
+}
+.phase-hint.is-on{ display:block; }
+.concept-badge{
+  font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;
+  background:#fff3e0; color:#b36b00; border:1px solid #ffd699; margin-left:2px;
+}
+.concept-badge.is-empty{ background:var(--line-soft); color:var(--muted); border-color:var(--line); }
+.concept-badge.is-none{ background:#fef3c7; color:#a06e0e; border-color:#f5c542; }
+
+.ach-list{ max-height:180px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; padding:5px; background:var(--panel); }
+.ach-item{ display:flex; gap:7px; padding:6px; border-radius:6px; align-items:flex-start; cursor:pointer; }
+.ach-item:hover{ background:var(--line-soft); }
+.ach-item input{ margin-top:3px; accent-color:var(--accent); flex-shrink:0; }
+.ach-item__code{ font-size:9.5px; padding:2px 5px; border-radius:4px; background:var(--accent-soft); color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+.ach-item__desc{ font-size:11.5px; color:var(--ink-soft); line-height:1.45; word-break:keep-all; }
+.ach-count{ font-size:10.5px; color:var(--muted); font-weight:600; margin-left:auto; }
+.ach-count b{ color:var(--accent); }
+
+/* ═════ 매트릭스 = 질문 보드 (가로:국면 4 / 세로:SOLO 3) ═════ */
+.board-topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.board-hint{ font-size:11.5px; color:var(--muted); margin:0; }
+.board-context{ background:linear-gradient(120deg,#eef1ff,#eefaf3); border:1px solid #cdd9f5; border-radius:12px; padding:11px 14px; margin-bottom:12px; font-size:12px; line-height:1.7; }
+.board-context.is-empty{ background:#fff8e6; border-color:#f0e2a0; }
+.board-context b{ color:var(--accent); }
+.board-context .bc-code{ display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px; background:var(--panel); border:1px solid var(--line); color:var(--ink-soft); margin:1px 2px 1px 0; }
+.board-context .bc-edit{ border:none; background:none; color:var(--accent); cursor:pointer; font-size:11.5px; text-decoration:underline; padding:0; margin-left:4px; }
+.radars{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin-top:4px; }
+@media (max-width:720px){ .radars{ grid-template-columns:1fr; } }
+.radar-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:12px 10px 10px; text-align:center; box-shadow:var(--shadow-sm);
+}
+.radar-card h3{ font-size:12.5px; margin:0 0 2px; }
+.radar-card p{ font-size:10px; color:var(--muted); margin:0 0 4px; }
+.radar-card svg{ width:100%; height:auto; max-width:170px; }
+.radar-card__score{ display:inline-block; font-size:21px; font-weight:800; margin-top:2px; color:var(--ink); line-height:1; }
+.radar-card__unit{ font-size:11px; color:var(--muted); font-weight:600; margin-left:2px; }
+.board-scroll{ overflow-x:auto; }
+.board{ display:grid; grid-template-columns:104px repeat(4, minmax(190px,1fr)); gap:10px; min-width:900px; }
+.board__corner{}
+.board__col-head{
+  font-size:12px; font-weight:800; color:var(--ink-soft); text-align:center;
+  padding:8px 6px; position:relative;
+}
+.board__col-head .arrow{
+  position:absolute; right:-11px; top:50%; transform:translateY(-50%);
+  color:var(--muted); font-size:13px;
+}
+.board__col-head:last-child .arrow{ display:none; }
+.board__row-head{
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:12px; font-weight:800; color:var(--ink-soft); background:var(--tag-gray,var(--line-soft));
+  border-radius:10px; padding:8px 6px; writing-mode:horizontal-tb; line-height:1.3;
+}
+.board-cell{
+  min-height:110px; border-radius:12px; padding:12px; cursor:pointer; position:relative;
+  display:flex; flex-direction:column; gap:6px; transition:.15s; border:1.5px dashed var(--line);
+  background:var(--panel);
+}
+.board-cell:hover{ border-color:var(--accent); }
+.board-cell.is-filled{
+  border-style:solid; border-color:var(--postit-line); background:var(--postit);
+  box-shadow:2px 3px 8px rgba(0,0,0,.06);
+}
+.board-cell:nth-child(4n+2).is-filled{ transform:rotate(-.6deg); }
+.board-cell:nth-child(4n+4).is-filled{ transform:rotate(.6deg); }
+.board-cell.is-active{ outline:3px solid var(--accent); outline-offset:1px; }
+.board-cell__ghost{ font-size:11.5px; color:var(--muted); font-style:italic; line-height:1.5; }
+.board-cell__q{ font-size:12px; line-height:1.5; color:var(--ink); word-break:keep-all; }
+.board-cell__chips{ display:flex; gap:4px; flex-wrap:wrap; margin-top:auto; }
+.chip-mini{ font-size:9.5px; padding:2px 6px; border-radius:4px; font-weight:700; background:var(--accent-soft); color:var(--accent); }
+.chip-mini--seed{ background:#fff3e0; color:#b36b00; }
+.stamp{
+  position:absolute; top:6px; right:8px; width:44px; height:44px; border-radius:50%;
+  border:2px solid var(--stamp); color:var(--stamp); display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; transform:rotate(-14deg); background:rgba(255,255,255,.6);
+  letter-spacing:-.5px; text-align:center; line-height:1.1; pointer-events:none;
+}
+@media (max-width:900px){
+  .board{ grid-template-columns:80px repeat(4, minmax(170px,1fr)); }
+}
+
+/* ═════ 셀 편집 모달 ═════ */
+.modal{ position:fixed; inset:0; z-index:70; display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
+.modal.is-on{ display:flex; }
+.modal__scrim{ position:fixed; inset:0; background:rgba(15,18,32,.5); }
+.modal__panel{
+  position:relative; width:min(560px,100%); background:var(--panel); border-radius:16px;
+  box-shadow:var(--shadow-md); padding:20px; z-index:1;
+}
+.modal__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.modal__title{ font-size:14.5px; font-weight:800; margin:0; }
+.modal__close{ background:none; border:none; cursor:pointer; font-size:17px; color:var(--ink-soft); }
+.required-row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+.check-include{
+  display:flex; align-items:center; gap:7px; padding:10px 12px; border-radius:9px; cursor:pointer;
+  background:#f0fff7; border:1.5px solid #b7ebcd; font-size:12.5px; font-weight:800; color:#1f7a4a;
+}
+.check-include input{ accent-color:#2ea66c; width:16px; height:16px; }
+.cell-key-row{ margin-top:10px; padding:10px 12px; border-radius:9px; background:#fffaf0; border:1px solid #f0d9a0; font-size:12px; line-height:1.6; }
+.cell-key-row.is-flash{ animation:keyFlash 1.2s ease; }
+@keyframes keyFlash{ 0%,100%{ box-shadow:none; } 30%{ box-shadow:0 0 0 3px rgba(201,138,22,.35); } }
+details.adv{ margin-top:12px; border:1px solid var(--line); border-radius:10px; }
+details.adv > summary{ cursor:pointer; padding:9px 12px; font-size:12px; font-weight:700; color:var(--ink-soft); list-style:none; display:flex; align-items:center; gap:6px; }
+details.adv > summary::-webkit-details-marker{ display:none; }
+details.adv > summary::before{ content:'▸'; transition:.15s; }
+details.adv[open] > summary::before{ transform:rotate(90deg); }
+details.adv[open] > summary{ border-bottom:1px solid var(--line); }
+details.adv > .adv-body{ padding:12px; display:flex; flex-direction:column; gap:11px; }
+.radio-row{ display:flex; gap:12px; }
+.radio-row label{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft); cursor:pointer; }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip{ padding:5px 10px; border-radius:999px; border:1px solid var(--line); background:var(--panel); font-size:11.5px; color:var(--ink-soft); cursor:pointer; }
+.chip.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.img-drop{
+  border:1.5px dashed var(--line); border-radius:10px; padding:14px; text-align:center; cursor:pointer;
+  font-size:11.5px; color:var(--muted);
+}
+.img-drop:hover{ border-color:var(--accent); color:var(--accent); }
+.img-preview{ margin-top:8px; max-width:100%; max-height:160px; border:1px solid var(--line); border-radius:8px; display:block; }
+.btn-tech{
+  padding:9px 14px; border-radius:8px; border:1.5px solid var(--accent); background:var(--panel);
+  color:var(--accent); font-weight:700; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; gap:5px;
+}
+.btn-tech:hover{ filter:brightness(0.96); }
+.tech-filter{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.tech-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; }
+@media (max-width:640px){ .tech-list{ grid-template-columns:1fr; } }
+.tech-card{ border:1px solid var(--line); border-radius:10px; padding:11px; cursor:pointer; }
+.tech-card:hover{ border-color:var(--accent); background:#fbfcff; }
+.tech-card__head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.tech-card__ko{ font-size:12.5px; font-weight:700; margin:0; }
+.tech-card__seed{ font-size:11px; color:var(--ink-soft); background:var(--line-soft); padding:6px 8px; border-radius:6px; }
+.btn-mini{ padding:7px 12px; border-radius:7px; border:1px solid var(--line); background:var(--panel); cursor:pointer; font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+.btn-mini:hover{ border-color:var(--accent); color:var(--accent); }
+.btn-danger-mini{ padding:6px 10px; border-radius:7px; border:1px solid var(--rose); background:#fff5f8; color:var(--rose); cursor:pointer; font-size:11px; font-weight:700; }
+
+/* ═════ 기법 라이브러리 모달 ═════ */
+
+/* ═════ 완성 탭 ═════ */
+.select-summary{
+  padding:16px 18px; border-radius:14px; background:linear-gradient(120deg,#eefaf3,#eef1ff);
+  border:1px solid #cdeedb;
+}
+.select-summary__main{ font-size:14.5px; font-weight:800; color:var(--ink); }
+.select-summary__main b{ color:var(--ok); font-size:18px; }
+.select-summary__dist{ margin-top:8px; font-size:11.5px; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px; }
+.dist-chip{ padding:3px 9px; border-radius:999px; background:var(--panel); border:1px solid var(--line); font-weight:600; }
+/* V4 · 근거 행렬/설명 카드 공용 표 */
+.rubric-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+.rubric-table th,.rubric-table td{ padding:7px 9px; border-top:1px solid var(--line); vertical-align:top; }
+.rubric-table thead th{ background:var(--line-soft); color:var(--ink-soft); font-weight:700; font-size:11px; border-top:none; }
+
+.export-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.btn-primary-lg{
+  padding:12px 20px; border-radius:10px; border:none; background:var(--brand); color:#fff;
+  font-weight:800; cursor:pointer; font-size:13.5px; display:inline-flex; align-items:center; gap:8px;
+}
+.btn-primary-lg:hover{ background:var(--brand-hover); }
+.export-dd{ position:relative; }
+.export-dd__menu{
+  position:absolute; left:0; top:44px; width:200px; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; box-shadow:var(--shadow-md); padding:6px; display:none; z-index:20;
+}
+.export-dd__menu.is-open{ display:block; }
+.export-dd__menu button{
+  display:flex; width:100%; align-items:center; gap:8px; padding:9px 10px; border:none; background:none;
+  cursor:pointer; font-size:12.5px; color:var(--ink-soft); border-radius:8px; text-align:left;
+}
+.export-dd__menu button:hover{ background:var(--line-soft); color:var(--accent); }
+
+.ws-warn-badge{
+  display:inline-flex; align-items:center; gap:3px; font-size:9.5px; font-weight:800; color:#a06e0e;
+  background:#fef3c7; border:1px solid #f5c542; border-radius:5px; padding:1px 6px; margin-left:6px;
+  cursor:default;
+}
+
+/* ═════ 평가지 (목표 서식: 시험지형 흑백 인쇄용) ═════ */
+.ws-wrap{ background:#e8e9ee; border-radius:14px; padding:20px; margin-top:14px; }
+.ws-toolbar{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  max-width:760px; margin:0 auto 14px; padding:9px 12px;
+  background:var(--accent-soft); border:1px solid var(--accent); border-radius:10px;
+}
+.ws-toolbar .select{ width:auto; padding:6px 24px 6px 8px; font-size:12px; }
+.ws-toolbar input[type="color"]{ width:30px; height:28px; border:none; background:none; cursor:pointer; padding:0; }
+.ws-toolbar__spacer{ flex:1; }
+.ws-toolbar #wsDrawToggle.is-on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.ws-draw-canvas{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+.ws-draw-canvas.is-pen{ pointer-events:auto; cursor:crosshair; }
+.ws-page{
+  font-family:'Batang','바탕','Nanum Myeongjo',serif; color:#000; background:#fff;
+  line-height:1.7; max-width:760px; margin:0 auto 20px; padding:40px 24px 60px; font-size:15px;
+  position:relative;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+}
+.ws-h1{ text-align:center; font-size:22px; font-weight:700; letter-spacing:.35em; text-decoration:underline; text-underline-offset:6px; margin-bottom:18px; }
+.ws-name{ text-align:right; font-size:14px; margin-bottom:6px; }
+table.ws-head{ width:100%; border-collapse:collapse; font-size:14px; }
+.ws-head th,.ws-head td{ border:1.5px solid #000; padding:6px 10px; }
+.ws-head th{ width:74px; font-weight:700; text-align:center; background:#fff; }
+.ws-head td.date{ text-align:center; }
+.ws-sec-title{ border:1.5px solid #000; border-top:none; text-align:center; font-weight:700; padding:6px; font-size:15px; }
+.ws-body-box{ border:1.5px solid #000; border-top:none; padding:20px 22px 28px; }
+.ws-scenario{ margin-bottom:6px; }
+.ws-q{ margin-top:22px; position:relative; }
+.ws-q:first-child{ margin-top:0; }
+.ws-q-title{ font-weight:700; outline:none; }
+.ws-q-title[contenteditable]:hover{ background:#fffbe6; }
+.ws-starter{ margin-top:8px; font-size:14px; outline:none; }
+.ws-lines{ margin-top:12px; }
+.ws-lines i{ display:block; height:36px; border-bottom:1px solid #000; }
+.ws-drawbox{ margin-top:12px; min-height:150px; border:1px solid #000; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; }
+.ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
+table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+.ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
+.ws-rubric th{ text-align:center; font-weight:700; }
+.ws-rubric td.c{ text-align:center; width:90px; }
+.ws-pagenum{ text-align:center; margin-top:30px; font-size:13px; }
+.ws-teacher{ margin-top:0; }
+.ws-teacher h1{ letter-spacing:.15em; }
+.ws-tsec{ margin-top:18px; }
+.ws-tsec h3{ font-size:15px; font-weight:700; }
+.ws-tsec p{ margin-top:4px; font-size:14px; outline:none; }
+table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px; }
+.ws-map th,.ws-map td{ border:1px solid #000; padding:6px 9px; }
+.ws-map th{ text-align:center; font-weight:700; }
+.ws-map td[contenteditable]{ outline:none; }
+.ws-map td[contenteditable]:hover{ background:#fffbe6; }
+.ws-warn{ border:1px solid #000; padding:8px 12px; margin-top:8px; font-size:13.5px; }
+.ws-fb i{ display:block; height:32px; border-bottom:1px solid #000; }
+
+/* ═════ 우하단 AI 코치 팝업 (v2 계승) ═════ */
+.coach-fab{
+  position:fixed; right:20px; bottom:20px; z-index:76; width:56px; height:56px; border-radius:50%;
+  border:none; cursor:pointer; background:var(--coach); color:#fff; font-size:22px;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(26,95,128,.35);
+}
+.coach-fab:hover{ transform:scale(1.06); }
+.coach-fab__badge{ position:absolute; top:1px; right:1px; width:10px; height:10px; border-radius:50%; background:#e0433a; border:2px solid #fff; display:none; }
+.coach-fab__badge.is-on{ display:block; }
+.coach-panel{
+  position:fixed; right:20px; bottom:88px; z-index:77; width:min(390px, calc(100vw - 32px));
+  height:min(600px, calc(100vh - 130px)); background:var(--panel); border:1px solid var(--coach-line);
+  border-radius:16px; box-shadow:var(--shadow-md); display:none; flex-direction:column; overflow:hidden;
+}
+.coach-panel.is-open{ display:flex; }
+@media (max-width:640px){ .coach-panel{ right:8px; left:8px; bottom:78px; width:auto; height:min(74vh,560px); } }
+.coach-header{ background:var(--coach); color:#fff; padding:10px 12px; font-weight:800; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-shrink:0; }
+.coach-header__close{ background:rgba(255,255,255,.15); border:none; color:#fff; cursor:pointer; width:24px; height:24px; border-radius:50%; font-size:13px; flex-shrink:0; }
+.coach-keyrow{ display:flex; align-items:center; gap:6px; padding:8px 10px 0; flex-wrap:wrap; flex-shrink:0; }
+.coach-keyrow.hidden{ display:none; }
+.coach-keyrow input{ flex:1; min-width:130px; font-size:12px; padding:7px 9px; }
+.coach-keynote{ font-size:9.5px; color:var(--muted); line-height:1.4; width:100%; }
+.coach-keynote a{ color:var(--accent); }
+.coach-chat{ flex:1; overflow-y:auto; padding:10px 12px; background:#fafdff; display:flex; flex-direction:column; gap:9px; margin-top:8px; }
+.cmsg{ max-width:92%; padding:9px 11px; border-radius:10px; font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:keep-all; }
+.cmsg--ai{ background:var(--panel); border:1px solid var(--coach-line); align-self:flex-start; }
+.cmsg--user{ background:#2e86b8; color:#fff; align-self:flex-end; }
+.cmsg--error{ background:#fef3c7; color:#7a5a10; align-self:flex-start; }
+.cmsg--loading{ background:var(--line-soft); color:var(--muted); font-style:italic; align-self:flex-start; }
+.cmsg__apply{ display:inline-block; margin-top:7px; padding:4px 10px; border-radius:7px; border:1px solid var(--coach); background:var(--coach-soft); color:var(--coach); font-size:11px; font-weight:700; cursor:pointer; }
+.coach-quick{ display:flex; flex-wrap:wrap; gap:6px; padding:9px 10px; border-top:1px solid var(--coach-line); flex-shrink:0; }
+.coach-quick-btn{ font-size:11px; padding:5px 10px; border:1px solid var(--coach-line); background:#d6eeff; color:var(--coach); border-radius:12px; cursor:pointer; font-weight:700; }
+.coach-inputrow{ display:flex; gap:7px; padding:9px 10px; border-top:1px solid var(--coach-line); flex-shrink:0; }
+.coach-inputrow textarea{ flex:1; border:1px solid var(--coach-line); border-radius:8px; padding:7px 9px; font-family:inherit; font-size:12px; resize:none; min-height:34px; max-height:90px; }
+.coach-inputrow button{ background:#2e86b8; color:#fff; border:none; border-radius:8px; cursor:pointer; padding:0 14px; font-weight:800; font-size:14px; flex-shrink:0; }
+
+/* ═════ 푸터 ═════ */
+.footer{ text-align:center; padding:16px; font-size:11px; color:var(--muted); }
+.footer button{ background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px; text-decoration:underline; padding:0; }
+.info-pop{
+  position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center; padding:20px;
+}
+.info-pop.is-on{ display:flex; }
+.info-pop__scrim{ position:fixed; inset:0; background:rgba(15,18,32,.5); }
+.info-pop__panel{ position:relative; width:min(420px,100%); background:var(--panel); border-radius:14px; padding:20px; z-index:1; }
+.info-pop__panel h3{ margin:0 0 10px; font-size:14px; }
+.info-pop__panel ul{ margin:0; padding-left:18px; font-size:12.5px; color:var(--ink-soft); line-height:1.9; }
+
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
+  padding:10px 18px; border-radius:8px; font-size:13px; z-index:90; box-shadow:var(--shadow-md);
+  opacity:0; transition:opacity .2s; pointer-events:none; max-width:90vw; text-align:center;
+}
+.toast.is-on{ opacity:1; }
+
+.save-ind{ font-size:10.5px; color:var(--ok); font-weight:600; white-space:nowrap; flex-shrink:0; margin-right:4px; }
+
+@media print{
+  body *{ visibility:hidden; }
+  #printArea, #printArea *{ visibility:visible; }
+  #printArea{ position:absolute; left:0; top:0; width:100%; }
+  .ws-wrap{ background:#fff; padding:0; }
+  .ws-page{ box-shadow:none; margin:0 auto; }
+  .ws-warn-badge{ display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="gnb">
+  <button class="gnb__title" id="btnHome" title="처음으로 돌아가기">✏️ KCBC 평가문항 작성기 <span style="font-size:9px;vertical-align:super;">v4</span></button>
+  <nav class="tabbar" role="tablist">
+    <button class="tab-btn is-on" data-tab="setup" role="tab">📘 <span class="tab-label">단원 정보</span></button>
+    <button class="tab-btn" data-tab="board" role="tab">🧩 <span class="tab-label">매트릭스</span></button>
+    <button class="tab-btn" data-tab="done" role="tab">🧾 <span class="tab-label">완성</span> <span class="tab-badge is-zero" id="doneBadge">0</span></button>
+  </nav>
+  <div class="gnb__spacer"></div>
+  <span class="save-ind" id="saveInd">● 자동 저장됨</span>
+  <div class="more-menu">
+    <button class="more-btn" id="moreBtn" aria-label="더보기 메뉴" aria-expanded="false">⋯</button>
+    <div class="more-pop" id="morePop" role="menu">
+      <a href="./question-focus-worksheet.html" target="_blank">📝 질문 초점 워크시트</a>
+      <a href="./grasps-worksheet.html" target="_blank">📋 GRASPS 6요소</a>
+      <a href="./essay-assessment-dashboard-v3.html" target="_blank">📊 서·논술형 대시보드</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ═════ 탭 1: 단원 정보 ═════ -->
+  <section class="panel is-on" id="panel-setup">
+    <div class="card">
+      <h2 class="card__title">📘 단원 정보
+        <button class="btn-mini" id="btnPlanPdf" style="margin-left:auto;" title="평가계획 PDF에서 단원명·성취기준을 가져옵니다">📎 평가계획 불러오기</button>
+        <input type="file" id="planPdfInput" accept="application/pdf" class="hidden" />
+      </h2>
+      <div class="row">
+        <div class="field"><label class="field__label">학년</label>
+          <select class="select" id="grade"><option>1학년</option><option>2학년</option><option>3학년</option><option selected>4학년</option><option>5학년</option><option>6학년</option></select>
+        </div>
+        <div class="field"><label class="field__label">과목</label>
+          <select class="select" id="subject"><option>국어</option><option selected>사회</option><option>도덕</option><option>수학</option><option>과학</option><option>체육</option><option>음악</option><option>미술</option><option>영어</option><option>실과</option><option>통합</option></select>
+        </div>
+      </div>
+      <div class="field"><label class="field__label" for="title">단원명</label>
+        <input class="input" id="title" placeholder="예: 우리 고장의 어제와 오늘" autocomplete="off" />
+      </div>
+      <div class="field"><label class="field__label" for="unitQuestion">핵심 질문 (단원 질문)</label>
+        <textarea class="textarea" id="unitQuestion" placeholder="예: 우리 고장의 변화는 우리 삶에 어떤 영향을 미쳤을까?" style="min-height:44px"></textarea>
+      </div>
+      <div class="field"><label class="field__label" for="scenario">🎬 과제 상황 <span class="concept-badge" id="conceptBadge">개념어: —</span></label>
+        <textarea class="textarea" id="scenario" placeholder="예: 너는 우리 학교 기상 관측 도우미입니다. 계절마다 그림자 길이가 달라지는 까닭을 궁금해하는 1학년 동생에게 설명하는 자료를 만들어 봅시다." style="min-height:56px"></textarea>
+        <p class="field__hint">개념어는 핵심 질문에서 추출하며, 과제 상황을 이 개념과 연결해 쓰면 문항의 맥락이 살아납니다. (선택 입력 형태로 평가지 첫문장 반영)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card__title">🎯 성취기준 <span id="achDbInfo" style="font-size:10.5px;color:var(--muted);font-weight:500;"></span> <span class="card__hint">선택 <b id="achCount" style="color:var(--accent)">0</b>개</span></h2>
+      <input class="input" id="achSearch" autocomplete="off" placeholder="🔍 코드·내용·영역으로 검색 (예: 그림자, 4과, 문학)" style="margin-bottom:8px;" />
+      <div class="ach-list" id="achList" style="max-height:300px;"></div>
+      <div class="phase-hint" id="phaseHint"></div>
+      <div class="phase-hint" id="unitHint"></div>
+      <div class="field" style="margin-top:12px;">
+        <label class="field__label">✏️ 직접 입력 <span style="font-weight:500;color:var(--muted)">— 어떤 교과·학년의 성취기준이든 여기에 붙여넣으면 됩니다</span></label>
+        <textarea class="textarea" id="standardCustom" autocomplete="off" placeholder="예) [4과09-02] 하루 동안 태양의 위치 변화를 관찰하여 그림자의 길이와 방향이 달라짐을 설명할 수 있다."></textarea>
+        <div class="verb-flag" id="verbFlag"></div>
+        <button class="btn-tech" id="btnFindStandard" style="margin-top:8px;border-color:var(--coach);color:var(--coach)">🤖 AI로 성취기준 찾기</button>
+        <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 찾아 드려요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 탭 2: 매트릭스 (질문 보드) ═════ -->
+  <section class="panel" id="panel-board">
+    <div class="board-context" id="boardContext"></div>
+    <div class="board-topbar">
+      <p class="board-hint">빈 칸을 눌러 학생용 질문을 적어보세요 · 다 채우지 않아도 됩니다.</p>
+      <button class="btn-mini" id="btnRadars">📊 지표 보기</button>
+    </div>
+    <div class="board-scroll">
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <!-- ═════ 탭 3: 완성 ═════ -->
+  <section class="panel" id="panel-done">
+    <div class="select-summary" id="selectSummary"></div>
+
+    <!-- V4 Phase 1 · 교육과정 근거 행렬 -->
+    <div class="card" id="evidenceMatrixCard">
+      <h2 class="card__title">🧭 교육과정 근거 행렬 <span class="card__hint">행=성취기준 · 열=선별 문항 · 연결은 셀 편집에서 선생님이 지정</span></h2>
+      <div id="evidenceMatrixBody" style="overflow-x:auto;"></div>
+    </div>
+
+    <!-- V4 Phase 3 · 문항별 개발 근거 (설명 가능성) -->
+    <div class="card" id="explainCard">
+      <h2 class="card__title">🔍 문항별 개발 근거 <span class="card__hint">"왜 이 문항인가"에 대한 답 — 생성·검증·승인 전 과정 기록</span></h2>
+      <div id="explainBody"></div>
+    </div>
+
+    <div class="export-toolbar">
+      <button class="btn-primary-lg" id="btnShowWs">📄 평가지 보기</button>
+      <div class="export-dd">
+        <button class="btn-mini" id="exportDdBtn">⬇ 내보내기 ▾</button>
+        <div class="export-dd__menu" id="exportDdMenu">
+          <button id="btnPrint">🖨 인쇄 / PDF</button>
+          <button id="btnExportMd">📄 마크다운(.md)</button>
+          <button id="btnCopy">📋 클립보드 복사</button>
+          <button id="btnExportAudit" title="제3자가 문항의 전체 생성·검증 과정을 재구성할 수 있는 기록">🧾 감사 패키지(JSON)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ws-wrap hidden" id="wsWrap">
+      <div class="ws-toolbar" id="wsToolbar" role="toolbar" aria-label="평가지 편집 도구">
+        <button class="btn-mini" id="wsAddImage" title="평가지에 이미지 삽입">🖼 이미지 추가</button>
+        <input type="file" id="wsImgInput" accept="image/*" class="hidden" />
+        <button class="btn-mini" id="wsDrawToggle" aria-pressed="false" title="자유롭게 손으로 그리기">✏️ 펜</button>
+        <input type="color" id="wsPenColor" value="#d6336c" title="펜 색상" />
+        <select class="select" id="wsPenSize" title="펜 굵기">
+          <option value="2">가는 펜</option><option value="4" selected>보통 펜</option><option value="8">굵은 펜</option>
+        </select>
+        <button class="btn-mini" id="wsDrawClear" title="그린 것 지우기">🧹 그림 지우기</button>
+        <span class="ws-toolbar__spacer"></span>
+        <button class="btn-mini" id="wsCopyBtn" title="문항+루브릭 복사">📋 복사</button>
+        <button class="btn-mini" id="wsPrintBtn" title="인쇄 / PDF 저장">🖨 인쇄</button>
+      </div>
+      <div id="printArea"><div id="wsBody"></div></div>
+    </div>
+  </section>
+
+</div><!-- /wrap -->
+
+<footer class="footer">
+  <span>© KCBC Builder Studio v4 · 「질문하는 학교」 이화여자대학교 산학협력단</span>
+  · <button id="btnInfo">ⓘ 이론적 배경</button>
+</footer>
+
+<!-- ═════ 셀 편집 모달 ═════ -->
+<div class="modal" id="cellModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h3 class="modal__title" id="cellModalTitle">셀 편집</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+
+    <div class="field">
+      <label class="field__label">학생용 질문 <span class="req">*</span></label>
+      <textarea class="textarea" id="cellQuestion" style="min-height:72px" placeholder="예: 놀이터 시설이 고장 나 위험합니다. 어느 기관에 도움을 요청해야 할지 쓰고, 그 이유를 설명해 보세요."></textarea>
+    </div>
+    <button class="btn-tech" id="btnOpenTech">💡 예시 문구 가져오기</button>
+    <button class="btn-tech" id="btnCellCoach" style="border-color:var(--coach);color:var(--coach)">💬 코치 피드백</button>
+    <button class="btn-tech" id="btnGradeFit" style="border-color:#c98a16;color:#a06e0e" title="학년 수준 문항 작성 가이드 5원칙 적용">🎯 학년 눈높이로</button>
+    <button class="btn-tech" id="btnValidate" style="border-color:#7048e8;color:#7048e8" title="V① 형식 검증(무료) → V② 최종 게이트(Opus). 반려 시 수정안 자동 제안(최대 2회)">🔬 검증</button>
+    <div class="cell-key-row hidden" id="cellKeyRow">
+      🔑 <b>🎯 학년 눈높이 · 💬 코치 · 🔬 V② 검증</b>은 AI 기능이라 Anthropic API 키가 한 번 필요해요.
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="password" class="input" id="cellKey" placeholder="sk-ant-..." autocomplete="off" style="flex:1;font-size:12px;">
+        <button class="btn-mini" id="cellKeySave">저장</button>
+      </div>
+      <span style="font-size:10px;color:var(--muted);">🔒 이 브라우저에만 저장 · 서버 전송 없음 · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent);">키 발급 ↗</a> · 키 없이도 문항 작성·근거 연결·평가지는 모두 됩니다</span>
+    </div>
+    <div id="validationResult" class="hidden" style="margin-top:10px;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--line-soft);font-size:12px;line-height:1.6;"></div>
+
+    <div class="field" id="evidenceField" style="margin:12px 0 0;">
+      <label class="field__label">📎 근거 성취기준 <span style="font-weight:500;color:var(--muted)">— 이 문항이 어떤 성취기준을 평가하는지 선생님이 지정합니다</span></label>
+      <div class="chips" id="evidenceChips"></div>
+      <p class="field__hint hidden" id="evidenceEmptyHint">①에서 성취기준을 먼저 선택(또는 직접 입력)하면 여기서 연결할 수 있어요.</p>
+    </div>
+
+    <label class="check-include" style="margin-top:12px;">
+      <input type="checkbox" id="cellInclude"> ☑ 이 질문을 평가문항으로 뽑기
+    </label>
+
+    <details class="adv">
+      <summary>더 다듬기 (채점 힌트 · 답안 형식 · KCBC 5요소 · 자료 이미지)</summary>
+      <div class="adv-body">
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">도달 판단 기준 (선택 — 비워두면 SOLO 기본 문구 사용)</label>
+          <input class="input" id="cellScore" placeholder="예: 고도와 그림자의 관계를 근거를 들어 설명한다" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">문장 시작 어구 (선택)</label>
+          <input class="input" id="cellStarter" placeholder="예: 그림자의 길이는 (　　　　). 왜냐하면" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">학생 답안 형식</label>
+          <div class="radio-row">
+            <label><input type="radio" name="answerType" value="write" checked> ✍ 서술형</label>
+            <label><input type="radio" name="answerType" value="draw"> 🖼 그림형</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">KCBC 5요소 태그</label>
+          <div class="chips" id="krChips">
+            <button class="chip" data-kr="type">유형</button>
+            <button class="chip" data-kr="method">방법</button>
+            <button class="chip" data-kr="content">내용</button>
+            <button class="chip" data-kr="use">활용</button>
+            <button class="chip" data-kr="meta">메타</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">디지털 소양 5요소 (선택 — 지표의 "균형" 계산에 쓰입니다)</label>
+          <select class="select" id="cellCompetency">
+            <option value="">미지정</option>
+            <option value="ethics">반성·성찰</option>
+            <option value="access">접근·선택</option>
+            <option value="analyze">이해·분석·평가</option>
+            <option value="participate">공유·참여</option>
+            <option value="create">의사소통·생산</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="field__label">자료 이미지 첨부 (선택)</label>
+          <div class="img-drop" id="imgDrop">📎 클릭해서 이미지 선택 (500KB 권장)</div>
+          <input type="file" id="imgInput" accept="image/*" class="hidden" />
+          <img class="img-preview hidden" id="imgPreview" />
+          <input class="input hidden" id="imgAlt" placeholder="대체 텍스트 (이미지 설명) — 필수" style="margin-top:6px" />
+          <button class="btn-danger-mini hidden" id="imgRemove" style="margin-top:6px">이미지 제거</button>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═════ 기법 라이브러리 모달 ═════ -->
+<div class="modal" id="techModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h3 class="modal__title">💡 예시 문구 가져오기</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <div class="tech-filter" id="techFilter"></div>
+    <div class="tech-list" id="techList"></div>
+  </div>
+</div>
+
+<!-- ═════ 지표 팝업 (완성도 · 디지털 소양 균형 · 열린 질문 비율) ═════ -->
+<div class="modal" id="radarsModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" style="max-width:820px">
+    <div class="modal__head">
+      <h3 class="modal__title">📊 문항 지표</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <p class="field__hint" style="margin:-6px 0 10px;">참고용 지표입니다 · 채운 셀 전체 기준(선별 여부와 무관) · 판단은 선생님의 몫입니다.</p>
+    <div class="radars">
+      <div class="radar-card">
+        <h3>완성도</h3><p>국면·도달기준·선별</p>
+        <svg viewBox="-120 -120 240 240" id="rad-completion" aria-label="완성도 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreCompletion">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>디지털 소양 균형</h3><p>5요소 · 반성/접근/분석/공유/생산</p>
+        <svg viewBox="-120 -120 240 240" id="rad-mail" aria-label="디지털 소양 5요소 균형 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreMail">0</span><span class="radar-card__unit">/100</span></div>
+      </div>
+      <div class="radar-card">
+        <h3>열린 질문 비율</h3><p>왜/어떻게/만약/비교/평가/영향</p>
+        <svg viewBox="-120 -120 240 240" id="rad-open" aria-label="열린 질문 비율 육각 레이더"></svg>
+        <div><span class="radar-card__score" id="scoreOpen">0</span><span class="radar-card__unit">%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════ 평가계획 PDF 검토 팝업 ═════ -->
+<div class="modal" id="planModal" role="dialog" aria-modal="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" style="max-width:600px">
+    <div class="modal__head">
+      <h3 class="modal__title">📎 평가계획에서 가져오기</h3>
+      <button class="modal__close" data-close>✕</button>
+    </div>
+    <p class="field__hint" style="margin:-4px 0 12px;">PDF에서 찾은 내용입니다 · 체크·수정 후 적용하면 반영됩니다 (자동으로 확정되지 않아요).</p>
+    <div id="planLoading" class="hidden" style="text-align:center; padding:24px; font-size:12.5px; color:var(--muted);">📄 PDF 분석 중…</div>
+    <div id="planResult" class="hidden">
+      <div class="field">
+        <label class="field__label">학년·과목 (감지됨)</label>
+        <div class="row">
+          <select class="select" id="planGrade"><option>1학년</option><option>2학년</option><option>3학년</option><option>4학년</option><option>5학년</option><option>6학년</option></select>
+          <select class="select" id="planSubject"><option>국어</option><option>사회</option><option>도덕</option><option>수학</option><option>과학</option><option>체육</option><option>음악</option><option>미술</option><option>영어</option><option>실과</option><option>통합</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label">단원명 후보 <span style="font-weight:500;color:var(--muted)">(선택 또는 직접 수정)</span></label>
+        <select class="select" id="planUnitSelect"></select>
+        <input class="input" id="planUnitText" style="margin-top:6px;" />
+      </div>
+      <div class="field">
+        <label class="field__label">
+          <input type="checkbox" id="planUnitQUse" checked style="margin-right:4px;">
+          💭 핵심 질문(단원 질문) 초안 넣기 <span style="font-weight:500;color:var(--muted)">— 성취기준·단원명 기반, 다듬어 쓰세요</span>
+        </label>
+        <textarea class="textarea" id="planUnitQText" style="min-height:44px"></textarea>
+      </div>
+      <div class="field">
+        <label class="field__label">
+          <input type="checkbox" id="planScenarioUse" checked style="margin-right:4px;">
+          🎬 과제 상황 초안 넣기 <span style="font-weight:500;color:var(--muted)">— GRASPS 빈칸 틀, 교사가 채우세요</span>
+        </label>
+        <textarea class="textarea" id="planScenarioText" style="min-height:44px"></textarea>
+      </div>
+      <div class="field">
+        <label class="field__label">성취기준 — 목록에서 찾은 항목 <span class="card__hint">체크된 것만 자동 선택됩니다</span></label>
+        <div class="ach-list" id="planMatchedList"></div>
+      </div>
+      <div class="field" id="planUnmatchedWrap">
+        <label class="field__label">목록에 없는 성취기준 코드
+          <button class="btn-mini" id="btnPlanFindUnmatched" style="margin-left:auto;">🤖 AI로 설명 찾기</button>
+        </label>
+        <div class="ach-list" id="planUnmatchedList"></div>
+      </div>
+      <button class="btn-primary-lg" id="btnPlanApply" style="width:100%; justify-content:center;">이 내용으로 적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════ 이론적 배경 팝업 ═════ -->
+<div class="info-pop" id="infoPop">
+  <div class="info-pop__scrim" data-close></div>
+  <div class="info-pop__panel" style="max-height:80vh;overflow-y:auto;width:min(520px,100%);">
+    <h3>ⓘ 이론적 배경 · 이 도구의 검증 방법</h3>
+    <ul>
+      <li>「질문하는 학교」 — 이화여자대학교 산학협력단 (질문 사이클 4국면)</li>
+      <li>디지털 소양 5요소 — 2022 개정 교육과정 총론</li>
+      <li>KCBC 5요소 — 정혜승 (2022·2024)</li>
+      <li>SOLO 분류법 (Biggs&nbsp;&amp;&nbsp;Collis) · UbD GRASPS</li>
+    </ul>
+    <h3 style="margin-top:14px;">🎯 성취기준 데이터</h3>
+    <ul>
+      <li>2022 개정 교육과정 고시 성취기준 <b>620개</b> 내장 (정리: 부산실천교사 전사 자료 기반)</li>
+      <li>통합교과 「건강한 생활」 9개는 <b>요약 문구</b>(고시 원문 아님) — 목록에 "요약" 배지 표시</li>
+      <li>고시문은 저작권법 제7조상 보호 제외로 널리 해석되나, 중요한 결정에는 <a href="https://ncic.re.kr" target="_blank" rel="noopener">NCIC 원문</a>과 대조하세요</li>
+    </ul>
+    <h3 style="margin-top:14px;">🔬 AI 검증의 원칙과 한계</h3>
+    <ul>
+      <li>검증은 V①(규칙 검사, 무료) → V②(AI 심사, Opus) 2단계 — V② 반려 시 수정안을 자동 제안하지만 <b>절대 자동 반영하지 않습니다</b></li>
+      <li>AI 판정은 실행마다 다를 수 있는 <b>참고 의견</b>입니다 — 문항의 공식 확정 근거는 <b>교사 최종 승인 기록</b>뿐입니다</li>
+      <li>모든 편집·검증·승인은 이력으로 기록되며 "감사 패키지(JSON)"로 내보내 제3자가 재구성할 수 있습니다</li>
+      <li>AI 기능은 각자 발급한 Anthropic API 키(유료)가 필요하며, 키와 대화 내용은 이 브라우저에만 머뭅니다(별도 서버 없음)</li>
+      <li>⚠ 코치·검증 입력에 학생 실명 등 개인정보를 적지 마세요 — 입력 내용은 Anthropic API로 전송됩니다</li>
+    </ul>
+    <button class="btn-mini" data-close style="margin-top:12px">닫기</button>
+  </div>
+</div>
+
+<!-- ═════ AI 코치 팝업 ═════ -->
+<button class="coach-fab" id="coachFab" aria-label="AI 코치 열기">💬<span class="coach-fab__badge" id="coachFabBadge"></span></button>
+<aside class="coach-panel" id="coachPanel">
+  <div class="coach-header">
+    <span>💬 AI 코치</span>
+    <button class="coach-header__close" id="coachClose">✕</button>
+  </div>
+  <div class="coach-keyrow" id="coachKeyRow">
+    <input type="password" class="input" id="coachKey" placeholder="Anthropic API 키 (sk-ant-...)" autocomplete="off">
+    <button class="btn-mini" id="coachKeySave">저장</button>
+    <span class="coach-keynote">🔒 브라우저 세션에만 저장 · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">키 발급 ↗</a></span>
+  </div>
+  <div class="coach-chat" id="coachChat">
+    <div class="cmsg cmsg--ai">안녕하세요! 문항 초안에 대해 <b>성취기준 정렬</b>, <b>도달기준 제안</b>, <b>예시 답안 초안</b>을 도와드려요. 매트릭스 셀을 열고 질문을 쓴 뒤 "💬 코치 피드백"을 눌러보세요.</div>
+  </div>
+  <div class="coach-quick" id="coachQuick">
+    <button class="coach-quick-btn" data-ask="align">📐 성취기준 정렬</button>
+    <button class="coach-quick-btn" data-ask="criterion">📋 도달기준 제안</button>
+    <button class="coach-quick-btn" data-ask="sample">✨ 예시 답안 초안</button>
+    <button class="coach-quick-btn" data-ask="grade-fit">🎯 학년 눈높이로</button>
+  </div>
+  <div class="coach-inputrow">
+    <textarea id="coachInput" rows="1" placeholder="자유롭게 질문하세요… (Enter 전송)"></textarea>
+    <button id="coachSend">↑</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═════════ 성취기준 DB v2.1 (620개, 정본: 평가자료/kcbc-standards-db-v2.1.js) ═════════ */
+/* KCBC 성취기준 DB v2 (공식판) — 2022 개정 교육과정 고시 성취기준 원문 기반
+   원천: 교육부 고시 (2022 개정 교육과정) · 정리본: 부산실천교사 「성취기준·해설·성취수준」 전사 자료
+   실측: 초등 전 교과·전 학년군 성취기준 620개 (2026-07-22, 고유 코드 기준·중복 0)
+   v2.1 패치: 통합교과 「건강한 생활」(2건) 9개 추가 — desc는 learning-map 요약(approx:true, 고시 원문 아님). NCIC 별책15 원문 대조 후 approx 해제 요망
+   비고: 고시문은 저작권법 제7조상 보호 대상에서 제외되는 범주로 널리 해석되나, 이용자는 NCIC(https://ncic.re.kr) 원문과 대조 권장 */
+const ACHIEVEMENTS_FULL = {"g12":{"국어":[{"code":"2국01-01","desc":"중요한 내용이나 일이 일어난 순서를 고려하며 듣고 말한다.","domain":"듣기⋅말하기"},{"code":"2국01-02","desc":"바르고 고운 말로 서로의 감정을 나누며 듣고 말한다.","domain":"듣기⋅말하기"},{"code":"2국01-03","desc":"상대의 말을 집중하여 듣고 말차례를 지키며 대화한다.","domain":"듣기⋅말하기"},{"code":"2국01-04","desc":"자신의 경험이나 생각을 바른 자세로 발표한다.","domain":"듣기⋅말하기"},{"code":"2국01-05","desc":"듣기와 말하기에 관심과 흥미를 가진다.","domain":"듣기⋅말하기"},{"code":"2국02-01","desc":"글자, 단어, 문장, 짧은 글을 정확하게 소리 내어 읽는다.","domain":"읽기"},{"code":"2국02-02","desc":"의미가 잘 드러나도록 문장과 짧은 글을 알맞게 띄어 읽는다.","domain":"읽기"},{"code":"2국02-03","desc":"글을 읽고 중심 내용을 확인한다.","domain":"읽기"},{"code":"2국02-04","desc":"인물의 마음이나 생각을 짐작하고 이를 자신과 비교하며 글을 읽는다.","domain":"읽기"},{"code":"2국02-05","desc":"읽기에 흥미를 가지고 즐겨 읽는 태도를 지닌다.","domain":"읽기"},{"code":"2국03-01","desc":"글자와 단어를 바르게 쓴다.","domain":"쓰기"},{"code":"2국03-02","desc":"쓰기에 흥미를 가지며 자신의 생각이나 느낌을 문장으로 표현한다.","domain":"쓰기"},{"code":"2국03-03","desc":"주변 소재에 대해 소개하는 글을 쓴다.","domain":"쓰기"},{"code":"2국03-04","desc":"겪은 일을 표현하는 글을 자유롭게 쓰고, 쓴 글을 함께 읽고 생각이나 느낌을 나눈다.","domain":"쓰기"},{"code":"2국04-01","desc":"한글 자모의 이름과 소릿값을 알고 정확하게 발음하고 쓴다.","domain":"문법"},{"code":"2국04-02","desc":"소리와 표기가 다를 수 있음을 알고 단어를 바르게 읽고 쓴다.","domain":"문법"},{"code":"2국04-03","desc":"문장과 문장 부호를 알맞게 쓰고 한글에 호기심을 가진다.","domain":"문법"},{"code":"2국05-01","desc":"말놀이, 낭송 등을 통해 말의 재미와 즐거움을 느낀다.","domain":"문학"},{"code":"2국05-02","desc":"작품을 듣거나 읽으면서 느끼거나 생각한 점을 말한다.","domain":"문학"},{"code":"2국05-03","desc":"작품 속 인물의 모습, 행동, 마음을 상상하여 시, 노래, 이야기, 그림 등으로 표현한다.","domain":"문학"},{"code":"2국05-04","desc":"시나 노래, 이야기에 흥미를 가진다.","domain":"문학"},{"code":"2국06-01","desc":"일상의 다양한 매체와 매체 자료에 흥미와 관심을 가진다.","domain":"매체"},{"code":"2국06-02","desc":"일상의 경험과 생각을 글과 그림으로 표현한다.","domain":"매체"}],"수학":[{"code":"2수01-01","desc":"수의 필요성을 인식하면서 0과 100까지의 수 개념을 이해하고, 수를 세고 읽고 쓸 수 있다.","domain":"수와연산"},{"code":"2수01-02","desc":"일, 십, 백, 천의 자릿값과 위치적 기수법을 이해하고, 네 자리 이하의 수를 읽고 쓸 수 있다.","domain":"수와연산"},{"code":"2수01-03","desc":"네 자리 이하의 수의 범위에서 수의 계열을 이해하고, 수의 크기를 비교할 수 있다.","domain":"수와연산"},{"code":"2수01-04","desc":"하나의 수를 두 수로 분해하고 두 수를 하나의 수로 합성하는 활동을 통하여 수 감각을 기른다.","domain":"수와연산"},{"code":"2수01-05","desc":"덧셈과 뺄셈이 이루어지는 실생활 상황과 연결하여 덧셈과 뺄셈의 의미를 이해한다.","domain":"수와연산"},{"code":"2수01-06","desc":"두 자리 수의 범위에서 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와연산"},{"code":"2수01-07","desc":"덧셈과 뺄셈의 관계를 이해한다.","domain":"수와연산"},{"code":"2수01-08","desc":"두 자리 수의 범위에서 세 수의 덧셈과 뺄셈을 할 수 있다.","domain":"수와연산"},{"code":"2수01-09","desc":"□가 사용된 덧셈식과 뺄셈식을 만들고, □의 값을 구할 수 있다.","domain":"수와연산"},{"code":"2수01-10","desc":"곱셈이 이루어지는 실생활 상황과 연결하여 곱셈의 의미를 이해한다.","domain":"수와연산"},{"code":"2수01-11","desc":"곱셈구구를 이해하고, 한 자리 수의 곱셈을 할 수 있다.","domain":"수와연산"},{"code":"2수02-01","desc":"물체, 무늬, 수 등의 배열에서 규칙을 찾아 여러 가지 방법으로 표현할 수 있다.","domain":"변화와 관계"},{"code":"2수02-02","desc":"자신이 정한 규칙에 따라 물체, 무늬, 수 등을 배열할 수 있다.","domain":"변화와 관계"},{"code":"2수03-01","desc":"교실 및 생활 주변에서 여러 가지 물건을 관찰하여 직육면체, 원기둥, 구의 모양을 찾고, 이를 이용하여 여러 가지 모양을 만들 수 있다.","domain":"도형과 측정"},{"code":"2수03-02","desc":"쌓기나무를 이용하여 여러 가지 입체도형의 모양을 만들고, 그 모양에 대해 위치나 방향을 이용하여 말할 수 있다.","domain":"도형과 측정"},{"code":"2수03-03","desc":"교실 및 생활 주변에서 여러 가지 물건을 관찰하여 삼각형, 사각형, 원의 모양을 찾고, 이를 이용하여 여러 가지 모양을 만들 수 있다.","domain":"도형과 측정"},{"code":"2수03-04","desc":"삼각형, 사각형, 원을 직관적으로 이해하고, 그 모양을 그릴 수 있다.","domain":"도형과 측정"},{"code":"2수03-05","desc":"삼각형, 사각형에서 각각의 공통점을 찾아 말할 수 있다.","domain":"도형과 측정"},{"code":"2수03-06","desc":"구체물의 길이, 들이, 무게, 넓이를 비교하여 각각 ‘길다, 짧다’, ‘많다, 적다’, ‘무겁다, 가볍다’, ‘넓다, 좁다’ 등을 구별하여 말할 수 있다.","domain":"도형과 측정"},{"code":"2수03-07","desc":"시계를 보고 시각을 ‘몇 시 몇 분’까지 읽을 수 있다.","domain":"도형과 측정"},{"code":"2수03-08","desc":"1시간과 1분의 관계를 이해하고, 시간을 ‘시간’, ‘분’으로 표현할 수 있다.","domain":"도형과 측정"},{"code":"2수03-09","desc":"실생활 문제 상황과 연결하여 1분, 1시간, 1일, 1주일, 1개월, 1년 사이의 관계를 이해한다.","domain":"도형과 측정"},{"code":"2수03-10","desc":"길이 단위 1cm와 1m를 알고, 이를 이용하여 주변 사물의 길이를 측정할 수 있다.","domain":"도형과 측정"},{"code":"2수03-11","desc":"1m와 1cm의 관계를 이해하고, 길이를 ‘몇 m 몇 cm’와 ‘몇 cm’로 표현할 수 있다.","domain":"도형과 측정"},{"code":"2수03-12","desc":"여러 가지 물건의 길이를 어림하고, 길이에 대한 양감을 기른다.","domain":"도형과 측정"},{"code":"2수03-13","desc":"실생활 문제 상황과 연결하여 길이의 덧셈과 뺄셈을 할 수 있다.","domain":"도형과 측정"},{"code":"2수04-01","desc":"여러 가지 사물을 정해진 기준 또는 자신이 정한 기준으로 분류하여 개수를 세어 보고, 기준에 따른 결과를 말할 수 있다.","domain":"자료와 가능성"},{"code":"2수04-02","desc":"자료를 분류하여 표로 나타내고, 자료를 표로 나타내면 편리한 점을 말할 수 있다.","domain":"자료와 가능성"},{"code":"2수04-03","desc":"자료를 분류하여 ○, ×, / 등을 이용한 그래프로 나타내고, 자료를 그래프로 나타내면 편리한 점을 말할 수 있다.","domain":"자료와 가능성"}],"통합":[{"code":"2바01-01","desc":"학교 생활 습관과 학습 습관을 형성하여 안전하고 건강하게 생활한다.","domain":"우리는 누구로 살아갈까"},{"code":"2바01-02","desc":"나를 이해하고 존중하며 생활한다.","domain":"우리는 누구로 살아갈까"},{"code":"2바01-03","desc":"가족이나 주변 사람을 배려하며 관계를 맺는다.","domain":"우리는 누구로 살아갈까"},{"code":"2바01-04","desc":"생태환경에서 더불어 살기 위해 노력한다.","domain":"우리는 누구로 살아갈까"},{"code":"2바02-01","desc":"공동체에서 내가 할 수 있는 일을 찾아보고 실천한다.","domain":"우리는 어디서 살아갈까"},{"code":"2바02-02","desc":"우리나라의 소중함을 알고 사랑하는 마음을 기른다.","domain":"우리는 어디서 살아갈까"},{"code":"2바02-03","desc":"차이나 다양성을 서로 존중하면서 생활한다.","domain":"우리는 어디서 살아갈까"},{"code":"2바02-04","desc":"새로운 활동에 호기심을 갖고 도전한다.","domain":"우리는 어디서 살아갈까"},{"code":"2바03-01","desc":"하루의 가치를 느끼며 지금을 소중히 여긴다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2바03-02","desc":"계절의 변화에 대응하며 생활한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2바03-03","desc":"여러 인물의 삶을 통해 공동체성을 기른다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2바03-04","desc":"공동체 속에서 지속가능성을 위한 삶의 방식을 찾아 실천한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2바04-01","desc":"모두를 위한 생활환경을 만드는 데 참여한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2바04-02","desc":"다양한 생각이나 의견에 대해 개방적인 태도를 형성한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2바04-03","desc":"여럿이 하는 활동에 관심을 갖고 자발적으로 협력한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2바04-04","desc":"지금까지의 생활 습관과 학습 습관을 되돌아본다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2슬01-01","desc":"학교 안팎의 모습과 생활을 탐색하며 안전한 학교 생활을 한다.","domain":"우리는 누구로 살아갈까"},{"code":"2슬01-02","desc":"나를 탐색하여 나에 대해 설명한다.","domain":"우리는 누구로 살아갈까"},{"code":"2슬01-03","desc":"가족이나 주변 사람에게 관심을 갖고 함께 살아가는 모습을 탐구한다.","domain":"우리는 누구로 살아갈까"},{"code":"2슬01-04","desc":"사람과 자연, 동식물이 어우러져 사는 생태를 탐구한다.","domain":"우리는 누구로 살아갈까"},{"code":"2슬02-01","desc":"우리가 살고 있는 마을과 사람들이 생활하는 모습을 살펴본다.","domain":"우리는 어디서 살아갈까"},{"code":"2슬02-02","desc":"우리나라의 모습이나 문화를 조사한다.","domain":"우리는 어디서 살아갈까"},{"code":"2슬02-03","desc":"알고 싶은 나라를 탐구하며 다른 나라에 관심을 갖는다.","domain":"우리는 어디서 살아갈까"},{"code":"2슬02-04","desc":"궁금한 세계를 다양한 매체로 탐색한다.","domain":"우리는 어디서 살아갈까"},{"code":"2슬03-01","desc":"하루의 변화와 사람들이 하루를 살아가는 모습을 탐색한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2슬03-02","desc":"계절과 생활의 관계를 탐구한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2슬03-03","desc":"관심 있는 대상의 과거와 현재를 살펴보고 미래를 상상한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2슬03-04","desc":"우리의 생활과 관련된 지속가능성의 다양한 사례를 찾고 탐색한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2슬04-01","desc":"생활도구의 모양이나 기능을 탐색하고 바꾸어본다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2슬04-02","desc":"상상한 것을 다양한 매체와 재료로 구현한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2슬04-03","desc":"경험한 것 중에서 관심 있는 주제를 정하고 조사한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2슬04-04","desc":"배운 것과 배울 것을 연결하며 앞으로의 배움을 상상한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2즐01-01","desc":"즐겁게 놀이하며, 건강하고 안전하게 생활한다.","domain":"우리는 누구로 살아갈까"},{"code":"2즐01-02","desc":"놀이하며 내 몸의 움직임이나 감각을 느낀다.","domain":"우리는 누구로 살아갈까"},{"code":"2즐01-03","desc":"가족이나 주변 사람과 소통하며 어울린다.","domain":"우리는 누구로 살아갈까"},{"code":"2즐01-04","desc":"우리를 둘러싼 자연의 아름다움을 감상한다.","domain":"우리는 누구로 살아갈까"},{"code":"2즐02-01","desc":"내가 참여할 수 있는 문화 예술을 향유한다.","domain":"우리는 어디서 살아갈까"},{"code":"2즐02-02","desc":"우리나라의 문화 예술을 즐긴다.","domain":"우리는 어디서 살아갈까"},{"code":"2즐02-03","desc":"다른 나라의 문화 예술을 체험한다.","domain":"우리는 어디서 살아갈까"},{"code":"2즐02-04","desc":"다양한 세상을 상상하고 표현한다.","domain":"우리는 어디서 살아갈까"},{"code":"2즐03-01","desc":"하루를 건강하고 활기차게 지낸다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2즐03-02","desc":"자연의 변화를 느끼며 놀이한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2즐03-03","desc":"전통문화를 새롭게 표현한다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2즐03-04","desc":"안전과 안녕을 위한 아동의 권리가 있음을 알고 누린다.","domain":"우리는 지금 어떻게 살아갈까"},{"code":"2즐04-01","desc":"주변의 물건을 활용하여 놀잇감을 만든다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2즐04-02","desc":"자유롭게 상상하며 놀이한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2즐04-03","desc":"생각이나 느낌을 살려 전시나 공연 활동을 한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2즐04-04","desc":"기억에 남는 경험을 떠올리며 의미를 부여한다.","domain":"우리는 무엇을 하며 살아갈까"},{"code":"2건01-01","desc":"자기 몸을 긍정적으로 바라보며 건강을 위한 신체 활동에 안전하게 참여하기","domain":"건강한 생활","approx":true},{"code":"2건01-02","desc":"건강과 안전을 위한 생활 습관을 지속적으로 실천하기","domain":"건강한 생활","approx":true},{"code":"2건02-01","desc":"제자리 움직임의 특성을 알고 놀이에서 다양한 방식으로 스스로 탐색하기","domain":"건강한 생활","approx":true},{"code":"2건02-02","desc":"걷고 달리는 움직임을 알고 놀이에서 적극적으로 시도하기","domain":"건강한 생활","approx":true},{"code":"2건02-03","desc":"뜀뛰는 움직임을 알고 놀이에서 자신 있게 시도하기","domain":"건강한 생활","approx":true},{"code":"2건02-04","desc":"도구를 다루는 움직임을 알고 서로 배려하며 상황에 맞게 수행하기","domain":"건강한 생활","approx":true},{"code":"2건02-05","desc":"친구들과 어울려 여러 움직임을 이어서 수행하기","domain":"건강한 생활","approx":true},{"code":"2건03-01","desc":"다양한 움직임으로 사물이나 자연의 특징을 살려 즐겁게 표현하기","domain":"건강한 생활","approx":true},{"code":"2건03-02","desc":"움직임 요소를 바꾸며 생각과 느낌을 창의적으로 표현하기","domain":"건강한 생활","approx":true}]},"g34":{"국어":[{"code":"4국01-01","desc":"중요한 내용과 주제를 파악하며 듣고 그 내용을 요약한다.","domain":"듣기⋅말하기"},{"code":"4국01-02","desc":"원인과 결과의 관계를 고려하여 내용을 예측하며 듣고 말한다.","domain":"듣기⋅말하기"},{"code":"4국01-03","desc":"상황에 적절한 준언어⋅비언어적 표현을 활용하여 듣고 말한다.","domain":"듣기⋅말하기"},{"code":"4국01-04","desc":"상황과 상대의 입장을 이해하고 예의를 지키며 대화한다.","domain":"듣기⋅말하기"},{"code":"4국01-05","desc":"목적과 주제에 알맞게 자료를 정리하여 자신감 있게 발표한다.","domain":"듣기⋅말하기"},{"code":"4국01-06","desc":"주제에 적절한 의견과 이유를 제시하고 서로의 생각을 교환하며 토의한다.","domain":"듣기⋅말하기"},{"code":"4국02-01","desc":"글의 의미를 파악하며 유창하게 글을 읽는다.","domain":"읽기"},{"code":"4국02-02","desc":"문단과 글에서 중심 생각을 파악하고 내용을 간추린다.","domain":"읽기"},{"code":"4국02-03","desc":"질문을 활용하여 글을 예측하며 읽고 자신의 읽기 과정을 점검한다.","domain":"읽기"},{"code":"4국02-04","desc":"글에 나타난 사실과 의견을 구분하고 필자와 자신의 의견을 비교한다.","domain":"읽기"},{"code":"4국02-05","desc":"글이나 자료의 출처가 믿을 만한지 판단한다.","domain":"읽기"},{"code":"4국02-06","desc":"바람직한 읽기 습관을 형성하고 읽기에 대한 자신감을 기른다.","domain":"읽기"},{"code":"4국03-01","desc":"중심 문장과 뒷받침 문장을 갖추어 문단을 쓰고, 문장과 문단을 중심으로 고쳐 쓴다.","domain":"쓰기"},{"code":"4국03-02","desc":"절차와 결과가 드러나게 정확한 표현으로 보고하는 글을 쓴다.","domain":"쓰기"},{"code":"4국03-03","desc":"대상에 대한 자신의 의견과 그렇게 생각한 이유가 드러나게 글을 쓴다.","domain":"쓰기"},{"code":"4국03-04","desc":"목적과 주제를 고려하여 독자에게 마음을 전하는 글을 쓴다.","domain":"쓰기"},{"code":"4국03-05","desc":"자신의 쓰기 과정을 점검하며 쓰기에 자신감을 갖는다.","domain":"쓰기"},{"code":"4국04-01","desc":"단어와 단어 간의 의미 관계를 파악한다.","domain":"문법"},{"code":"4국04-02","desc":"단어를 분류하고 국어사전을 활용하여 능동적인 국어 활동을 한다.","domain":"문법"},{"code":"4국04-03","desc":"기본적인 문장의 짜임을 이해하고 적절하게 사용한다.","domain":"문법"},{"code":"4국04-04","desc":"글과 담화에 쓰인 높임 표현과 지시⋅접속 표현을 이해하고 상황에 맞게 표현한다.","domain":"문법"},{"code":"4국04-05","desc":"언어가 의사소통과 관계 형성의 수단임을 이해하고 국어를 소중히 여기는 태도를 지닌다.","domain":"문법"},{"code":"4국05-01","desc":"인물과 이야기의 흐름을 중심으로 작품을 감상한다.","domain":"문학"},{"code":"4국05-02","desc":"자신의 경험을 바탕으로 작품 속 세계와 현실 세계를 비교하여 작품을 감상한다.","domain":"문학"},{"code":"4국05-03","desc":"작품을 듣거나 읽고 마음에 드는 작품을 소개한다.","domain":"문학"},{"code":"4국05-04","desc":"감각적 표현에 유의하여 작품을 감상하고, 감각적 표현을 활용하여 자신의 생각이나 감정을 표현한다.","domain":"문학"},{"code":"4국05-05","desc":"재미나 감동을 느끼며 작품을 즐겨 감상하는 태도를 지닌다.","domain":"문학"},{"code":"4국06-01","desc":"인터넷에서 학습에 필요한 다양한 자료를 탐색하고 목적에 맞게 자료를 선택한다.","domain":"매체"},{"code":"4국06-02","desc":"매체를 활용하여 간단한 발표 자료를 만든다.","domain":"매체"},{"code":"4국06-03","desc":"매체 소통 윤리를 고려하여 매체 자료를 활용하고 공유한다.","domain":"매체"}],"도덕":[{"code":"4도01-01","desc":"자신의 감정을 소중히 여기며 존중하는 태도를 바탕으로 내가 누구인가를 탐구한다.","domain":"자신과의 관계"},{"code":"4도01-02","desc":"정직의 의미를 알고 모범적인 사례를 탐색하여 바르게 행동하려는 태도를 기른다.","domain":"자신과의 관계"},{"code":"4도01-03","desc":"성실한 생활의 모범 사례를 탐색하고 시간 관리를 위한 생활을 계획하여 지속적인 자기 성장을 모색한다.","domain":"자신과의 관계"},{"code":"4도01-04","desc":"다른 사람의 관점을 수용할 수 있는지를 도덕적으로 검토하고 도덕규범을 내면화하여 도덕적으로 행동할 수 있는 자세를 기른다.","domain":"자신과의 관계"},{"code":"4도02-01","desc":"효, 우애의 의미와 필요성을 명료하게 이해하고 가족의 행복을 위해 할 수 있는 일을 탐색하여 실천 계획을 세운다.","domain":"타인과의 관계"},{"code":"4도02-02","desc":"친구 사이의 배려에 대한 올바른 이해를 바탕으로 일상생활에서 배려에 기반한 도덕적 관계를 맺을 수 있는 방안을 탐색한다.","domain":"타인과의 관계"},{"code":"4도02-03","desc":"공감의 태도가 필요한 이유를 이해하고 도덕적 상상력을 바탕으로 대상과 상황에 따라 감정을 나누는 방법을 탐구하여 실천한다.","domain":"타인과의 관계"},{"code":"4도03-01","desc":"불공정의 사례를 탐구하고, 일상생활에서 공정의 가치를 추구하는 활동을 통해 실천 의지를 함양한다.","domain":"사회⋅공동체와의 관계"},{"code":"4도03-02","desc":"디지털 사회에서 발생하는 다양한 문제를 살펴보고, 해결 방안을 탐구하여 정보통신 윤리에 대한 민감성을 기른다.","domain":"사회⋅공동체와의 관계"},{"code":"4도03-03","desc":"통일의 필요성을 이해하고, 통일 감수성을 길러 바람직한 통일의 방향을 모색한다.","domain":"사회⋅공동체와의 관계"},{"code":"4도04-01","desc":"생명 경시 사례를 조사하고 문제 해결 방법을 탐구함으로써 생명의 소중함을 이해한다.","domain":"자연과의 관계"},{"code":"4도04-02","desc":"인간과 자연이 함께 살아야 하는 이유를 이해하고 공생을 위한 구체적인 실천 계획을 세우며 생태 감수성을 기른다.","domain":"자연과의 관계"}],"사회":[{"code":"4사01-01","desc":"주변 여러 장소에서의 경험과 느낌을 다양한 방식으로 표현하고, 장소감을 나누며 서로 존중하는 태도를 지닌다.","domain":"지리 인식"},{"code":"4사01-02","desc":"주변의 여러 장소를 살펴보고, 우리가 사는 곳을 더 살기 좋은 곳으로 만드는 방안을 탐색한다.","domain":"지리 인식"},{"code":"4사02-01","desc":"일상 속에서 시간의 흐름을 경험할 수 있는 사례를 살펴보고, 이를 바탕으로 역사의 시간 개념을 이해한다.","domain":"역사 일반"},{"code":"4사02-02","desc":"오래된 물건이나 자료들을 주변에서 찾아보고, 이를 통해 과거의 모습을 살펴볼 수 있음을 이해한다.","domain":"역사 일반"},{"code":"4사02-03","desc":"지역의 변화상을 보여주는 역사 자료를 분석하여 지역 사람들의 달라진 생활 모습을 파악한다.","domain":"역사 일반"},{"code":"4사03-01","desc":"최근 사회 변화의 양상과 특징을 파악하고, 그로 인해 나타난 생활모습의 변화를 탐색한다.","domain":"사회⋅문화"},{"code":"4사03-02","desc":"우리 사회에 다양한 문화가 확산되면서 나타나는 긍정적 효과와 문제를 분석하고, 나와 다른 사람이나 집단의 문화를 존중하는 태도를 기른다.","domain":"사회⋅문화"},{"code":"4사04-01","desc":"옛날 풍습에 대해 알아보고, 오늘날과 비교하여 변화상을 파악한다.","domain":"역사 일반"},{"code":"4사04-02","desc":"옛날부터 오늘날까지 교통의 변화에 따른 이동과 생활 모습의 변화를 이해한다.","domain":"역사 일반"},{"code":"4사04-03","desc":"옛날부터 오늘날까지 통신수단의 변화에 따른 정보 교류와 의사소통 방식의 변화를 설명한다.","domain":"역사 일반"},{"code":"4사05-01","desc":"우리 지역을 표현한 다양한 종류의 지도를 찾아보고, 지도의 요소를 이해한다.","domain":"지리 인식"},{"code":"4사05-02","desc":"지도에서 우리 지역의 위치를 파악하고, 우리 지역의 지리 정보를 탐색한다.","domain":"지리 인식"},{"code":"4사06-01","desc":"지역의 문화유산을 통해 문화유산의 의미와 유형을 알아보고, 문화유산의 가치를 탐색한다.","domain":"지역사"},{"code":"4사06-02","desc":"지역의 박물관, 기념관, 유적지 등을 체험하고 지역의 역사를 이해한다.","domain":"지역사"},{"code":"4사07-01","desc":"자원의 희소성으로 인해 경제활동에서 선택의 문제가 발생함을 이해하고, 경제활동에서 합리적 선택의 방법을 탐색한다.","domain":"경제"},{"code":"4사07-02","desc":"생산과 소비 활동을 파악하고, 인적⋅물적 교류의 사례를 통해 각 지역 및 사람들이 상호의존 관계를 맺고 있음을 탐색한다.","domain":"경제"},{"code":"4사08-01","desc":"학교 자치 사례를 통하여 민주주의의 의미를 이해하고, 학교생활에서 민주주의를 실천하는 능력을 기른다.","domain":"정치"},{"code":"4사08-02","desc":"지역에서 이루어지는 민주주의 사례를 통해 주민 자치와 주민 참여의 중요성을 파악하고, 지역사회의 문제 해결에 참여하는 태도를 기른다.","domain":"정치"},{"code":"4사09-01","desc":"생활 주변에서 찾을 수 있는 여러 가지 문제를 파악하고, 그 문제를 합리적으로 해결하는 능력을 기른다.","domain":"정치"},{"code":"4사09-02","desc":"지역의 자연환경, 역사, 문화, 생산물 등을 알리려는 지역사회의 노력을 알고 관심을 갖는다.","domain":"지리 인식"},{"code":"4사10-01","desc":"여러 지역의 자연환경과 인문환경의 특징을 살펴보고, 환경의 이용과 개발에 따른 변화를 탐구한다.","domain":"자연환경과 인간생활"},{"code":"4사10-02","desc":"사례에서 도시의 인구, 교통, 산업 등의 특징을 탐구하고, 도시에서의 삶의 모습을 이해한다.","domain":"인문환경과 인간생활"}],"수학":[{"code":"4수01-01","desc":"[4수01-01] 큰 수의 필요성을 인식하면서 10000 이상의 큰 수에 대한 자릿값과 위치적 기수법을 이해하고, 수를 읽고 쓸 수 있다.","domain":"수와 연산"},{"code":"4수01-02","desc":"[4수01-02] 다섯 자리 이상의 수의 범위에서 수의 계열을 이해하고, 수의 크기를 비교하며 그 방법을 설명할 수 있다.","domain":"수와 연산"},{"code":"4수01-03","desc":"[4수01-03] 세 자리 수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"4수01-04","desc":"[4수01-04] 곱하는 수가 한 자리 수 또는 두 자리 수인 곱셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"4수01-05","desc":"[4수01-05] 나눗셈이 이루어지는 실생활 상황과 연결하여 나눗셈의 의미를 알고, 곱셈과 나눗셈의 관계를 이해한다.","domain":"수와 연산"},{"code":"4수01-06","desc":"[4수01-06] 나누는 수가 한 자리 수인 나눗셈의 계산 원리를 이해하고 그 계산을 할 수 있으며, 나눗셈에서 몫과 나머지의 의미를 안다.","domain":"수와 연산"},{"code":"4수01-07","desc":"[4수01-07] 나누는 수가 두 자리 수인 나눗셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"4수01-08","desc":"[4수01-08] 자연수의 덧셈, 뺄셈, 곱셈, 나눗셈과 관련한 여러 가지 상황에서 어림셈을 할 수 있다.","domain":"수와 연산"},{"code":"4수01-09","desc":"[4수01-09] 양의 등분할을 통하여 분수의 필요성을 인식하고, 분수를 이해하고 읽고 쓸 수 있다.","domain":"수와 연산"},{"code":"4수01-10","desc":"[4수01-10] 단위분수, 진분수, 가분수, 대분수를 알고, 그 관계를 이해한다.","domain":"수와 연산"},{"code":"4수01-11","desc":"[4수01-11] 분모가 같은 분수끼리, 단위분수끼리 크기를 비교하고 그 방법을 설명할 수 있다.","domain":"수와 연산"},{"code":"4수01-12","desc":"[4수01-12] 분모가 10인 진분수와 연결하여 소수 한 자리 수를 이해하고 읽고 쓸 수 있다.","domain":"수와 연산"},{"code":"4수01-13","desc":"[4수01-13] 자릿값의 원리를 바탕으로 소수 두 자리 수와 소수 세 자리 수를 이해하고 읽고 쓸 수 있다.","domain":"수와 연산"},{"code":"4수01-14","desc":"[4수01-14] 소수의 크기를 비교하고 그 방법을 설명할 수 있다.","domain":"수와 연산"},{"code":"4수01-15","desc":"[4수01-15] 분모가 같은 분수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"4수01-16","desc":"[4수01-16] 소수 두 자리 수의 범위에서 소수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"4수02-01","desc":"다양한 변화 규칙을 찾아 설명하고, 그 규칙을 수나 식으로 나타낼 수 있다.","domain":"변화와 관계"},{"code":"4수02-02","desc":"계산식의 배열에서 규칙을 찾고, 계산 결과를 추측할 수 있다.","domain":"변화와 관계"},{"code":"4수02-03","desc":"등호를 사용하여 크기가 같은 두 양의 관계를 식으로 나타낼 수 있다.","domain":"변화와 관계"},{"code":"4수03-01","desc":"직선, 선분, 반직선을 이해하고 구별할 수 있다.","domain":"도형과 측정"},{"code":"4수03-02","desc":"각과 직각을 이해하고, 직각과 비교하는 활동을 통하여 예각과 둔각을 구별할 수 있다.","domain":"도형과 측정"},{"code":"4수03-03","desc":"직선의 수직 관계와 평행 관계를 이해한다.","domain":"도형과 측정"},{"code":"4수03-04","desc":"구체물이나 평면도형의 밀기, 뒤집기, 돌리기 활동을 통하여 그 변화를 이해한다.","domain":"도형과 측정"},{"code":"4수03-05","desc":"평면에서 점의 이동에 대해 위치와 방향을 이용하여 설명할 수 있다.","domain":"도형과 측정"},{"code":"4수03-06","desc":"원의 중심, 반지름, 지름을 이해하고, 그 성질을 안다.","domain":"도형과 측정"},{"code":"4수03-07","desc":"컴퍼스를 이용하여 여러 가지 크기의 원을 그릴 수 있다.","domain":"도형과 측정"},{"code":"4수03-08","desc":"여러 가지 모양의 삼각형에 대한 분류 활동을 통하여 이등변삼각형, 정삼각형을 이해하고, 그 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"4수03-09","desc":"여러 가지 모양의 삼각형에 대한 분류 활동을 통하여 직각삼각형, 예각삼각형, 둔각삼각형을 이해한다.","domain":"도형과 측정"},{"code":"4수03-10","desc":"여러 가지 모양의 사각형에 대한 분류 활동을 통하여 직사각형, 정사각형, 사다리꼴, 평행사변형, 마름모를 이해하고, 그 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"4수03-11","desc":"다각형과 정다각형을 이해한다.","domain":"도형과 측정"},{"code":"4수03-12","desc":"주어진 도형을 이용하여 여러 가지 모양을 만들거나 채우고 설명할 수 있다.","domain":"도형과 측정"},{"code":"4수03-13","desc":"1분과 1초의 관계를 이해하고, 초 단위까지 시각을 읽을 수 있다.","domain":"도형과 측정"},{"code":"4수03-14","desc":"실생활 문제 상황과 연결하여 초 단위까지의 시간의 덧셈과 뺄셈을 할 수 있다.","domain":"도형과 측정"},{"code":"4수03-15","desc":"길이 단위 1mm와 1km를 알고, 이를 이용하여 길이를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","domain":"도형과 측정"},{"code":"4수03-16","desc":"1cm와 1mm, 1km와 1m의 관계를 이해하고, 길이를 ‘몇 cm 몇 mm’와 ‘몇 mm’, ‘몇 km 몇 m’와 ‘몇 m’로 다양하게 표현할 수 있다.","domain":"도형과 측정"},{"code":"4수03-17","desc":"들이 단위 1L와 1mL를 알고, 이를 이용하여 들이를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","domain":"도형과 측정"},{"code":"4수03-18","desc":"1L와 1mL의 관계를 이해하고, 들이를 ‘몇 L 몇 mL’와 ‘몇 mL’로 표현할 수 있다.","domain":"도형과 측정"},{"code":"4수03-19","desc":"실생활 문제 상황과 연결하여 들이의 덧셈과 뺄셈을 할 수 있다.","domain":"도형과 측정"},{"code":"4수03-20","desc":"실생활에서 무게를 나타낼 때 사용하는 단위 1g과 1kg을 알고, 이를 이용하여 무게를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","domain":"도형과 측정"},{"code":"4수03-21","desc":"1kg과 1g의 관계를 이해하고, 무게를 ‘몇 kg 몇 g’과 ‘몇 g’으로 표현할 수 있다.","domain":"도형과 측정"},{"code":"4수03-22","desc":"실생활에서 무게를 나타낼 때 사용하는 단위 1t을 알고, 1t과 1kg의 관계를 이해한다.","domain":"도형과 측정"},{"code":"4수03-23","desc":"실생활 문제 상황과 연결하여 무게의 덧셈과 뺄셈을 할 수 있다.","domain":"도형과 측정"},{"code":"4수03-24","desc":"각의 크기의 단위인 1도(°)를 알고, 각도기를 이용하여 각의 크기를 측정하고 어림할 수 있다.","domain":"도형과 측정"},{"code":"4수03-25","desc":"여러 가지 방법으로 삼각형과 사각형의 내각의 크기의 합을 추론하고, 자신의 추론 과정을 설명할 수 있다.","domain":"도형과 측정"},{"code":"4수04-01","desc":"자료를 수집하여 그림그래프나 막대그래프로 나타내고 해석할 수 있다.","domain":"자료와가능성"},{"code":"4수04-02","desc":"자료를 수집하여 꺾은선그래프로 나타내고 해석할 수 있다.","domain":"자료와가능성"},{"code":"4수04-03","desc":"탐구 문제를 해결하기 위해 자료를 수집, 정리하여 막대그래프나 꺾은선그래프로 나타내고 해석할 수 있다.","domain":"자료와가능성"}],"과학":[{"code":"4과01-01","desc":"일상생활에서 힘과 관련된 현상에 흥미를 갖고, 물체를 밀거나 당길 때 나타나는 현상을 관찰할 수 있다.","domain":"운동과 에너지"},{"code":"4과01-02","desc":"수평잡기 활동을 통해 물체의 무게를 비교할 수 있다.","domain":"운동과 에너지"},{"code":"4과01-03","desc":"무게를 정확히 비교하기 위해서는 저울이 필요함을 알고, 저울을 사용해 무게를 비교할 수 있다.","domain":"운동과 에너지"},{"code":"4과01-04","desc":"지레, 빗면과 같은 도구를 이용하면 물체를 들어 올릴 때 드는 힘의 크기가 달라짐을 알고, 도구가 일상생활에서 어떻게 쓰이는지 조사하여 공유할 수 있다.","domain":"운동과 에너지"},{"code":"4과02-01","desc":"여러 가지 동물을 관찰하여 특징에 따라 동물을 분류할 수 있다.","domain":"생명"},{"code":"4과02-02","desc":"다양한 환경에 서식하는 동물을 조사하여 동물의 생김새와 생활 방식이 환경과 관련되어 있음을 설명할 수 있다.","domain":"생명"},{"code":"4과02-03","desc":"동물의 특징을 이용하여 일상생활에서 활용할 수 있는 생활용품을 설계하여 협력적으로 소통할 수 있다.","domain":"생명"},{"code":"4과03-01","desc":"여러 가지 식물을 관찰하여 특징에 따라 식물을 분류할 수 있다.","domain":"생명"},{"code":"4과03-02","desc":"다양한 환경에 서식하는 식물을 조사하여 식물의 생김새와 생활 방식이 환경과 관련되어 있음을 설명할 수 있다.","domain":"생명"},{"code":"4과03-03","desc":"식물의 특징을 이용하여 일상생활에서 활용할 수 있는 생활용품을 설계하여 협력적으로 소통할 수 있다.","domain":"생명"},{"code":"4과04-01","desc":"동물의 한살이를 직접 관찰하고, 관찰한 내용을 글과 그림으로 표현할 수 있다.","domain":"생명"},{"code":"4과04-02","desc":"식물이 자라는 데 필요한 조건을 찾는 실험을 설계하여 수행할 수 있다.","domain":"생명"},{"code":"4과04-03","desc":"생물의 한살이 과정을 조사하여 생물에 따라 한살이의 유형이 다양함을 소개하는 자료를 만들어 공유할 수 있다.","domain":"생명"},{"code":"4과05-01","desc":"물체를 이루는 여러 가지 물질의 성질을 비교하고, 물질의 종류에 따라 물체를 분류할 수 있다.","domain":"물질"},{"code":"4과05-02","desc":"물질의 세 가지 상태인 고체, 액체, 기체의 성질을 관찰하여 비교할 수 있다.","domain":"물질"},{"code":"4과05-03","desc":"다양한 물질의 성질을 이용하여 쓰임새 있는 물체를 설계할 수 있다.","domain":"물질"},{"code":"4과06-01","desc":"지구가 대기로 둘러싸여 있음을 알고, 지구 표면을 구성하는 육지와 바다의 특징을 비교할 수 있다.","domain":"지구와 우주"},{"code":"4과06-02","desc":"바닷물의 특징을 육지의 물과 비교하고, 바닷가에서 볼 수 있는 다양한 지형을 조사할 수 있다.","domain":"지구와 우주"},{"code":"4과06-03","desc":"밀물과 썰물의 차이를 알고, 갯벌의 가치와 보전의 필요성을 설득⋅홍보할 수 있다.","domain":"지구와 우주"},{"code":"4과07-01","desc":"여러 가지 물체를 이용하여 소리를 내보고, 소리가 나는 물체는 떨림이 있음을 설명할 수 있다.","domain":"운동과 에너지"},{"code":"4과07-02","desc":"큰 소리와 작은 소리, 높은 소리와 낮은 소리를 구분하고, 세기와 높낮이가 다른 소리를 낼 수 있다.","domain":"운동과 에너지"},{"code":"4과07-03","desc":"여러 가지 물질을 통하여 소리가 전달되는 것을 관찰하고, 소음을 줄이는 방법을 찾아 일상생활에서 실천할 수 있다.","domain":"운동과 에너지"},{"code":"4과08-01","desc":"생활 속 감염병의 사례를 알고, 다양한 질병과 그 위험성에 대해 토의할 수 있다.","domain":"과학과 사회"},{"code":"4과08-02","desc":"감염병으로부터 안전한 사회에 관심을 가지고, 여러 감염 과정을 통해 생활 습관과 감염병 유행과의 연관성을 설명할 수 있다.","domain":"과학과 사회"},{"code":"4과08-03","desc":"건강한 생활을 위해 필요한 감염병 예방 수칙을 공유하고, 생활 속에서 실천할 수 있다.","domain":"과학과 사회"},{"code":"4과09-01","desc":"자석과 여러 가지 물체를 가까이했을 때 나타나는 현상을 관찰하고, 자석과 자석에 붙는 물체 사이에 작용하는 힘의 특징을 말할 수 있다.","domain":"운동과 에너지"},{"code":"4과09-02","desc":"자석과 자석을 가까이했을 때 나타나는 현상을 관찰하여 그 특징을 자석의 극과 관련지어 설명할 수 있다.","domain":"운동과 에너지"},{"code":"4과09-03","desc":"자석을 이용하여 일상생활을 편리하게 하는 장치를 설계할 수 있다.","domain":"운동과 에너지"},{"code":"4과10-01","desc":"물이 세 가지 상태로 변할 수 있음을 알고, 우리 주변에서 예를 찾을 수 있다.","domain":"물질"},{"code":"4과10-02","desc":"물이 얼 때, 얼음이 녹을 때, 물이 증발할 때와 끓을 때, 수증기가 응결할 때의 변화를 관찰할 수 있다.","domain":"물질"},{"code":"4과10-03","desc":"물의 상태 변화를 이용하여 물을 얻을 수 있는 장치를 설계하고 만들 수 있다.","domain":"물질"},{"code":"4과11-01","desc":"흐르는 물의 작용과 강 주변 지형의 특징을 관련지을 수 있다.","domain":"지구와 우주"},{"code":"4과11-02","desc":"화산의 의미와 화산 활동으로 나오는 물질을 알고, 화산 활동을 모형으로 표현할 수 있다.","domain":"지구와 우주"},{"code":"4과11-03","desc":"화성암을 관찰하고 분류할 수 있다.","domain":"지구와 우주"},{"code":"4과11-04","desc":"화산 활동과 지진이 우리 생활에 미치는 영향을 조사하여, 대처 방법을 실천할 수 있다.","domain":"지구와 우주"},{"code":"4과12-01","desc":"균류⋅원생생물⋅세균을 관찰하여 특징과 사는 곳을 설명할 수 있다.","domain":"생명"},{"code":"4과12-02","desc":"균류⋅원생생물⋅세균이 우리 생활에 미치는 영향을 조사하여 발표할 수 있다.","domain":"생명"},{"code":"4과12-03","desc":"우리 생활에 생명과학이 이용되는 사례를 소개하는 자료를 만들어 공유할 수 있다.","domain":"생명"},{"code":"4과13-01","desc":"달의 모양과 표면, 달의 위상변화를 관찰하여 밤하늘 관찰에 흥미를 가질 수 있다.","domain":"지구와 우주"},{"code":"4과13-02","desc":"태양계 구성원을 알고, 태양과 행성을 조사할 수 있다.","domain":"지구와 우주"},{"code":"4과13-03","desc":"별의 정의를 알고, 북극성 주변의 별자리를 관찰할 수 있다.","domain":"지구와 우주"},{"code":"4과14-01","desc":"생태계의 구성 요소를 조사하여 생물 요소와 비생물 요소로 분류할 수 있다.","domain":"생명"},{"code":"4과14-02","desc":"생물 요소들의 먹고 먹히는 관계를 조사하여 먹이그물로 표현할 수 있다.","domain":"생명"},{"code":"4과14-03","desc":"인간 활동이 생태계에 미치는 영향을 조사하고, 생태계 보전을 위해 우리가 할 수 있는 일을 토의하여 실천할 수 있다.","domain":"생명"},{"code":"4과15-01","desc":"실험을 통해 기체가 무게가 있음을 설명할 수 있다.","domain":"물질"},{"code":"4과15-02","desc":"온도나 압력에 따라 기체의 부피가 달라지는 현상을 관찰하고, 우리 주변에서 예를 찾을 수 있다.","domain":"물질"},{"code":"4과15-03","desc":"일상생활에서 이용되는 기체의 종류와 성질을 조사하고, 여러 가지 기체에 대해 흥미를 느낄 수 있다.","domain":"물질"},{"code":"4과15-04","desc":"기체의 성질을 이용하여 작동시킬 수 있는 장치를 설계하고 만들 수 있다.","domain":"물질"},{"code":"4과16-01","desc":"기후변화 현상의 예를 알고, 기후변화가 인간의 활동과 관련되어 있음을 토의할 수 있다.","domain":"과학과 사회"},{"code":"4과16-02","desc":"기후변화의 심각성에 관심을 가지고, 기후변화가 우리 생활과 환경에 미치는 영향을 설명할 수 있다.","domain":"과학과 사회"},{"code":"4과16-03","desc":"기후변화 대응 방법을 조사하고, 생활 속에서 기후변화 대응 방법을 실천할 수 있다.","domain":"과학과 사회"}],"체육":[{"code":"4체01-01","desc":"운동과 체력의 의미를 이해하고 관계를 파악한다.","domain":"운동"},{"code":"4체01-02","desc":"기본 체력운동의 방법과 절차를 익히며 자신의 수준에 맞는 운동을 시도한다.","domain":"운동"},{"code":"4체01-03","desc":"운동과 건강의 의미를 이해하고 관계를 파악한다.","domain":"운동"},{"code":"4체01-04","desc":"건강을 위한 바른 생활 습관을 이해하고 생활 속에서 규칙적으로 실천한다.","domain":"운동"},{"code":"4체01-05","desc":"자신의 신체적 특징을 긍정적으로 인식하고 운동 계획을 세워 안전하게 활동한다.","domain":"운동"},{"code":"4체01-06","desc":"운동과 건강한 생활 습관 형성에 관심을 갖고 적극적으로 실천한다.","domain":"운동"},{"code":"4체02-01","desc":"스포츠의 의미와 유형을 파악한다.","domain":"스포츠"},{"code":"4체02-02","desc":"기본 움직임 기술의 의미와 종류를 이해하고 스포츠와의 관계를 파악한다.","domain":"스포츠"},{"code":"4체02-03","desc":"움직임 요소에 따른 기본 움직임 기술의 수행 방법을 파악하고 시도한다.","domain":"스포츠"},{"code":"4체02-04","desc":"기본 움직임 기술을 연결한 복합적인 움직임 기술을 파악하고 시도한다.","domain":"스포츠"},{"code":"4체02-05","desc":"기술형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","domain":"스포츠"},{"code":"4체02-06","desc":"전략형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","domain":"스포츠"},{"code":"4체02-07","desc":"생태형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","domain":"스포츠"},{"code":"4체02-08","desc":"움직임 기술 수행에 자신감을 갖고 적극적으로 시도한다.","domain":"스포츠"},{"code":"4체02-09","desc":"게임 활동에 최선을 다하고 규칙을 지킨다.","domain":"스포츠"},{"code":"4체02-10","desc":"다양한 스포츠 환경에 개방적인 태도를 갖고 적극적이고 안전하게 스포츠 활동에 참여한다.","domain":"스포츠"},{"code":"4체03-01","desc":"표현 활동의 의미와 기본 움직임 기술과의 관계를 파악한다.","domain":"표현"},{"code":"4체03-02","desc":"움직임 요소에 따른 기본 움직임 기술의 표현 방법을 파악하고 시도한다.","domain":"표현"},{"code":"4체03-03","desc":"기본 움직임 기술을 활용하여 사물이나 자연을 모방하여 표현한다.","domain":"표현"},{"code":"4체03-04","desc":"기본 움직임 기술을 활용하여 느낌이나 생각을 표현한다.","domain":"표현"},{"code":"4체03-05","desc":"기본 움직임 기술을 리듬에 맞춰 표현한다.","domain":"표현"},{"code":"4체03-06","desc":"기본 움직임 기술을 도구를 활용하여 표현한다.","domain":"표현"},{"code":"4체03-07","desc":"움직임의 심미적 표현에 대한 호기심과 감수성을 나타낸다.","domain":"표현"}],"음악":[{"code":"4음01-01","desc":"바른 자세와 주법을 익혀 노래 부르거나 악기로 연주한다.","domain":"연주"},{"code":"4음01-02","desc":"기초적인 음악 요소를 살려 노래 부르거나 악기로 연주하고 느낌을 이야기한다.","domain":"연주"},{"code":"4음01-03","desc":"노래와 악기 연주에 어울리는 신체표현이나 놀이를 하며 음악을 즐긴다.","domain":"연주"},{"code":"4음01-04","desc":"생활 속에서 음악을 경험하며 연주에 관심을 가지고 참여한다.","domain":"연주"},{"code":"4음02-01","desc":"음악을 듣고 기초적인 음악 요소를 탐색하며 반응한다.","domain":"감상"},{"code":"4음02-02","desc":"다양한 음악을 듣고 음악적 특징을 발견한다.","domain":"감상"},{"code":"4음02-03","desc":"다양한 종류의 음악을 듣고 음악의 분위기를 묘사하거나 쓰임을 이야기한다.","domain":"감상"},{"code":"4음02-04","desc":"생활 속에서 음악을 들으며 느낌과 호기심을 갖고 즐긴다.","domain":"감상"},{"code":"4음02-05","desc":"우리 지역의 음악 문화유산을 찾아 듣고 국악을 즐기는 태도를 갖는다.","domain":"감상"},{"code":"4음03-01","desc":"느낌과 상상을 즉흥적으로 표현하며 음악에 대한 흥미를 갖는다.","domain":"창작"},{"code":"4음03-02","desc":"악곡의 일부를 바꾸어 표현하고 간단한 악보로 나타낸다.","domain":"창작"},{"code":"4음03-03","desc":"기초적인 음악 요소를 활용하여 소리나 음악으로 표현한다.","domain":"창작"},{"code":"4음03-04","desc":"생활 주변의 소리나 장면을 모방하며 음악의 새로움을 즐기는 태도를 갖는다.","domain":"창작"}],"미술":[{"code":"4미01-01","desc":"자연물과 인공물을 탐색하는 데 다양한 감각을 활용할 수 있다.","domain":"미적 체험"},{"code":"4미01-02","desc":"주변 대상을 체험하며 떠오른 느낌과 생각을 다양한 방법으로 나타낼 수 있다.","domain":"미적 체험"},{"code":"4미01-03","desc":"미적 탐색에 호기심을 갖고 참여하며 자신의 감각으로 대상의 특징을 이해할 수 있다.","domain":"미적 체험"},{"code":"4미01-04","desc":"생활 속에서 활용되는 미술에 관심을 가지고 미술의 특징과 역할을 발견할 수 있다.","domain":"미적 체험"},{"code":"4미02-01","desc":"관찰과 상상으로 아이디어를 떠올려 표현 주제를 구체화할 수 있다.","domain":"표현"},{"code":"4미02-02","desc":"기본적인 표현 재료와 용구의 특성을 이해하고 사용 방법을 익힐 수 있다.","domain":"표현"},{"code":"4미02-03","desc":"조형 요소의 특징을 자유롭게 탐색하며 주제 표현에 알맞게 활용할 수 있다.","domain":"표현"},{"code":"4미02-04","desc":"표현 의도를 가지고 작품을 제작하며 자기 작품을 소중히 여길 수 있다.","domain":"표현"},{"code":"4미02-05","desc":"미술과 타 교과를 관련지어 주제를 표현하는데 흥미를 가질 수 있다.","domain":"표현"},{"code":"4미03-01","desc":"미술 작품을 자세히 보고 작품과 미술가에 관해 질문할 수 있다.","domain":"감상"},{"code":"4미03-02","desc":"미술 작품의 특징과 작품에 관한 자신의 느낌과 생각을 설명할 수 있다.","domain":"감상"},{"code":"4미03-03","desc":"미술 문화에 관심을 가지고 전시 및 행사에 참여할 수 있다.","domain":"감상"},{"code":"4미03-04","desc":"작품 감상에 흥미를 가지고 참여하며 작품에 대한 자신의 감상 관점을 존중할 수 있다.","domain":"감상"}],"영어":[{"code":"4영01-01","desc":"알파벳과 쉽고 간단한 단어의 소리를 듣고 식별한다.","domain":"이해"},{"code":"4영01-02","desc":"알파벳 대소문자를 식별하여 읽는다.","domain":"이해"},{"code":"4영01-03","desc":"쉽고 간단한 단어, 어구, 문장을 듣고 강세, 리듬, 억양을 식별한다.","domain":"이해"},{"code":"4영01-04","desc":"소리와 철자의 관계를 이해하며 쉽고 간단한 단어, 어구, 문장을 소리 내어 읽는다.","domain":"이해"},{"code":"4영01-05","desc":"쉽고 간단한 단어, 어구, 문장의 의미를 이해한다.","domain":"이해"},{"code":"4영01-06","desc":"자기 주변 주제에 관한 담화의 주요 정보를 파악한다.","domain":"이해"},{"code":"4영01-07","desc":"적절한 전략을 활용하여 담화나 문장을 듣거나 읽는다.","domain":"이해"},{"code":"4영01-08","desc":"다양한 매체로 표현된 담화나 문장을 흥미를 가지고 듣거나 읽는다.","domain":"이해"},{"code":"4영01-09","desc":"시, 노래, 이야기를 공감하며 듣는다.","domain":"이해"},{"code":"4영01-10","desc":"자기 주변 주제나 문화에 관한 담화나 문장을 존중의 태도로 듣거나 읽는다.","domain":"이해"},{"code":"4영02-01","desc":"쉽고 간단한 단어, 어구, 문장을 강세, 리듬, 억양에 맞게 따라 말한다.","domain":"표현"},{"code":"4영02-02","desc":"알파벳 대소문자를 구별하여 쓴다.","domain":"표현"},{"code":"4영02-03","desc":"소리와 철자의 관계를 바탕으로 쉽고 간단한 단어를 쓴다.","domain":"표현"},{"code":"4영02-04","desc":"실물, 그림, 동작 등을 보고 쉽고 간단한 문장으로 말하거나 단어나 어구를 쓴다.","domain":"표현"},{"code":"4영02-05","desc":"자신, 주변 사람이나 사물의 소개나 묘사를 쉽고 간단한 문장으로 말하거나 보고 쓴다.","domain":"표현"},{"code":"4영02-06","desc":"행동 지시를 쉽고 간단한 문장으로 말하거나 보고 쓴다.","domain":"표현"},{"code":"4영02-07","desc":"자신의 감정을 쉽고 간단한 문장으로 말하거나 보고 쓴다.","domain":"표현"},{"code":"4영02-08","desc":"자기 주변 주제에 관한 담화의 주요 정보를 묻거나 답한다.","domain":"표현"},{"code":"4영02-09","desc":"적절한 매체나 전략을 활용하여 창의적으로 의미를 표현한다.","domain":"표현"},{"code":"4영02-10","desc":"의사소통 활동에 흥미와 자신감을 가지고 대화 예절을 지키며 참여한다.","domain":"표현"}]},"g56":{"국어":[{"code":"6국01-01","desc":"대화에서 생략된 내용을 추론하며 듣는다.","domain":"듣기·말하기"},{"code":"6국01-02","desc":"주장을 파악하고 이유나 근거가 타당한지 평가하며 듣는다.","domain":"듣기·말하기"},{"code":"6국01-03","desc":"주제와 관련하여 궁금한 내용을 질문하며 적극적으로 듣고 말한다.","domain":"듣기·말하기"},{"code":"6국01-04","desc":"면담의 절차를 이해하고 상대와 매체를 고려하여 면담한다.","domain":"듣기·말하기"},{"code":"6국01-05","desc":"자료를 선별하여 핵심 정보를 중심으로 내용을 구성하고 매체를 활용하여 발표한다.","domain":"듣기·말하기"},{"code":"6국01-06","desc":"토의에 협력적으로 참여하며 서로의 의견을 비교하고 조정한다.","domain":"듣기·말하기"},{"code":"6국01-07","desc":"절차와 규칙을 지키고 타당한 이유와 근거를 제시하며 토론한다.","domain":"듣기·말하기"},{"code":"6국02-01","desc":"글의 구조를 고려하며 주제나 주장을 파악하고 글 내용을 요약한다.","domain":"읽기"},{"code":"6국02-02","desc":"글에서 생략된 내용이나 함축된 표현을 문맥을 고려하여 추론한다.","domain":"읽기"},{"code":"6국02-03","desc":"글이나 자료를 읽고 내용의 타당성과 표현의 적절성을 평가한다.","domain":"읽기"},{"code":"6국02-04","desc":"문제 상황과 관련된 다양한 관점의 글을 읽고 이를 문제 해결에 활용한다.","domain":"읽기"},{"code":"6국02-05","desc":"긍정적인 읽기 동기를 형성하고 적극적으로 읽기에 참여하는 태도를 기른다.","domain":"읽기"},{"code":"6국03-01","desc":"알맞은 내용을 선정하여 대상의 특성이 나타나게 설명하는 글을 쓴다.","domain":"쓰기"},{"code":"6국03-02","desc":"적절한 근거를 사용하고 인용의 출처를 밝히며 주장하는 글을 쓴다.","domain":"쓰기"},{"code":"6국03-03","desc":"체험한 일에 대한 감상을 나타내는 글을 쓴다.","domain":"쓰기"},{"code":"6국03-04","desc":"독자와 매체를 고려하여 내용을 생성하고 표현하며 글을 쓴다.","domain":"쓰기"},{"code":"6국03-05","desc":"쓰기 과정을 점검·조정하며 글을 쓰고, 글 전체를 대상으로 통일성 있게 고쳐 쓴다.","domain":"쓰기"},{"code":"6국03-06","desc":"쓰기에 적극적으로 참여하며 자신의 글을 독자와 공유하는 태도를 지닌다.","domain":"쓰기"},{"code":"6국04-01","desc":"음성 언어 및 문자 언어의 특성을 이해하고 다양한 매체 자료에서 표현 효과를 평가한다.","domain":"문법"},{"code":"6국04-02","desc":"표준어와 방언의 기능을 파악하고 언어 공동체와 국어생활과의 관계를 이해한다.","domain":"문법"},{"code":"6국04-03","desc":"고유어와 관용 표현의 쓰임과 가치를 이해하고 상황에 맞게 표현한다.","domain":"문법"},{"code":"6국04-04","desc":"문장 성분을 이해하고 호응 관계가 올바른 문장을 구성한다.","domain":"문법"},{"code":"6국04-05","desc":"글과 담화에 쓰인 시간 표현을 이해하고 상황에 맞게 표현한다.","domain":"문법"},{"code":"6국04-06","desc":"글과 담화에 쓰인 단어 및 문장, 띄어쓰기를 민감하게 살펴 바르게 고치는 태도를 지닌다.","domain":"문법"},{"code":"6국05-01","desc":"작가의 의도를 생각하며 작품을 읽는다.","domain":"문학"},{"code":"6국05-02","desc":"비유적 표현의 효과에 유의하여 작품을 감상한다.","domain":"문학"},{"code":"6국05-03","desc":"소설이나 극을 읽고 인물, 사건, 배경을 파악한다.","domain":"문학"},{"code":"6국05-04","desc":"인상적인 부분을 중심으로 작품에 대한 의견을 나눈다.","domain":"문학"},{"code":"6국05-05","desc":"자신의 경험을 시, 소설, 극, 수필 등 적절한 갈래로 표현한다.","domain":"문학"},{"code":"6국05-06","desc":"작품을 읽고 자신의 삶과 연관 지어 성찰하는 태도를 지닌다.","domain":"문학"},{"code":"6국06-01","desc":"정보 검색 도구를 활용하여 자신의 목적에 맞는 매체 자료를 찾는다.","domain":"매체"},{"code":"6국06-02","desc":"뉴스 및 각종 정보 매체 자료의 신뢰성을 평가한다.","domain":"매체"},{"code":"6국06-03","desc":"적합한 양식과 수용자의 반응을 고려하여 복합양식 매체 자료를 제작하고 공유한다.","domain":"매체"},{"code":"6국06-04","desc":"자신의 매체 이용 양상에 대해 성찰한다.","domain":"매체"}],"도덕":[{"code":"6도01-01","desc":"자주적인 삶에 대한 이해를 바탕으로 자신의 생활계획을 세우고 실천하여 주체적인 삶의 태도를 기른다.","domain":"자신과의 관계"},{"code":"6도01-02","desc":"생활 습관에 대한 성찰을 통해 자기 생활을 점검하고 올바른 계획을 세워 이를 실천한다.","domain":"자신과의 관계"},{"code":"6도01-03","desc":"자기가 하고 싶은 일을 선택할 때 도덕적 고려의 필요성을 알고 자신의 특기와 적성을 탐색하여 진로계획을 수립한다.","domain":"자신과의 관계"},{"code":"6도02-01","desc":"봉사의 의미와 중요성을 이해하고, 타인이 처한 상황과 환경에 대한 주의 깊은 관심을 바탕으로 봉사를 실천한다.","domain":"타인과의 관계"},{"code":"6도02-02","desc":"편견이 발생하는 이유를 탐색하여 해결 방안을 살펴보고, 다양성 존중을 바탕으로 다른 사람과 올바른 관계를 맺기 위한 실천 방안을 탐구한다.","domain":"타인과의 관계"},{"code":"6도02-03","desc":"인간과 인공지능 로봇 간의 다양한 관계를 파악하고 도덕에 기반을 둔 관계 형성의 필요성을 탐구한다.","domain":"타인과의 관계"},{"code":"6도03-01","desc":"인권과 관련된 다양한 사례를 살펴보고 인권에 관한 감수성을 길러 이를 실천하려는 의지를 함양한다.","domain":"사회·공동체와의 관계"},{"code":"6도03-02","desc":"정의에 관한 관심을 토대로 공동체 규칙의 중요성을 살펴보고 직접 공정한 규칙을 고안하며 기초적인 시민의식을 기른다.","domain":"사회·공동체와의 관계"},{"code":"6도03-03","desc":"통일과정과 통일 이후 사회의 여러 가지 상황을 예상하고 바람직한 통일과정과 통일국가의 사회상을 제시한다.","domain":"사회·공동체와의 관계"},{"code":"6도03-04","desc":"다른 나라 사람들이 처한 여러 가지 상황을 종합적으로 이해하고 해결 방안을 탐구하며 인류애를 기른다.","domain":"사회·공동체와의 관계"},{"code":"6도04-01","desc":"지구의 환경 위기 상황을 이해하고, 이를 극복하기 위한 다양한 방법을 찾아 자신의 일상에서 실천하고자 노력한다.","domain":"자연과의 관계"},{"code":"6도04-02","desc":"지속가능한 삶의 의미를 탐구하고 미래 세대에 대한 책임을 강화하여 자연의 다양성을 존중하고 생산성을 유지할 수 있는 미래를 위한 실천 방안을 찾는다.","domain":"자연과의 관계"}],"사회":[{"code":"6사01-01","desc":"우리나라 산지, 하천, 해안 지형의 위치를 확인하고 지형의 분포 특징을 탐구한다.","domain":"자연환경과 인간생활"},{"code":"6사01-02","desc":"독도의 지리적 특성과 독도에 대한 역사 기록을 바탕으로 영토로서 독도의 중요성을 이해한다.","domain":"지리 인식"},{"code":"6사02-01","desc":"우리나라의 계절별 기후 특징을 자료에서 탐구하고, 기후변화로 인한 자연재해의 심각성을 이해한다.","domain":"자연환경과 인간생활"},{"code":"6사02-02","desc":"우리나라의 지역별 인구 분포의 특징을 알아보고, 이에 따른 문제점과 해결 방안을 탐색한다.","domain":"인문환경과 인간생활"},{"code":"6사03-01","desc":"일상 사례에서 법의 의미와 역할을 이해하고, 헌법에 규정된 인권이 일상생활에서 구현되는 사례를 조사하여 인권 친화적 태도를 기른다.","domain":"법"},{"code":"6사03-02","desc":"일상생활에서 인권이 침해되는 사례를 찾아 그 해결 방안을 탐색하고, 인권을 보호하는 활동에 참여한다.","domain":"법"},{"code":"6사04-01","desc":"선사 시대와 고조선의 유적과 유물을 활용하여 당시 사람들의 생활을 추론한다.","domain":"한국사"},{"code":"6사04-02","desc":"역사 기록이나 유적과 유물에 나타난 고대 사람들의 생각과 생활을 추론한다.","domain":"한국사"},{"code":"6사04-03","desc":"다양한 역사 자료를 활용하여 고려 시대 사회 모습과 사람들의 생활을 추론한다.","domain":"한국사"},{"code":"6사05-01","desc":"조선 시대 사람들의 생각과 생활에 유교 문화가 미친 영향을 파악한다.","domain":"한국사"},{"code":"6사05-02","desc":"조선 후기 사회ㆍ문화적 변화와 개항기 근대 문물 수용 과정에서 달라진 사람들의 생활을 이해한다.","domain":"한국사"},{"code":"6사06-01","desc":"일제의 식민 통치와 이에 대한 저항이 사회와 생활에 미친 영향을 이해한다.","domain":"한국사"},{"code":"6사06-02","desc":"8･15 광복과 6･25 전쟁이 사회와 생활에 미친 영향을 파악한다.","domain":"한국사"},{"code":"6사07-01","desc":"분단으로 나타난 문제점과 분단과 관련된 장소를 평화의 장소로 만들려는 노력 등을 알아보고, 평화 통일을 위해 우리가 할 수 있는 일을 탐색한다.","domain":"한국사"},{"code":"6사07-02","desc":"민주화와 산업화로 인해 달라진 생활 문화를 사례를 들어 이해한다.","domain":"한국사"},{"code":"6사08-01","desc":"민주주의에서 선거의 의미와 역할을 파악하고, 시민의 주권 행사를 위해 선거에 참여하는 태도를 기른다.","domain":"정치"},{"code":"6사08-02","desc":"민주 국가에서 국회, 행정부, 법원이 하는 일에 대해 이해하고, 각 국가기관의 권력을 분립하는 이유를 탐색한다.","domain":"정치"},{"code":"6사08-03","desc":"민주주의에서 미디어의 의미와 역할을 이해하고, 여러 가지 미디어의 내용을 비판적으로 분석하여 올바르게 이용하는 태도를 기른다.","domain":"사회⋅문화"},{"code":"6사09-01","desc":"세계를 표현하는 다양한 공간 자료의 특징을 이해하고, 지구본과 세계지도에서 위치를 표현하는 방법을 익힌다.","domain":"지리 인식"},{"code":"6사09-02","desc":"세계 주요 대륙과 대양을 파악하고, 우리나라 및 세계 여러 국가의 위치와 영토의 특징을 이해한다.","domain":"지리 인식"},{"code":"6사10-01","desc":"세계 여러 지역의 지형 경관을 살펴보고, 이를 통해 다양한 삶의 모습을 이해한다.","domain":"자연환경과 인간생활"},{"code":"6사10-02","desc":"세계의 다양한 기후를 알아보고 기후 환경과 인간생활 간의 관계를 탐구한다.","domain":"자연환경과 인간생활"},{"code":"6사11-01","desc":"시장경제에서 가계와 기업의 역할을 이해하고, 근로자의 권리와 기업의 자유 및 책임을 탐색한다.","domain":"경제"},{"code":"6사11-02","desc":"경제성장이 우리 생활에 미치는 영향을 파악하고, 빠른 경제성장으로 발생한 문제의 해결 방안을 탐색한다.","domain":"경제"},{"code":"6사11-03","desc":"사례를 통해 무역의 의미를 이해하고, 국가 간 무역이 발생하는 이유를 탐구한다.","domain":"경제"},{"code":"6사12-01","desc":"세계 인구 분포를 파악하고 여러 국가의 인구 특징을 탐구한다.","domain":"인문환경과 인간생활"},{"code":"6사12-02","desc":"지구촌을 위협하는 다양한 문제들을 파악하고, 지속가능한 미래를 위한 해결 방안을 탐색한다.","domain":"지속가능한 세계"}],"수학":[{"code":"6수01-01","desc":"덧셈, 뺄셈, 곱셈, 나눗셈의 혼합 계산에서 계산하는 순서를 알고, 혼합 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수01-02","desc":"실생활과 연결하여 이상, 이하, 초과, 미만의 의미와 쓰임을 알고, 이를 활용하여 수의 범위를 나타낼 수 있다.","domain":"수와 연산"},{"code":"6수01-03","desc":"어림값을 구하기 위한 방법으로 올림, 버림, 반올림의 의미와 필요성을 알고, 이를 실생활에 활용함으로써 수학의 유용성을 인식할 수 있다.","domain":"수와 연산"},{"code":"6수01-04","desc":"약수, 공약수, 최대공약수를 이해하고 구할 수 있다.","domain":"수와 연산"},{"code":"6수01-05","desc":"배수, 공배수, 최소공배수를 이해하고 구할 수 있다.","domain":"수와 연산"},{"code":"6수01-06","desc":"크기가 같은 분수를 만드는 방법을 이해하고, 분수를 약분, 통분할 수 있다.","domain":"수와 연산"},{"code":"6수01-07","desc":"분모가 다른 분수의 크기를 비교하고 그 방법을 설명할 수 있다.","domain":"수와 연산"},{"code":"6수01-08","desc":"분모가 다른 분수의 덧셈과 뺄셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수01-09","desc":"분수의 곱셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수01-10","desc":"‘(자연수) ÷ (자연수)’에서 나눗셈의 몫을 분수로 나타낼 수 있다.","domain":"수와 연산"},{"code":"6수01-11","desc":"분수의 나눗셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수01-12","desc":"분수와 소수의 관계를 이해하고 크기를 비교하며 그 방법을 설명할 수 있다.","domain":"수와 연산"},{"code":"6수01-13","desc":"소수의 곱셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수01-14","desc":"‘(자연수) ÷ (자연수)’에서 나눗셈의 몫을 소수로 나타낼 수 있다.","domain":"수와 연산"},{"code":"6수01-15","desc":"소수의 나눗셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","domain":"수와 연산"},{"code":"6수02-01","desc":"한 양이 변할 때 다른 양이 그에 종속하여 변하는 대응 관계를 나타낸 표에서 규칙을 찾아 설명하고, □, △ 등을 사용하여 식으로 나타낼 수 있다.","domain":"변화와 관계"},{"code":"6수02-02","desc":"두 양의 크기를 비교하는 상황을 통해 비의 개념을 이해하고, 두 양의 관계를 비로 나타낼 수 있다.","domain":"변화와 관계"},{"code":"6수02-03","desc":"비율을 이해하고, 비율을 분수, 소수, 백분율로 나타낼 수 있다.","domain":"변화와 관계"},{"code":"6수02-04","desc":"비례식을 알고, 그 성질을 이해하며, 이를 활용하여 간단한 비례식을 풀 수 있다.","domain":"변화와 관계"},{"code":"6수02-05","desc":"비례배분을 알고, 주어진 양을 비례배분 할 수 있다.","domain":"변화와 관계"},{"code":"6수03-01","desc":"도형의 합동을 이해하고, 합동인 도형의 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"6수03-02","desc":"실생활과 연결하여 선대칭도형과 점대칭도형을 이해하고 그릴 수 있다.","domain":"도형과 측정"},{"code":"6수03-03","desc":"직육면체와 정육면체를 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"6수03-04","desc":"직육면체와 정육면체의 겨냥도와 전개도를 그릴 수 있다.","domain":"도형과 측정"},{"code":"6수03-05","desc":"각기둥과 각뿔을 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"6수03-06","desc":"각기둥의 전개도를 그릴 수 있다.","domain":"도형과 측정"},{"code":"6수03-07","desc":"원기둥, 원뿔, 구를 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","domain":"도형과 측정"},{"code":"6수03-08","desc":"원기둥의 전개도를 그릴 수 있다.","domain":"도형과 측정"},{"code":"6수03-09","desc":"쌓기나무로 만든 입체도형을 보고 사용된 쌓기나무의 개수를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수03-10","desc":"쌓기나무로 만든 입체도형의 위, 앞, 옆에서 본 모양을 표현할 수 있고, 이러한 표현을 보고 입체도형의 모양을 추측할 수 있다.","domain":"도형과 측정"},{"code":"6수03-11","desc":"평면도형의 둘레를 이해하고, 기본적인 평면도형의 둘레를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수03-12","desc":"넓이 단위 1cm², 1m², 1km²를 알며, 그 관계를 이해한다.","domain":"도형과 측정"},{"code":"6수03-13","desc":"직사각형과 정사각형의 넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수03-14","desc":"평행사변형, 삼각형, 사다리꼴, 마름모의 넓이를 구하는 방법을 다양하게 추론하고, 이와 관련된 문제를 해결할 수 있다.","domain":"도형과 측정"},{"code":"6수03-15","desc":"여러 가지 원 모양 물체의 원주와 지름을 측정하는 활동을 통하여, 원주율이 일정한 값임을 알고 그 근삿값을 사용할 수 있다.","domain":"도형과 측정"},{"code":"6수03-16","desc":"원주와 원의 넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수03-17","desc":"직육면체와 정육면체의 겉넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수03-18","desc":"부피 단위 1cm³, 1m³를 알며, 그 관계를 이해한다.","domain":"도형과 측정"},{"code":"6수03-19","desc":"직육면체와 정육면체의 부피를 구하는 방법을 이해하고, 이를 구할 수 있다.","domain":"도형과 측정"},{"code":"6수04-01","desc":"평균의 의미를 알고, 자료를 수집하여 평균을 구하고 해석할 수 있다.","domain":"자료와 가능성"},{"code":"6수04-02","desc":"자료를 수집하여 띠그래프나 원그래프로 나타내고 해석할 수 있다.","domain":"자료와 가능성"},{"code":"6수04-03","desc":"탐구 문제를 설정하고, 그에 맞는 자료를 수집, 정리하여 적절한 그래프로 나타내고 해석할 수 있다.","domain":"자료와 가능성"},{"code":"6수04-04","desc":"사건이 일어날 가능성을 말로 표현하고 비교할 수 있다.","domain":"자료와 가능성"},{"code":"6수04-05","desc":"사건이 일어날 가능성을 수로 나타낼 수 있다.","domain":"자료와 가능성"},{"code":"6수04-06","desc":"자료를 이용하여 가능성을 예상하고, 가능성에 근거하여 적절한 판단을 내릴 수 있다.","domain":"자료와 가능성"}],"과학":[{"code":"6과01-01","desc":"지층의 특징을 알고, 지층의 형성 과정을 모형으로 표현할 수 있다.","domain":"지구와 우주"},{"code":"6과01-02","desc":"지층이 퇴적암으로 이루어짐을 알고, 퇴적암을 알갱이의 크기에 따라 분류할 수 있다.","domain":"지구와 우주"},{"code":"6과01-03","desc":"화석의 생성 과정을 모형으로 설명하고, 지구의 과거 생물과 환경을 추리하는 활동을 통해 화석의 가치를 인식할 수 있다.","domain":"지구와 우주"},{"code":"6과02-01","desc":"물체를 보기 위해서 빛이 있어야 함을 알고, 빛의 성질에 대해 흥미를 느낄 수 있다.","domain":"운동과 에너지"},{"code":"6과02-02","desc":"빛이 나아가는 현상을 관찰하여 빛이 직진, 반사, 굴절하는 성질이 있음을 말할 수 있다.","domain":"운동과 에너지"},{"code":"6과02-03","desc":"거울과 렌즈의 쓰임새를 조사하고 거울이나 렌즈를 이용한 장치를 창의적으로 만들 수 있다.","domain":"운동과 에너지"},{"code":"6과03-01","desc":"용해 현상의 의미를 알고, 용질의 종류와 물의 온도에 따라 물에 녹는 용질의 양이 달라짐을 비교할 수 있다.","domain":"물질"},{"code":"6과03-02","desc":"용질이나 용매의 양에 따라 용액의 진하기가 달라짐을 관찰하고, 용액의 상대적인 진하기를 비교할 수 있다.","domain":"물질"},{"code":"6과03-03","desc":"일상생활에서 용액이 쓰이는 사례를 조사하여 용액의 필요성을 알리는 자료를 만들고 공유할 수 있다.","domain":"물질"},{"code":"6과04-01","desc":"뼈와 근육의 생김새를 관찰하고 모형을 만들어 몸이 움직이는 원리를 설명할 수 있다.","domain":"생명"},{"code":"6과04-02","desc":"소화, 순환, 호흡, 배설 기관의 구조와 기능을 알아보고, 우리 몸의 여러 기관이 서로 관련되어 있음을 설명할 수 있다.","domain":"생명"},{"code":"6과04-03","desc":"우리 몸의 여러 기관과 관련된 질병을 조사하고, 건강을 유지하기 위한 생활 방식을 실천할 수 있다.","domain":"생명"},{"code":"6과05-01","desc":"알갱이의 크기가 다른 고체 혼합물과 골고루 섞이지 않는 액체 혼합물을 분리할 수 있다.","domain":"물질"},{"code":"6과05-02","desc":"물에 용해되는 성질을 이용하여 고체 혼합물을 분리하고, 물을 증발시켜 물에 용해된 고체 물질을 분리할 수 있다.","domain":"물질"},{"code":"6과05-03","desc":"지속가능한 삶을 위한 과학기술 사례 중 혼합물의 분리를 이용한 장치를 조사하여 공유할 수 있다.","domain":"물질"},{"code":"6과06-01","desc":"기상 요소를 조사하고, 날씨가 우리 생활에 주는 영향을 인식할 수 있다.","domain":"지구와 우주"},{"code":"6과06-02","desc":"이슬, 안개, 구름을 관찰하고, 공통점과 차이점을 찾을 수 있다.","domain":"지구와 우주"},{"code":"6과06-03","desc":"고기압과 저기압의 분포에 따른 날씨의 특징을 기상 요소로 표현할 수 있다.","domain":"지구와 우주"},{"code":"6과07-01","desc":"물체의 따뜻하고 차가운 정도를 온도로 표현함을 알고, 온도계를 이용하여 온도를 측정할 수 있다.","domain":"운동과 에너지"},{"code":"6과07-02","desc":"온도가 다른 두 물체가 접촉했을 때 두 물체의 온도 변화를 관찰하고 그 원인을 추리할 수 있다.","domain":"운동과 에너지"},{"code":"6과07-03","desc":"주위에서 열의 이동으로 나타나는 현상을 관찰하여 열의 이동 방식이 다양함을 설명할 수 있다.","domain":"운동과 에너지"},{"code":"6과07-04","desc":"일상생활에서 단열을 이용하는 사례를 조사하고, 온도를 오랫동안 일정하게 유지할 수 있는 장치를 창의적으로 만들 수 있다.","domain":"운동과 에너지"},{"code":"6과08-01","desc":"우리가 생활에서 이용하는 다양한 자원을 조사하고, 자원의 유한함을 설명할 수 있다.","domain":"과학과 사회"},{"code":"6과08-02","desc":"재생에너지의 종류를 조사하고, 에너지를 지속가능하게 이용하는 방법에 관심을 갖는다.","domain":"과학과 사회"},{"code":"6과08-03","desc":"자원과 에너지의 효율적인 이용 방법에 대해 탐색하고, 생활 속에서 실천할 수 있는 다양한 사례를 공유할 수 있다.","domain":"과학과 사회"},{"code":"6과09-01","desc":"여러 가지 용액에 지시약을 넣었을 때의 변화를 관찰하여 용액을 산성 용액과 염기성 용액으로 분류할 수 있다.","domain":"물질"},{"code":"6과09-02","desc":"산성 용액과 염기성 용액의 성질을 관찰하고, 산성 용액과 염기성 용액을 섞을 때 용액의 성질 변화를 실험을 통해 추론할 수 있다.","domain":"물질"},{"code":"6과09-03","desc":"우리 주변에서 산성 용액과 염기성 용액을 이용하는 예를 찾아서 설명할 수 있다.","domain":"물질"},{"code":"6과09-04","desc":"산성화로 인한 환경의 피해 사례를 소개하는 자료를 만들고 공유할 수 있다.","domain":"물질"},{"code":"6과10-01","desc":"운동하는 물체는 시간에 따라 위치가 변화함을 알고 그 변화를 표현할 수 있다.","domain":"운동과 에너지"},{"code":"6과10-02","desc":"물체의 이동 거리와 걸린 시간을 측정하여 속력을 구하고 빠르기를 비교할 수 있다.","domain":"운동과 에너지"},{"code":"6과10-03","desc":"속력과 관련된 안전 수칙과 안전장치를 조사한 결과를 공유하고 일상생활에서 교통안전을 실천할 수 있다.","domain":"운동과 에너지"},{"code":"6과11-01","desc":"생물을 이루고 있는 기본 단위인 세포를 현미경으로 관찰할 수 있다.","domain":"생명"},{"code":"6과11-02","desc":"식물의 각 기관의 구조를 관찰하고, 기능을 알아보는 실험을 수행하여 식물 각 기관의 구조와 기능을 설명할 수 있다.","domain":"생명"},{"code":"6과11-03","desc":"여러 가지 식물의 특징을 설명하는 자료를 만들어 공유할 수 있다.","domain":"생명"},{"code":"6과12-01","desc":"하루 동안 태양과 별을 관찰하여 위치 변화의 규칙성을 찾을 수 있다.","domain":"지구와 우주"},{"code":"6과12-02","desc":"지구의 자전을 알고, 낮과 밤이 생기는 이유를 설명할 수 있다.","domain":"지구와 우주"},{"code":"6과12-03","desc":"지구의 공전을 알고, 계절에 따라 달라지는 별자리를 관찰할 수 있다.","domain":"지구와 우주"},{"code":"6과13-01","desc":"태양 고도 측정기로 하루 동안 태양 고도, 그림자 길이, 기온을 측정하여 이들의 관계를 찾을 수 있다.","domain":"지구와 우주"},{"code":"6과13-02","desc":"계절에 따른 태양의 남중 고도와 낮의 길이 사이의 관계를 자료에 근거하여 추론할 수 있다.","domain":"지구와 우주"},{"code":"6과13-03","desc":"계절 변화의 원인을 지구의 자전축이 기울어진 채 공전하는 것으로 설명할 수 있다.","domain":"지구와 우주"},{"code":"6과14-01","desc":"물질의 성질이 달라지는 변화와 달라지지 않는 변화를 관찰하여 비교할 수 있다.","domain":"물질"},{"code":"6과14-02","desc":"물질이 연소할 때 나타나는 공통적인 현상을 관찰하고, 연소의 조건을 찾을 수 있다.","domain":"물질"},{"code":"6과14-03","desc":"연소 전과 후의 물질을 비교하여 연소 과정에서 물질의 성질이 달라짐을 설명할 수 있다.","domain":"물질"},{"code":"6과14-04","desc":"연소 과정에서 생성되는 물질로 인한 생태계의 피해 사례를 수집하고 분석하여 해결책을 제안하고 공유할 수 있다.","domain":"물질"},{"code":"6과15-01","desc":"전지와 전구, 전선을 연결하여 전구에 불을 켜보고, 불이 켜지는 전기 회로의 특징을 말할 수 있다.","domain":"운동과 에너지"},{"code":"6과15-02","desc":"전지 한 개를 연결한 전기 회로와 전지 두 개를 직렬연결한 전기 회로의 특징을 비교할 수 있다.","domain":"운동과 에너지"},{"code":"6과15-03","desc":"전자석을 만들어 전자석의 성질을 탐색하고 전자석이 사용되는 예를 조사할 수 있다.","domain":"운동과 에너지"},{"code":"6과15-04","desc":"전기를 효율적이고 안전하게 사용하는 방법을 조사하여 실천 계획을 세우고 일상생활에서 실천할 수 있다.","domain":"운동과 에너지"},{"code":"6과16-01","desc":"미래 사회에 일어날 수 있는 문제를 조사하고, 문제를 해결하는 데 과학이 기여할 수 있는 방법을 토의할 수 있다.","domain":"과학과 사회"},{"code":"6과16-02","desc":"다양한 진로가 과학과 관련됨을 알고, 자신의 진로를 과학과 관련지어 설명할 수 있다.","domain":"과학과 사회"}],"실과":[{"code":"6실01-01","desc":"아동기의 발달 특징을 이해하고 성장발달에 필요한 조건과 방법을 탐색한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-02","desc":"건강한 발달을 위한 자기 관리 방법을 탐색하고, 일상생활 속에서 올바른 생활습관과 태도를 갖도록 계획하여 실천한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-03","desc":"건강한 가정생활을 위해 가족원 모두에게 다양한 요구가 있음을 이해하여 서로에 대한 배려와 돌봄을 실천한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-04","desc":"균형 잡힌 식사의 중요성과 조건을 탐색하여 자신의 식습관을 검토해 보고 건강한 식습관 형성에 적용한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-05","desc":"옷의 기능을 이해하여 평소 자신의 옷차림을 살펴보고 건강하고 적절한 옷 입기를 실천한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-06","desc":"가정일을 수행하는 과정에서 일의 가치와 중요성을 이해하고, 가정생활을 유지하는 데 필요한 가정일의 종류를 탐색한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실01-07","desc":"직업의 필요성을 이해하고 적성, 흥미, 성격에 따라 진로 발달 계획을 세우고 주도적으로 탐색한다.","domain":"인간 발달과 주도적 삶"},{"code":"6실02-01","desc":"시간이나 용돈과 같은 생활자원이 제한되어 있음을 이해하고, 생활자원의 사용가치를 높이는 방법을 탐색한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-02","desc":"생활자원 관리의 필요성을 인식하고, 합리적인 생활자원의 보관과 활용방법을 익힌다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-03","desc":"생활자원의 올바른 사용이 가정과 환경에 도움이 됨을 이해하고 재활용, 재사용 등 환경을 고려한 관리 방법을 실천한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-04","desc":"식재료 생산과 선택의 중요성을 인식하고 여러 식재료의 고유하고 다양한 맛을 경험하여 자신의 식사에 적용한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-05","desc":"음식의 조리과정을 체험하여 자신의 간식이나 식사를 스스로 마련하는 식생활을 실천한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-06","desc":"우리나라 밥상차림을 이해하고, 함께 식사하는 즐거움을 경험하면서 이 과정에서 식사 예절을 실천한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-07","desc":"의생활 용품이 만들어지는 과정을 탐색하여 옷이나 생활용품이 어떻게 구성되는지를 설명한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-08","desc":"다양한 도구와 재료를 활용하여 간단한 생활용품을 만들어 보면서 직접 만들어 쓰는 즐거움과 창의적 태도를 가진다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-09","desc":"간단한 옷의 수선 등 의생활과 관련된 문제를 스스로 해결하려는 태도를 가진다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-10","desc":"자신의 생활공간을 쾌적하고 위생적으로 관리하는 것의 중요성을 알고, 정리정돈과 청소 및 쓰레기 처리의 방법을 익혀 실천한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실02-11","desc":"생태 지향적 삶을 위해 자신의 의식주 생활에서 할 수 있는 구체적인 행동을 계획하여 실천한다.","domain":"생활환경과 지속가능한 선택"},{"code":"6실03-01","desc":"발명의 의미를 이해하고, 일상생활을 바꾼 발명품을 탐색하여 발명과 기술에 대한 중요성과 가치를 인식한다.","domain":"기술적 문제해결과 혁신"},{"code":"6실03-02","desc":"발명사고기법과 기술적 문제 해결 과정을 이해하고, 다양한 재료를 활용하여 생활 속 문제를 해결할 수 있는 창의적인 제품을 구상하고 만들어 봄으로써 실천적 태도를 갖는다.","domain":"기술적 문제해결과 혁신"},{"code":"6실03-03","desc":"발명과 특허의 관계를 이해하고, 특허 침해 사례를 통하여 지식재산권의 중요성을 인식하여 올바른 방법으로 활용한다.","domain":"기술적 문제해결과 혁신"},{"code":"6실03-04","desc":"수송의 의미와 수송 수단의 발달과정에 대한 이해를 바탕으로 생활 속 다양한 수송 수단을 탐색한다.","domain":"기술적 문제해결과 혁신"},{"code":"6실03-05","desc":"수송 수단의 구성 요소를 이해하고, 친환경 에너지를 적용한 다양한 수송 수단의 시제품을 만들어 수송기술의 가치를 인식한다.","domain":"기술적 문제해결과 혁신"},{"code":"6실04-01","desc":"친환경 건설 구조물을 이해하고, 생활 속 건설 구조물을 탐색하여 간단한 구조물을 체험하면서 건설기술에 대한 가치를 인식한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-02","desc":"생활 속 디지털 기술의 중요성을 이해하고, 디지털 기기와 디지털 콘텐츠 저작 도구를 사용하여 발표 자료를 만들어 보면서 디지털 기기의 활용 능력을 기른다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-03","desc":"제작한 발표 자료를 사이버 공간에 공유하고, 건전한 정보기기의 활용을 실천한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-04","desc":"로봇의 개념과 구조를 이해하고, 생활 속 로봇 기능을 체험하여 로봇의 중요성을 인식한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-05","desc":"로봇의 종류와 활용 사례를 통해 작동 원리를 이해하고, 로봇에 대한 관심과 흥미를 가진다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-06","desc":"로봇의 융합 기술을 이해하고, 간단한 로봇을 만들어 코딩과 프로그램을 적용하여 동작시키는 체험을 통해 융합 기술의 가치를 인식한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-07","desc":"생활 속 동식물 자원을 활용 목적에 따라 분류하고 이와 관련된 다양한 생명기술을 탐색한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-08","desc":"생활 속 동식물을 기르고 가꾸는 방법을 알고, 동식물을 기르고 가꾸는 체험을 통해 생태 존중감을 가진다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-09","desc":"동식물 자원의 친환경 농업 사례를 통해 지속가능한 농업이 순환되고 있음을 인식하고 농업의 미래가치를 인식한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-10","desc":"생활 속에서 농업활동과 관련된 모습을 분석하고 이에 따른 농업활동을 체험하여 농업에 대한 관심을 두고 이를 생활 속에서 실천한다.","domain":"지속가능한 기술과 융합"},{"code":"6실04-11","desc":"농업과 농촌의 다원적인 역할과 가치를 이해하고 미래 농업과 관련된 다양한 직업 세계를 탐색한다.","domain":"지속가능한 기술과 융합"},{"code":"6실05-01","desc":"컴퓨터를 활용한 생활 속 문제해결 사례를 탐색하고 일상생활 속 문제를 해결하기 위한 알고리즘을 다양한 방법으로 표현한다.","domain":"디지털 사회와 인공지능"},{"code":"6실05-02","desc":"컴퓨터에게 명령하는 방법을 체험하고, 주어진 문제를 해결하는 프로그램을 작성한다.","domain":"디지털 사회와 인공지능"},{"code":"6실05-03","desc":"실생활의 문제를 해결하는 프로그램을 협력하여 작성하고, 산출물을 타인과 공유한다.","domain":"디지털 사회와 인공지능"},{"code":"6실05-04","desc":"디지털 데이터와 아날로그 데이터의 특징을 이해하고, 인공지능에 활용할 수 있는 데이터의 유형이나 형태를 탐색한다.","domain":"디지털 사회와 인공지능"},{"code":"6실05-05","desc":"인공지능이 만들어지는 과정을 체험하고, 인공지능이 사회에 미치는 영향을 탐색한다.","domain":"디지털 사회와 인공지능"}],"체육":[{"code":"6체01-01","desc":"건강 체력과 운동 체력의 의미와 요소를 파악하고 다양한 운동 방법을 탐색한다.","domain":"운동"},{"code":"6체01-02","desc":"건강 체력과 운동 체력을 측정하고 자신의 체력 수준에 맞는 운동을 시도한다.","domain":"운동"},{"code":"6체01-03","desc":"성장 발달의 의미와 특성을 이해하고 운동과의 관계를 파악한다.","domain":"운동"},{"code":"6체01-04","desc":"운동 및 생활 속 위험 상황, 성장 발달을 저해하는 생활 방식의 문제점을 파악하고 예방 및 대처 방법을 익혀 안전하게 활동한다.","domain":"운동"},{"code":"6체01-05","desc":"체력 운동을 끈기 있게 규칙적으로 수행한다.","domain":"운동"},{"code":"6체01-06","desc":"성장과 발달 과정에서 나타나는 신체적, 정서적, 사회적 특성과 차이를 공감하고 위험 상황에 침착하게 대처한다.","domain":"운동"},{"code":"6체02-01","desc":"기술형 스포츠의 의미와 유형을 파악한다.","domain":"스포츠"},{"code":"6체02-02","desc":"기술형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","domain":"스포츠"},{"code":"6체02-03","desc":"기술형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","domain":"스포츠"},{"code":"6체02-04","desc":"전략형 스포츠의 의미와 유형을 파악한다.","domain":"스포츠"},{"code":"6체02-05","desc":"전략형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","domain":"스포츠"},{"code":"6체02-06","desc":"전략형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","domain":"스포츠"},{"code":"6체02-07","desc":"생태형 스포츠의 의미와 유형을 파악한다.","domain":"스포츠"},{"code":"6체02-08","desc":"생태형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","domain":"스포츠"},{"code":"6체02-09","desc":"생태형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","domain":"스포츠"},{"code":"6체02-10","desc":"스포츠 활동에 참여하며 목표를 달성하기 위한 의지를 실천하고 상대의 기술을 인정한다.","domain":"스포츠"},{"code":"6체02-11","desc":"스포츠 활동에 참여하며 팀원과 협력하고 구성원을 배려한다.","domain":"스포츠"},{"code":"6체02-12","desc":"스포츠 활동에 참여하며 환경을 아끼고 감사하는 태도를 실천한다.","domain":"스포츠"},{"code":"6체03-01","desc":"표현 활동의 의미와 유형을 파악한다.","domain":"표현"},{"code":"6체03-02","desc":"스포츠 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","domain":"표현"},{"code":"6체03-03","desc":"스포츠 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","domain":"표현"},{"code":"6체03-04","desc":"전통 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","domain":"표현"},{"code":"6체03-05","desc":"전통 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","domain":"표현"},{"code":"6체03-06","desc":"현대 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","domain":"표현"},{"code":"6체03-07","desc":"현대 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","domain":"표현"},{"code":"6체03-08","desc":"다양한 표현 활동 유형을 수용하고, 움직임 표현의 아름다움을 추구한다.","domain":"표현"}],"음악":[{"code":"6음01-01","desc":"바른 주법과 표현 기법을 익혀 노래나 악기로 느낌을 담아 연주한다.","domain":"연주"},{"code":"6음01-02","desc":"음악 요소를 살려 노래나 악기로 발표하고 과정을 돌아본다.","domain":"연주"},{"code":"6음01-03","desc":"소리의 어울림을 생각하며 다양한 방법으로 함께 표현한다.","domain":"연주"},{"code":"6음01-04","desc":"간단한 형태의 연주를 준비하여 생활 속 음악 활동에 참여한다.","domain":"연주"},{"code":"6음02-01","desc":"음악을 듣고 음악의 요소를 감지하며 구별한다.","domain":"감상"},{"code":"6음02-02","desc":"다양한 문화권의 음악을 듣고 음악적 특징과 음악의 간단한 구성을 인식한다.","domain":"감상"},{"code":"6음02-03","desc":"다양한 종류의 음악을 듣고 음악의 배경과 활용을 설명한다.","domain":"감상"},{"code":"6음02-04","desc":"생활 속에서 음악을 찾아 들으며 아름다움을 느끼고 공감한다.","domain":"감상"},{"code":"6음02-05","desc":"우리나라 음악 문화유산을 찾아 듣고 국악의 가치를 인식한다.","domain":"감상"},{"code":"6음03-01","desc":"느낌과 아이디어를 떠올려 여러 매체나 방법으로 자신감 있게 표현한다.","domain":"창작"},{"code":"6음03-02","desc":"기초적인 기보를 활용하여 간단한 조건에 따라 악곡의 일부를 바꾼다.","domain":"창작"},{"code":"6음03-03","desc":"음악의 요소를 활용하여 간단한 음악을 만든다.","domain":"창작"},{"code":"6음03-04","desc":"생활 주변 상황이나 이야기를 활용하여 음악을 만들며 열린 태도를 갖는다.","domain":"창작"}],"미술":[{"code":"6미01-01","desc":"다양한 감각과 매체를 활용하여 자신과 대상을 탐색할 수 있다.","domain":"미적 체험"},{"code":"6미01-02","desc":"자신이나 주변 환경에서 찾은 감각적 특징, 느낌, 생각 등을 관련지어 나타낼 수 있다.","domain":"미적 체험"},{"code":"6미01-03","desc":"주변 환경에 대한 민감한 태도로 대상과 상호 작용하며 새로운 의미를 발견할 수 있다.","domain":"미적 체험"},{"code":"6미01-04","desc":"이미지가 나타내는 의미를 비판적으로 이해하고 느낌과 생각을 전달하는 데 활용할 수 있다.","domain":"미적 체험"},{"code":"6미02-01","desc":"다양한 방법으로 아이디어를 연결하여 확장된 표현 주제로 발전시킬 수 있다.","domain":"표현"},{"code":"6미02-02","desc":"디지털 매체 등 다양한 표현 재료와 용구를 탐색하여 작품 제작에 활용할 수 있다.","domain":"표현"},{"code":"6미02-03","desc":"조형 요소의 어울림을 통해 조형 원리를 이해하고 주제 표현에 연결할 수 있다.","domain":"표현"},{"code":"6미02-04","desc":"주제 표현에 의지를 갖고 표현 과정을 돌아보며 작품을 발전시킬 수 있다.","domain":"표현"},{"code":"6미02-05","desc":"미술과 타 교과의 내용과 방법을 융합하는 활동을 자유롭게 시도할 수 있다.","domain":"표현"},{"code":"6미03-01","desc":"미술 작품을 작품이 만들어진 시대적, 지역적 배경 등과 연결하여 이해할 수 있다.","domain":"감상"},{"code":"6미03-02","desc":"미술 작품의 내용과 형식을 분석하여 작품의 특징을 설명할 수 있다.","domain":"감상"},{"code":"6미03-03","desc":"공동체의 미술 문화 활동에 관심을 가지고 참여하며 경험을 공유할 수 있다.","domain":"감상"},{"code":"6미03-04","desc":"다양한 방법을 활용하여 작품을 감상하며 작품에 관한 관점을 존중할 수 있다.","domain":"감상"}],"영어":[{"code":"6영01-01","desc":"간단한 단어, 어구, 문장을 듣고 강세, 리듬, 억양을 식별한다.","domain":"이해"},{"code":"6영01-02","desc":"간단한 단어, 어구, 문장을 강세, 리듬, 억양에 맞게 소리 내어 읽는다.","domain":"이해"},{"code":"6영01-03","desc":"간단한 단어, 어구, 문장의 의미를 이해한다.","domain":"이해"},{"code":"6영01-04","desc":"일상생활 주제에 관한 담화나 글의 세부 정보를 파악한다.","domain":"이해"},{"code":"6영01-05","desc":"일상생활 주제에 관한 담화나 글의 중심 내용을 파악한다.","domain":"이해"},{"code":"6영01-06","desc":"일상생활 주제에 관한 담화나 글에서 일이나 사건의 순서를 파악한다.","domain":"이해"},{"code":"6영01-07","desc":"적절한 전략을 활용하여 일상생활 주제에 관한 담화나 글을 듣거나 읽는다.","domain":"이해"},{"code":"6영01-08","desc":"다양한 매체로 표현된 담화나 글을 흥미와 자신감을 가지고 듣거나 읽는다.","domain":"이해"},{"code":"6영01-09","desc":"시, 노래, 이야기를 공감하며 듣거나 읽는다.","domain":"이해"},{"code":"6영01-10","desc":"일상생활 주제나 문화에 관한 담화나 글을 포용의 태도로 듣거나 읽는다.","domain":"이해"},{"code":"6영02-01","desc":"간단한 단어, 어구, 문장을 강세, 리듬, 억양에 맞게 말한다.","domain":"표현"},{"code":"6영02-02","desc":"실물, 그림, 동작 등을 보고 간단한 단어, 어구, 문장으로 말하거나 쓴다.","domain":"표현"},{"code":"6영02-03","desc":"알파벳 대소 문자와 문장 부호를 문장에서 바르게 사용한다.","domain":"표현"},{"code":"6영02-04","desc":"주변 사람이나 사물을 간단한 문장으로 소개하거나 묘사한다.","domain":"표현"},{"code":"6영02-05","desc":"주변 장소나 위치, 행동 순서나 방법을 간단한 문장으로 설명한다.","domain":"표현"},{"code":"6영02-06","desc":"자신의 감정이나 의견, 경험이나 계획을 간단한 문장으로 표현한다.","domain":"표현"},{"code":"6영02-07","desc":"일상생활 주제에 관한 담화나 글의 세부 정보를 간단한 문장으로 묻거나 답한다.","domain":"표현"},{"code":"6영02-08","desc":"예시문을 참고하여 목적에 맞는 간단한 글을 쓴다.","domain":"표현"},{"code":"6영02-09","desc":"적절한 매체와 전략을 활용하여 창의적으로 의미를 생성하고 표현한다.","domain":"표현"},{"code":"6영02-10","desc":"의사소통 활동에 흥미와 자신감을 가지고 참여하여 협력적으로 수행한다.","domain":"표현"}]}};
+
+</script>
+<script>
+/* ═════════ 데이터 ═════════ */
+const PHASES = [
+  { key:'generate', ko:'자유롭게 질문 만들기' },
+  { key:'refine',   ko:'더 나은 질문 만들기' },
+  { key:'inquire',  ko:'질문에 답 찾기' },
+  { key:'reflect',  ko:'성찰과 다음 배움' },
+];
+const LEVELS = [
+  { key:'fact',     ko:'사실 확인' },
+  { key:'link',     ko:'연결·설명' },
+  { key:'transfer', ko:'전이·일반화' },
+];
+const LEVEL_TEMPLATE = {
+  fact:'학습 내용의 개별 사실·요소를 정확히 제시한다',
+  link:'핵심 요소 간 관계를 근거를 들어 설명한다',
+  transfer:'학습한 원리를 새로운 맥락에 적용하여 예측·일반화한다',
+};
+const SELFCHECK_TEMPLATE = {
+  fact:'나는 사실과 요소를 정확히 나타냈다',
+  link:'나는 요소 간의 관계를 까닭을 들어 설명했다',
+  transfer:'나는 배운 원리로 새로운 상황을 예측하거나 적용했다',
+};
+const GHOST = {
+  'generate:fact':'무엇을 보고 궁금증이 터지게 할까요?',
+  'generate:link':"'왜·어떻게'가 나올 자료는 무엇일까요?",
+  'generate:transfer':'삶과 만나는 질문은 무엇일까요?',
+  'refine:fact':'첫 질문을 어떻게 더 낫게 다듬게 할까요?',
+  'refine:link':'질문에 개념 렌즈를 어떻게 끼우게 할까요?',
+  'refine:transfer':'질문을 새 맥락으로 어떻게 넓히게 할까요?',
+  'inquire:fact':'답의 근거를 어디서 찾게 할까요?',
+  'inquire:link':'근거와 답을 어떻게 잇게 할까요?',
+  'inquire:transfer':'답을 다른 상황에 적용해 보게 한다면?',
+  'reflect:fact':'새로 안 것을 어떻게 꺼내게 할까요?',
+  'reflect:link':'질문 전·후의 변화를 어떻게 비교하게 할까요?',
+  'reflect:transfer':'다음 배움의 질문을 스스로 세우게 하려면?',
+};
+/* 기법 라이브러리 — 국면별로 필터해 고르는 예시 문구 12종 */
+const TECHS = [
+  { id:'socratic', ko:'소크라테스 질문법', emoji:'💬', phases:['refine','reflect'],
+    seed:'친구의 주장에 대해 (1)명료화 (2)근거 확인 (3)대안 관점 (4)함의 (5)메타 질문 중 3개 이상 물어보세요.' },
+  { id:'why-5', ko:'왜냐고 5번 묻기', emoji:'❓', phases:['refine','inquire'],
+    seed:'첫 질문에 답한 뒤 그 답에 다시 "왜?"를 5번 이어 물어, 표면적 답 뒤의 근본 원인·개념을 드러내 보세요.' },
+  { id:'concept-lens', ko:'개념 렌즈 바꾸기', emoji:'🔍', phases:['refine','inquire'],
+    seed:'같은 자료를 "원인·결과", "부분·전체", "변화·안정" 렌즈로 각각 다시 보고 질문을 하나씩 만들어 보세요.' },
+  { id:'6-hats', ko:'여섯 색깔 모자', emoji:'🎩', phases:['refine'],
+    seed:'같은 질문을 사실(흰)·감정(빨)·비판(검)·긍정(노)·창의(초)·관리(파) 관점으로 각각 재작성해 봅시다.' },
+  { id:'kwl', ko:'K-W-L 차트', emoji:'📊', phases:['reflect'],
+    seed:'수업 전에는 "아는 것(K)/궁금한 것(W)"을 채우고, 수업 후에는 "새로 배운 것(L)/더 알고 싶은 새 질문"을 추가해 보세요.' },
+  { id:'lateral', ko:'수평적 읽기', emoji:'🌐', phases:['inquire','refine'],
+    seed:'같은 사건을 다룬 자료 2~3개를 나란히 놓고, 공통점·차이점·의문점을 각각 3개씩 뽑아 보세요.' },
+  { id:'first-letter', ko:'질문 첫 글자 뽑기', emoji:'🎲', phases:['generate'],
+    seed:'자료에서 핵심 단어를 한 글자씩 뽑아, 그 글자로 시작하는 질문을 5개 이상 만들어 보세요.' },
+  { id:'observe-loop', ko:'관찰-질문-관찰 순환', emoji:'🔄', phases:['inquire'],
+    seed:'첫 관찰 → 떠오른 질문 기록 → 그 질문을 확인하려 다시 관찰 → 새 질문 만들기 순환을 세 번 반복해 보세요.' },
+  { id:'meta-log', ko:'질문 성찰 로그', emoji:'📝', phases:['reflect'],
+    seed:'오늘 내가 만든 질문 3개를 (1)명료성 (2)답을 여는 개방성 (3)다른 상황 전이 가능성 3점 척도로 스스로 평가해 봅시다.' },
+];
+/* 교과별 신호 프로파일 — KCBC-매트릭스-정교화-v2.md §2 표를 그대로 옮김(가공·추정 없음) */
+const SUBJECT_PROFILE = {
+  '체육':   { rowSignal:'full',    orderSignal:'none' },
+  '미술':   { rowSignal:'full',    orderSignal:'none' },
+  '음악':   { rowSignal:'full',    orderSignal:'none' },
+  '도덕':   { rowSignal:'full',    orderSignal:'strong' },
+  '수학':   { rowSignal:'low',     orderSignal:'soft' },
+  '과학':   { rowSignal:'low',     orderSignal:'soft' },
+  '사회':   { rowSignal:'low',     orderSignal:'none' },
+  '실과':   { rowSignal:'minimal', orderSignal:'soft' },
+  '국어':   { rowSignal:'gapped',  orderSignal:'soft' },
+  '영어':   { rowSignal:'gapped',  orderSignal:'soft' },
+  '통합':   { rowSignal:'full',    orderSignal:'soft' },
+};
+const LOW_ROW_GHOST = '이 행은 데이터가 채울 수 없는, 선생님만 만들 수 있는 발문 영역입니다.';
+function ghostFor(phase, level){
+  const profile = SUBJECT_PROFILE[state.subject];
+  if(level === 'transfer' && profile?.rowSignal === 'low') return LOW_ROW_GHOST;
+  return GHOST[cellKey(phase, level)];
+}
+/* 과목별 2022 개정 교육과정 별책 번호 (교육부 고시 제2022-33호, NCIC) — AI 성취기준 찾기 답변에 원문 확인처로 안내할 때 사용 */
+const SUBJECT_NCIC = {
+  '국어': { annex:5 }, '사회': { annex:7 }, '도덕': { annex:6 }, '수학': { annex:8 }, '과학': { annex:9 },
+  '체육': { annex:11 }, '음악': { annex:12 }, '미술': { annex:13 }, '영어': { annex:14 }, '실과': { annex:10 },
+  '통합': { annex:15 },
+};
+function gradeBand(g){
+  if(g==='1학년'||g==='2학년') return 'g12';
+  return (g==='3학년'||g==='4학년') ? 'g34' : 'g56';
+}
+const ACHIEVEMENTS = ACHIEVEMENTS_FULL; // 2022 개정 620개 전체 (v2.1 DB)
+const VERB_RE = /(이해한다|설명(할 수 있다|한다)|비교(한다|할 수 있다)|분류(한다|할 수 있다)|조사(한다|하고)|파악한다|분석(한다|할 수 있다)|표현(한다|할 수 있다)|적용(한다|할 수 있다)|평가(한다|할 수 있다)|활용(한다|하여)|말한다|쓴다|갖는다|해결한다|관찰(하여|하고)|수행할 수 있다|구성한다|판단한다|감상(하며|한다)|나눈다|알아본다|기른다)/;
+function suggestPhase(text){
+  if(/비교|평가|판단|타당/.test(text)) return 'refine';
+  if(/적용|전이|예측|해결/.test(text)) return 'reflect';
+  if(/설명|이해|파악|분석|조사/.test(text)) return 'inquire';
+  return null;
+}
+
+/* CBI 핵심 개념어(Erickson & Lanning 매크로 개념 + KCBC 초등 교과 빈출어) — 개념 전이의 앵커 */
+const CONCEPT_DICTIONARY = [
+  '변화','발전','다양성','상호작용','관계','영향','갈등','협력','균형','순환','구조','기능',
+  '원인','결과','시스템','연결','적응','성장','정체성','공동체','책임','권리','지속가능성',
+  '관점','가치','전통','문화','환경','공존','평등','정의','참여','이동','소통','창조','혁신',
+  '패턴','형태','에너지','자원','분배','연속성','차이','유사성','시간','공간','위치','규칙',
+  '질서','권력','자유','안전','보호','존중','배려','소속감','성찰','도전','문제해결','창의성',
+  '상상력','표현','선택','증거','근거',
+];
+function extractConcept(text){
+  if(!text || !text.trim()) return null;
+  let best = null, bestIdx = Infinity;
+  CONCEPT_DICTIONARY.forEach(word => {
+    const idx = text.indexOf(word);
+    if(idx !== -1 && idx < bestIdx){ best = word; bestIdx = idx; }
+  });
+  return best;
+}
+function updateConceptBadge(){
+  const badge = $('#conceptBadge');
+  const text = state.unitQuestion.trim();
+  if(!text){
+    badge.textContent = '개념어: —'; badge.className = 'concept-badge is-empty'; return;
+  }
+  const c = extractConcept(text);
+  if(c){ badge.textContent = `개념어: ${c}`; badge.className = 'concept-badge'; }
+  else { badge.textContent = '개념어: 인식 안 됨'; badge.className = 'concept-badge is-none'; }
+}
+
+/* ═════════ 상태 ═════════ */
+const STORAGE_KEY = 'kcbc-v4:draft';
+const STORAGE_KEY_V3 = 'kcbc-v3:draft'; // v3 → v4 마이그레이션 원본
+const AI_KEY_STORAGE = 'kcbc-v4:ai-key';
+const SCHEMA_VERSION = 'kcbc-v4.0';
+const AI_MODEL_V2 = 'claude-opus-4-8'; // V② 최종 게이트 전용 (확정 결정: opus)
+const AI_MODEL = 'claude-sonnet-5';
+const state = {
+  schemaVersion: SCHEMA_VERSION,
+  grade:'4학년', subject:'사회', title:'', unitQuestion:'', scenario:'',
+  achievements:[], standardCustom:'',
+  /* items: "phase:level" -> { itemId, question, included, score, starter, answerType, kr:[],
+       competency, image:{data,alt}, seedApplied,
+       questionVersion,                 // 질문 문구가 실질 변경될 때마다 +1
+       evidence:{ standards:[], standardSource, conceptWord, soloRationale },  // Phase 1~2에서 채움
+       trace:[ {t, actor, action, detail, before, after} ],
+       validation:{ v1:null, v2:null, teacherApproved:null } }                 // Phase 2에서 채움 */
+  items:{},
+  appTrace:[],   // 문항 단위가 아닌 앱 수준 이력 (PDF 가져오기, AI 성취기준 추가 등)
+  levelExamples:{ fact:'', link:'', transfer:'' },
+  levelExampleDirty:{ fact:false, link:false, transfer:false },
+  activeCell:null,
+};
+let chatHistory = [];
+let techFilter = 'all';
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const cellKey = (p,l) => `${p}:${l}`;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('is-on');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('is-on'), 2400);
+}
+
+/* ═════════ V4 · 이력(Trace) 인프라 ═════════
+   원칙: 기록은 잡무이므로 자동, 판단(승인·반려 수용)은 교사 몫.
+   이미지 data URL 등 대용량 값은 trace에 넣지 않는다(요약만). */
+function uuid(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0, v = c==='x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+const TRACE_TEXT_LIMIT = 300;
+const clip = s => { s = String(s ?? ''); return s.length > TRACE_TEXT_LIMIT ? s.slice(0, TRACE_TEXT_LIMIT) + '…' : s; };
+function newItemMeta(){
+  return {
+    itemId: uuid(),
+    questionVersion: 0,
+    evidence: { standards:[], standardSource:null, conceptWord:null, soloRationale:null },
+    trace: [],
+    validation: { v1:null, v2:null, teacherApproved:null },
+  };
+}
+/* 기존/신규 아이템에 v4 메타 필드를 보장 (구조 자동 채움은 메타뿐 — 내용은 건드리지 않음) */
+function ensureItemMeta(it){
+  if(!it) return it;
+  if(!it.itemId){
+    const meta = newItemMeta();
+    it.itemId = meta.itemId;
+    it.questionVersion = it.questionVersion ?? 0; // 신규 작성은 flushModalTrace가 v1을 매김
+    it.evidence = it.evidence || meta.evidence;
+    it.trace = it.trace || meta.trace;
+    it.validation = it.validation || meta.validation;
+  }
+  return it;
+}
+function traceItem(key, actor, action, detail, before, after){
+  const it = state.items[key];
+  if(!it) return;
+  ensureItemMeta(it);
+  const entry = { t: new Date().toISOString(), actor, action, detail: clip(detail) };
+  if(before !== undefined) entry.before = clip(before);
+  if(after !== undefined) entry.after = clip(after);
+  it.trace.push(entry);
+}
+function traceApp(actor, action, detail){
+  state.appTrace.push({ t: new Date().toISOString(), actor, action, detail: clip(detail) });
+  if(state.appTrace.length > 500) state.appTrace = state.appTrace.slice(-500);
+}
+
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  $('#saveInd').textContent = '● 자동 저장됨';
+}
+/* v3 저장본 → v4 스키마 변환 (v3 데이터는 원본 그대로 보존) */
+function migrateFromV3(v3){
+  const out = { ...v3, schemaVersion: SCHEMA_VERSION, appTrace: [] };
+  Object.keys(out.items || {}).forEach(k => {
+    ensureItemMeta(out.items[k]);
+    if(out.items[k].question && out.items[k].question.trim()) out.items[k].questionVersion = 1;
+    out.items[k].trace.push({ t: new Date().toISOString(), actor:'system', action:'migrated-from-v3',
+      detail:'v3 저장본에서 가져옴 — 이 시점 이전의 편집 이력은 없습니다' });
+  });
+  return out;
+}
+function restore(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      Object.assign(state, s, { activeCell:null, schemaVersion: SCHEMA_VERSION });
+      Object.values(state.items).forEach(ensureItemMeta);
+      state.appTrace = state.appTrace || [];
+      return;
+    }
+    const rawV3 = localStorage.getItem(STORAGE_KEY_V3);
+    if(rawV3){
+      const migrated = migrateFromV3(JSON.parse(rawV3));
+      Object.assign(state, migrated, { activeCell:null });
+      traceApp('system', 'v3-migration', `v3 저장본에서 문항 ${Object.keys(state.items).length}개를 가져왔습니다`);
+      save();
+      setTimeout(() => toast('💾 v3 작업 내용을 v4로 가져왔습니다 (v3 저장본은 그대로 보존)'), 400);
+    }
+  }catch(e){}
+}
+
+/* ═════════ 탭 전환 ═════════ */
+$$('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+function switchTab(tab){
+  $$('.tab-btn').forEach(b => b.classList.toggle('is-on', b.dataset.tab===tab));
+  $$('.panel').forEach(p => p.classList.toggle('is-on', p.id === 'panel-'+tab));
+  if(tab === 'board') renderBoardContext();
+  if(tab === 'done') renderDone();
+}
+$('#btnHome').addEventListener('click', () => {
+  switchTab('setup');
+  window.scrollTo({ top:0, behavior:'smooth' });
+});
+
+/* ═════════ 더보기 메뉴 ═════════ */
+$('#moreBtn').addEventListener('click', () => {
+  const open = !$('#morePop').classList.contains('is-open');
+  $('#morePop').classList.toggle('is-open', open);
+  $('#moreBtn').setAttribute('aria-expanded', open?'true':'false');
+});
+document.addEventListener('click', e => {
+  const pop = $('#morePop'), btn = $('#moreBtn');
+  if(pop.classList.contains('is-open') && !pop.contains(e.target) && e.target!==btn) pop.classList.remove('is-open');
+});
+$('#btnInfo').addEventListener('click', () => $('#infoPop').classList.add('is-on'));
+$$('[data-close]').forEach(el => el.addEventListener('click', (e) => {
+  e.target.closest('.modal,.info-pop').classList.remove('is-on');
+}));
+
+/* ═════════ 단원 정보 ═════════ */
+function currentAchievements(){ return ACHIEVEMENTS[gradeBand(state.grade)]?.[state.subject] ?? []; }
+function renderAchievements(){
+  const list = $('#achList');
+  const all = currentAchievements();
+  const q = ($('#achSearch')?.value || '').trim().toLowerCase();
+  const items = q ? all.filter(a =>
+    a.code.toLowerCase().includes(q) || a.desc.includes(q) || (a.domain||'').includes(q)
+  ) : all;
+  const bandKo = { g12:'1-2학년군', g34:'3-4학년군', g56:'5-6학년군' }[gradeBand(state.grade)];
+  $('#achDbInfo').textContent = all.length
+    ? `· ${bandKo} ${state.subject} ${all.length}개 (2022 개정 고시 전체)${q?` · 검색 결과 ${items.length}개`:''}`
+    : '';
+  let lastDomain = null;
+  let htmlOut = '';
+  items.forEach(a => {
+    if(a.domain && a.domain !== lastDomain){
+      htmlOut += `<div style="padding:6px 6px 2px;font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.02em;">${esc(a.domain)}</div>`;
+      lastDomain = a.domain;
+    }
+    const on = state.achievements.includes(a.code);
+    htmlOut += `<label class="ach-item"><input type="checkbox" data-code="${a.code}" ${on?'checked':''}>
+      <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}${a.approx?' <span class="ws-warn-badge" title="고시 원문이 아닌 요약 문구입니다 — NCIC 별책15 원문 대조 권장">요약</span>':''}</span></label>`;
+  });
+  list.innerHTML = htmlOut || `<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">${q ? '검색 결과가 없습니다 — 다른 낱말로 찾아보세요.' : '준비 중인 학년·과목입니다. 아래에 직접 입력해 주세요.'}</div>`;
+  list.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+    const c = cb.dataset.code;
+    if(cb.checked){ if(!state.achievements.includes(c)) state.achievements.push(c); }
+    else state.achievements = state.achievements.filter(x=>x!==c);
+    updatePhaseHint();
+    updateUnitHint();
+    $('#achCount').textContent = state.achievements.length;
+    save();
+  }));
+  $('#achCount').textContent = state.achievements.length;
+  updatePhaseHint();
+}
+$('#achSearch').addEventListener('input', renderAchievements);
+function standardText(){
+  const picked = state.achievements.map(c => {
+    const a = currentAchievements().find(x=>x.code===c);
+    return a ? `[${a.code}] ${a.desc}` : c;
+  });
+  const custom = state.standardCustom.trim();
+  if(custom) picked.push(custom);
+  return picked.join('\n');
+}
+/* 문항과 연결(근거) 후보가 되는 성취기준 전체: 목록 체크분 + 직접입력 파싱분 */
+function availableStandards(){
+  const out = [];
+  const seen = new Set();
+  state.achievements.forEach(code => {
+    const a = currentAchievements().find(x=>x.code===code);
+    if(!seen.has(code)){ seen.add(code); out.push({ code, desc: a?a.desc:'', domain: a?a.domain:'', source:'list' }); }
+  });
+  [...state.standardCustom.matchAll(/\[([2-6][가-힣]\d{2}-\d{2})\]\s*([^\n]*)/g)].forEach(m => {
+    if(!seen.has(m[1])){ seen.add(m[1]); out.push({ code:m[1], desc:m[2].trim(), domain:'', source:'custom' }); }
+  });
+  return out;
+}
+function standardDesc(code){
+  const s = availableStandards().find(x=>x.code===code);
+  return s ? s.desc : '';
+}
+function updatePhaseHint(){
+  const el = $('#phaseHint');
+  const text = standardText();
+  const p = text ? suggestPhase(text) : null;
+  if(p){
+    const ph = PHASES.find(x=>x.key===p);
+    el.textContent = `💡 이 성취기준은 보통 '${ph.ko}' 국면과 잘 어울려요 (참고용 — 선택은 선생님 몫입니다)`;
+    el.classList.add('is-on');
+  } else {
+    el.classList.remove('is-on');
+  }
+}
+function checkVerb(){
+  const flag = $('#verbFlag'); const t = state.standardCustom.trim();
+  if(!t){ flag.classList.remove('is-on'); return; }
+  if(VERB_RE.test(t)){ flag.className = 'verb-flag verb-flag--ok is-on'; flag.textContent = '✓ 행동 동사가 포함되어 있습니다.'; }
+  else { flag.className = 'verb-flag is-on'; flag.textContent = '⚠ 행동 동사(이해한다·설명할 수 있다 등)가 보이지 않습니다.'; }
+}
+$('#grade').addEventListener('change', e => { state.grade = e.target.value; state.achievements=[]; renderAchievements(); updateUnitHint(); save(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; state.achievements=[]; renderAchievements(); renderBoard(); updateUnitHint(); save(); });
+function keywordOverlap(text, desc){
+  const words = text.replace(/[^가-힣a-zA-Z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>=2);
+  return words.some(w => desc.includes(w));
+}
+function updateUnitHint(){
+  const hint = $('#unitHint');
+  const title = state.title.trim();
+  if(!title){ hint.classList.remove('is-on'); hint.innerHTML=''; return; }
+  const matches = currentAchievements().filter(a => !state.achievements.includes(a.code) && keywordOverlap(title, a.desc)).slice(0, 4);
+  if(matches.length === 0){ hint.classList.remove('is-on'); hint.innerHTML=''; return; }
+  hint.classList.add('is-on');
+  hint.innerHTML = `💡 단원명과 관련 있어 보이는 성취기준(참고용):` + matches.map(a =>
+    `<button type="button" class="chip-mini" style="cursor:pointer;border:none;margin-left:5px;" data-code="${a.code}">${a.code} 체크</button>`
+  ).join('');
+  hint.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    const cb = document.querySelector(`#achList input[data-code="${btn.dataset.code}"]`);
+    if(cb && !cb.checked){ cb.checked = true; cb.dispatchEvent(new Event('change')); }
+    updateUnitHint();
+  }));
+}
+$('#title').addEventListener('input', e => { state.title = e.target.value; updateUnitHint(); save(); });
+$('#unitQuestion').addEventListener('input', e => { state.unitQuestion = e.target.value; updateConceptBadge(); save(); });
+$('#scenario').addEventListener('input', e => { state.scenario = e.target.value; save(); });
+$('#standardCustom').addEventListener('input', e => { state.standardCustom = e.target.value; checkVerb(); updatePhaseHint(); save(); });
+
+/* ═════════ 매트릭스 = 질문 보드 ═════════ */
+/* 매트릭스 상단 단원정보 연동 배너 — 단원정보 탭에서 정한 맥락을 매트릭스에서 보이게 */
+function renderBoardContext(){
+  const el = $('#boardContext');
+  if(!el) return;
+  const stds = availableStandards();
+  if(!state.title.trim() && !state.unitQuestion.trim() && !stds.length){
+    el.className = 'board-context is-empty';
+    el.innerHTML = `📘 <b>단원 정보가 아직 비어 있어요.</b> <button class="bc-edit" id="bcGoSetup">단원 정보 탭으로 가서 학년·단원·성취기준을 먼저 채우면</button> 이 매트릭스가 그 단원의 문항을 만드는 공간이 됩니다.`;
+  } else {
+    el.className = 'board-context';
+    const codes = stds.map(s => `<span class="bc-code" title="${esc(s.desc)}">${s.code}</span>`).join('') || '<span style="color:var(--muted)">성취기준 미선택</span>';
+    el.innerHTML = `📘 <b>${esc(state.grade)} ${esc(state.subject)}</b>${state.title.trim()?` · ${esc(state.title)}`:''}
+      ${state.unitQuestion.trim()?`<br>💭 핵심 질문: ${esc(state.unitQuestion)}`:''}
+      <br>🎯 이 단원의 성취기준 ${stds.length}개: ${codes}
+      <button class="bc-edit" id="bcGoSetup">✏ 단원 정보 수정</button>
+      <br><span style="font-size:11px;color:var(--muted)">아래 셀에 문항을 쓰고, 셀 편집에서 위 성취기준 중 <b>근거</b>를 연결하세요 — 그 연결이 완성 탭의 근거 행렬이 됩니다.</span>`;
+  }
+  el.querySelector('#bcGoSetup')?.addEventListener('click', () => { switchTab('setup'); window.scrollTo({top:0,behavior:'smooth'}); });
+}
+function renderBoard(){
+  renderBoardContext();
+  const wrap = $('#board'); wrap.innerHTML = '';
+  wrap.insertAdjacentHTML('beforeend', '<div class="board__corner"></div>');
+  PHASES.forEach(P => wrap.insertAdjacentHTML('beforeend', `<div class="board__col-head">${P.ko}<span class="arrow">→</span></div>`));
+  LEVELS.forEach(L => {
+    wrap.insertAdjacentHTML('beforeend', `<div class="board__row-head">${L.ko}</div>`);
+    PHASES.forEach(P => {
+      const key = cellKey(P.key, L.key);
+      const it = state.items[key];
+      const filled = it && it.question && it.question.trim();
+      const active = state.activeCell === key;
+      const div = document.createElement('div');
+      div.className = `board-cell ${filled?'is-filled':''} ${active?'is-active':''}`;
+      div.dataset.phase = P.key; div.dataset.level = L.key;
+      div.innerHTML = filled
+        ? `<div class="board-cell__q">${esc(it.question.slice(0,90))}${it.question.length>90?'…':''}</div>
+           <div class="board-cell__chips">
+             ${it.seedApplied ? '<span class="chip-mini chip-mini--seed">예시 — 다듬어주세요</span>' : ''}
+             ${it.image ? '<span class="chip-mini">📎 이미지</span>' : ''}
+             ${(it.evidence?.standards?.length) ? `<span class="chip-mini" title="${esc(it.evidence.standards.join(', '))}">🎯 근거 ${it.evidence.standards.length}</span>` : ''}
+             ${it.validation?.teacherApproved ? '<span class="chip-mini" style="background:#dff4e8;color:#1f7a4a;">✅ 승인</span>' : (it.validation?.v2 ? `<span class="chip-mini" style="${it.validation.v2.verdict==='pass'?'background:#e5f3ff;color:#1a5f80;':'background:#fef3c7;color:#a06e0e;'}">${it.validation.v2.verdict==='pass'?'🔬 통과':'🔬 반려'}</span>` : '')}
+           </div>
+           ${it.included ? '<div class="stamp">평가<br>문항</div>' : ''}`
+        : `<div class="board-cell__ghost">${ghostFor(P.key, L.key)}</div>`;
+      div.addEventListener('click', () => openCellModal(P.key, L.key));
+      wrap.appendChild(div);
+    });
+  });
+  updateDoneBadge();
+}
+function updateDoneBadge(){
+  const n = Object.values(state.items).filter(x=>x.included && x.question && x.question.trim()).length;
+  const badge = $('#doneBadge');
+  badge.textContent = n;
+  badge.classList.toggle('is-zero', n===0);
+}
+
+/* ═════════ 셀 편집 모달 ═════════ */
+/* 모달을 여는 시점의 스냅샷 — 닫을 때 비교해 "교사 직접 수정"을 한 건으로 기록 (키 입력마다 기록하지 않음) */
+let modalSnapshot = null;
+function openCellModal(phase, level){
+  flushModalTrace(); // 다른 셀로 바로 이동하는 경우 이전 셀의 편집을 먼저 기록
+  state.activeCell = cellKey(phase, level);
+  const P = PHASES.find(x=>x.key===phase), L = LEVELS.find(x=>x.key===level);
+  $('#cellModalTitle').textContent = `✎ ${P.ko} × ${L.ko}`;
+  const it = state.items[state.activeCell] || { question:'', included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null };
+  modalSnapshot = { key: state.activeCell, question: it.question || '', score: it.score || '', included: !!it.included };
+  $('#cellQuestion').value = it.question || '';
+  $('#cellQuestion').placeholder = ghostFor(phase, level);
+  $('#cellInclude').checked = !!it.included;
+  $('#cellScore').value = it.score || '';
+  $('#cellStarter').value = it.starter || '';
+  document.querySelector(`input[name="answerType"][value="${it.answerType||'write'}"]`).checked = true;
+  $$('#krChips .chip').forEach(c => c.classList.toggle('is-on', it.kr && it.kr.includes(c.dataset.kr)));
+  $('#cellCompetency').value = it.competency || '';
+  setImagePreview(it.image);
+  renderEvidenceChips();
+  if(it.validation && (it.validation.v1 || it.validation.v2)){ renderValidationResult(it); }
+  else { $('#validationResult').classList.add('hidden'); $('#validationResult').innerHTML=''; }
+  $('#cellKeyRow').classList.add('hidden'); // 키 없어도 열 때는 숨김 — AI 버튼 누를 때만 펼침
+  $('#cellModal').classList.add('is-on');
+  renderBoard();
+}
+/* 근거 성취기준 칩 — 연결/해제는 교사의 클릭으로만 (자동 연결 없음) */
+function renderEvidenceChips(){
+  const wrap = $('#evidenceChips');
+  const stds = availableStandards();
+  $('#evidenceEmptyHint').classList.toggle('hidden', stds.length > 0);
+  if(!stds.length){ wrap.innerHTML = ''; return; }
+  const it = state.items[state.activeCell];
+  const linked = (it && it.evidence && it.evidence.standards) || [];
+  wrap.innerHTML = stds.map(s =>
+    `<button type="button" class="chip ${linked.includes(s.code)?'is-on':''}" data-ev-code="${s.code}" title="${esc(s.desc)}">${s.code}</button>`
+  ).join('');
+  wrap.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    const code = btn.dataset.evCode;
+    // 빈 셀에서도 연결 가능해야 하므로 아이템을 보장
+    if(!state.items[state.activeCell]){
+      state.items[state.activeCell] = ensureItemMeta({ question:$('#cellQuestion').value, included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null, seedApplied:false });
+    }
+    const item = ensureItemMeta(state.items[state.activeCell]);
+    const arr = item.evidence.standards;
+    const idx = arr.indexOf(code);
+    if(idx === -1){
+      arr.push(code);
+      item.evidence.standardSource = 'teacher-linked';
+      traceItem(state.activeCell, 'teacher', 'evidence-linked', `성취기준 연결: ${code}`);
+    } else {
+      arr.splice(idx, 1);
+      traceItem(state.activeCell, 'teacher', 'evidence-unlinked', `성취기준 연결 해제: ${code}`);
+    }
+    btn.classList.toggle('is-on');
+    renderBoard();
+    save();
+  }));
+}
+function currentItem(){
+  return state.items[state.activeCell] || { question:'', included:false, score:'', starter:'', answerType:'write', kr:[], competency:'', image:null, seedApplied:false };
+}
+function saveCell(){
+  if(!state.activeCell) return;
+  const q = $('#cellQuestion').value;
+  const inc = $('#cellInclude').checked;
+  const sc = $('#cellScore').value;
+  const st = $('#cellStarter').value;
+  const at = document.querySelector('input[name="answerType"]:checked').value;
+  const kr = $$('#krChips .chip.is-on').map(c=>c.dataset.kr);
+  const comp = $('#cellCompetency').value;
+  const prevImage = currentItem().image;
+  const prevEvidence = (currentItem().evidence?.standards || []).length;
+  if(!q.trim() && !inc && !sc.trim() && !st.trim() && kr.length===0 && !comp && !prevImage && !prevEvidence){
+    delete state.items[state.activeCell];
+  } else {
+    state.items[state.activeCell] = ensureItemMeta({ ...currentItem(), question:q, included:inc, score:sc, starter:st, answerType:at, kr, competency:comp, image:prevImage });
+  }
+  renderBoard();
+  save();
+}
+/* 모달이 닫힐 때 스냅샷과 비교해 교사 직접 수정을 기록 */
+function flushModalTrace(){
+  if(!modalSnapshot) return;
+  const key = modalSnapshot.key;
+  const it = state.items[key];
+  if(it){
+    ensureItemMeta(it);
+    if((it.question||'') !== modalSnapshot.question){
+      it.questionVersion = (it.questionVersion||0) + 1;
+      traceItem(key, 'teacher', 'question-edited', `직접 수정 (v${it.questionVersion})`, modalSnapshot.question, it.question);
+      if(it.validation && (it.validation.v2 || it.validation.teacherApproved)){
+        it.validation.v2 = null; it.validation.teacherApproved = null;
+        traceItem(key, 'system', 'validation-invalidated', '문항 문구 변경으로 기존 V② 판정·승인 무효화 — 재검증 필요');
+      }
+    }
+    if((it.score||'') !== modalSnapshot.score){
+      traceItem(key, 'teacher', 'criterion-edited', '도달 판단 기준 수정', modalSnapshot.score, it.score);
+    }
+    if(!!it.included !== modalSnapshot.included){
+      traceItem(key, 'teacher', it.included ? 'selected-as-item' : 'deselected', it.included ? '평가문항으로 선별' : '선별 해제');
+    }
+  } else if(modalSnapshot.question || modalSnapshot.score || modalSnapshot.included){
+    traceApp('teacher', 'cell-cleared', `${key} 셀 내용 삭제`);
+  }
+  modalSnapshot = null;
+  save();
+}
+['#cellQuestion','#cellScore','#cellStarter','#cellInclude'].forEach(sel => {
+  $(sel).addEventListener('input', () => { markEdited(); saveCell(); });
+  $(sel).addEventListener('change', saveCell);
+});
+function markEdited(){
+  if(!state.activeCell) return;
+  const it = state.items[state.activeCell];
+  if(it) it.seedApplied = false;
+}
+$$('input[name="answerType"]').forEach(r => r.addEventListener('change', saveCell));
+$('#cellCompetency').addEventListener('change', saveCell);
+$('#krChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  chip.classList.toggle('is-on'); saveCell();
+});
+$$('#cellModal [data-close]').forEach(el => el.addEventListener('click', () => { flushModalTrace(); state.activeCell=null; renderBoard(); }));
+
+/* 이미지 첨부 */
+function setImagePreview(image){
+  const prev = $('#imgPreview'), alt = $('#imgAlt'), rm = $('#imgRemove');
+  if(image && image.data){
+    prev.src = image.data; prev.classList.remove('hidden');
+    alt.value = image.alt || ''; alt.classList.remove('hidden');
+    rm.classList.remove('hidden');
+  } else {
+    prev.classList.add('hidden'); prev.src='';
+    alt.value=''; alt.classList.add('hidden');
+    rm.classList.add('hidden');
+  }
+}
+$('#imgDrop').addEventListener('click', () => $('#imgInput').click());
+$('#imgInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  if(f.size > 800*1024){ toast('⚠ 이미지가 너무 큽니다 (500KB 권장). 압축 후 다시 시도해 주세요'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const it = currentItem();
+    it.image = { data: reader.result, alt:'' };
+    state.items[state.activeCell] = ensureItemMeta(it);
+    traceItem(state.activeCell, 'teacher', 'image-attached', `자료 이미지 첨부 (${f.name}, ${Math.round(f.size/1024)}KB)`);
+    setImagePreview(it.image);
+    save();
+    toast('📎 이미지 첨부 완료 — 대체 텍스트를 입력해 주세요');
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+$('#imgAlt').addEventListener('input', e => {
+  const it = currentItem();
+  if(it.image) it.image.alt = e.target.value;
+  state.items[state.activeCell] = it;
+  save();
+});
+$('#imgRemove').addEventListener('click', () => {
+  const it = currentItem(); it.image = null;
+  state.items[state.activeCell] = it;
+  if(state.items[state.activeCell]) traceItem(state.activeCell, 'teacher', 'image-removed', '자료 이미지 제거');
+  setImagePreview(null); saveCell();
+});
+
+/* ═════════ 기법(예시 문구) 라이브러리 ═════════ */
+function openTechModal(){
+  $('#techModal').classList.add('is-on');
+  renderTechFilter(); renderTechList();
+}
+function renderTechFilter(){
+  const wrap = $('#techFilter'); wrap.innerHTML = '';
+  const cats = [{key:'all',ko:'전체'}, ...PHASES.map(p=>({key:p.key,ko:p.ko}))];
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (techFilter===c.key?' is-on':'');
+    btn.textContent = c.ko;
+    btn.addEventListener('click', () => { techFilter=c.key; renderTechFilter(); renderTechList(); });
+    wrap.appendChild(btn);
+  });
+}
+function renderTechList(){
+  const wrap = $('#techList'); wrap.innerHTML = '';
+  const list = TECHS.filter(t => techFilter==='all' || t.phases.includes(techFilter));
+  list.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tech-card';
+    card.innerHTML = `<div class="tech-card__head"><span>${t.emoji}</span><h4 class="tech-card__ko">${t.ko}</h4></div>
+      <div class="tech-card__seed">"${esc(t.seed)}"</div>`;
+    card.addEventListener('click', () => {
+      if(!state.activeCell) return;
+      const before = currentItem().question || '';
+      $('#cellQuestion').value = t.seed;
+      const it = currentItem(); it.seedApplied = true;
+      state.items[state.activeCell] = ensureItemMeta({ ...it, question:t.seed });
+      const saved = state.items[state.activeCell];
+      saved.questionVersion = (saved.questionVersion||0) + 1;
+      traceItem(state.activeCell, 'seed', 'seed-inserted', `기법 라이브러리 「${t.ko}」 (v${saved.questionVersion})`, before, t.seed);
+      if(modalSnapshot && modalSnapshot.key === state.activeCell) modalSnapshot.question = t.seed;
+      saveCell();
+      $('#techModal').classList.remove('is-on');
+      toast(`✓ 「${t.ko}」 예시를 넣었습니다 — 학급 맥락에 맞게 다듬어 주세요`);
+    });
+    wrap.appendChild(card);
+  });
+}
+$('#btnOpenTech').addEventListener('click', openTechModal);
+
+/* ═════════ 지표 (완성도 · 디지털 소양 균형 · 열린 질문 비율) — 버튼을 눌러야만 표시 ═════════ */
+const MAIL = [
+  { key:'ethics',      ko:'반성·성찰' },
+  { key:'access',      ko:'접근·선택' },
+  { key:'analyze',     ko:'이해·분석·평가' },
+  { key:'participate', ko:'공유·참여' },
+  { key:'create',      ko:'의사소통·생산' },
+];
+const OPEN_RE = /(왜|어떻게|어떤|어디|만약|어떨까|생각|판단|비교|평가|대안|이유|영향|연결|관점)/;
+function allFilledItems(){
+  return Object.entries(state.items)
+    .filter(([,v]) => v.question && v.question.trim())
+    .map(([k,v]) => { const [phase,level]=k.split(':'); return { ...v, phase, level }; });
+}
+function hexPoints(r){
+  const pts = [];
+  for(let i=0;i<6;i++){ const a=-Math.PI/2+i*(Math.PI/3); pts.push(`${(r*Math.cos(a)).toFixed(1)},${(r*Math.sin(a)).toFixed(1)}`); }
+  return pts.join(' ');
+}
+function axisXY(r,i,N){ const a=-Math.PI/2+i*(2*Math.PI/N); return [r*Math.cos(a), r*Math.sin(a)]; }
+function drawHexRadar(svgId, axisLabels, values, color){
+  const svg = document.getElementById(svgId); if(!svg) return;
+  const R=90, rings=4, N=6;
+  let out='';
+  for(let r=1;r<=rings;r++){ out += `<polygon points="${hexPoints(R*r/rings)}" fill="none" stroke="#e6e8f0" stroke-width="1"/>`; }
+  for(let i=0;i<N;i++){ const [x,y]=axisXY(R,i,N); out += `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e6e8f0" stroke-width="1"/>`; }
+  const pts=[];
+  for(let i=0;i<N;i++){ const v=values[i]??0; const [x,y]=axisXY(R*Math.max(0.02,Math.min(1,v)),i,N); pts.push(`${x.toFixed(1)},${y.toFixed(1)}`); }
+  out += `<polygon points="${pts.join(' ')}" fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="2"/>`;
+  for(let i=0;i<N;i++){ const v=values[i]??0; const [x,y]=axisXY(R*Math.max(0.02,Math.min(1,v)),i,N); out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`; }
+  for(let i=0;i<N;i++){ const [x,y]=axisXY(R+18,i,N); out += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#8c93a8" font-weight="600">${axisLabels[i]??''}</text>`; }
+  svg.innerHTML = out;
+}
+function renderRadars(){
+  const items = allFilledItems();
+  const PH = PHASES.map(p=>p.key);
+  const stageFill = {}; PH.forEach(k => stageFill[k] = items.filter(x=>x.phase===k).length/3);
+  const scoreRate = items.length ? items.filter(x=>x.score&&x.score.trim()).length/items.length : 0;
+  const selectRate = items.length ? items.filter(x=>x.included).length/items.length : 0;
+  const compValues = [stageFill.generate, stageFill.refine, stageFill.inquire, stageFill.reflect, scoreRate, selectRate];
+  drawHexRadar('rad-completion', ['생성','정교화','탐구','성찰','도달기준','선별'], compValues, '#3a57e8');
+  $('#scoreCompletion').textContent = Math.round(compValues.reduce((a,b)=>a+b,0)/6*100);
+
+  const mailCount = { ethics:0, access:0, analyze:0, participate:0, create:0 };
+  items.forEach(x => { if(x.competency) mailCount[x.competency]++; });
+  const maxU = Math.max(1, ...Object.values(mailCount));
+  const mailVals = MAIL.map(m => mailCount[m.key]/maxU);
+  const usedM = Object.values(mailCount).filter(c=>c>0).length;
+  mailVals.push(usedM/5);
+  drawHexRadar('rad-mail', ['성찰','접근','분석','참여','생산','커버'], mailVals, '#7048e8');
+  const counts = Object.values(mailCount);
+  const mean = counts.reduce((a,b)=>a+b,0)/5;
+  const variance = counts.reduce((s,c)=>s+(c-mean)*(c-mean),0)/5;
+  const evenness = mean===0 ? 0 : Math.max(0, 1-Math.sqrt(variance)/mean);
+  $('#scoreMail').textContent = Math.round((usedM/5)*60 + evenness*40);
+
+  const KWS = [ {key:'왜',re:/왜/}, {key:'어떻게',re:/어떻게/}, {key:'만약',re:/만약|어떨/}, {key:'비교',re:/비교|차이|공통/}, {key:'평가',re:/평가|판단|타당/}, {key:'영향',re:/영향|결과|바뀌/} ];
+  const n = items.length || 1;
+  const openVals = KWS.map(k => items.filter(x=>k.re.test(x.question)).length/n);
+  drawHexRadar('rad-open', KWS.map(k=>k.key), openVals, '#2ea66c');
+  const openCount = items.filter(x=>OPEN_RE.test(x.question)).length;
+  $('#scoreOpen').textContent = items.length ? Math.round(openCount/items.length*100) : 0;
+}
+$('#btnRadars').addEventListener('click', () => {
+  renderRadars();
+  $('#radarsModal').classList.add('is-on');
+});
+
+/* ═════════ 완성 탭 ═════════ */
+function selectedItems(){
+  const LV = LEVELS.map(l=>l.key), PH = PHASES.map(p=>p.key);
+  return Object.entries(state.items)
+    .filter(([,v]) => v.included && v.question && v.question.trim())
+    .map(([k,v]) => { const [phase,level]=k.split(':'); return { ...v, phase, level }; })
+    .sort((a,b) => (LV.indexOf(a.level)-LV.indexOf(b.level)) || (PH.indexOf(a.phase)-PH.indexOf(b.phase)));
+}
+function renderDone(){
+  const sel = selectedItems();
+  const total = PHASES.length * LEVELS.length;
+  const summary = $('#selectSummary');
+  if(sel.length === 0){
+    summary.innerHTML = `<div class="select-summary__main">아직 선별된 문항이 없습니다.</div>
+      <div class="select-summary__dist">🧩 매트릭스에서 질문을 쓰고 "평가문항으로 뽑기"를 체크해 주세요.</div>`;
+  } else {
+    const phaseCount = {}, levelCount = {};
+    sel.forEach(it => { phaseCount[it.phase]=(phaseCount[it.phase]||0)+1; levelCount[it.level]=(levelCount[it.level]||0)+1; });
+    const phaseChips = PHASES.filter(p=>phaseCount[p.key]).map(p=>`<span class="dist-chip">${p.ko} ${phaseCount[p.key]}</span>`).join('');
+    const levelChips = LEVELS.filter(l=>levelCount[l.key]).map(l=>`<span class="dist-chip">${l.ko} ${levelCount[l.key]}</span>`).join('');
+    summary.innerHTML = `<div class="select-summary__main">매트릭스 ${total}칸 중 <b>${sel.length}개</b> 셀을 평가문항으로 선별했습니다</div>
+      <div class="select-summary__dist">국면 ${phaseChips} &nbsp;|&nbsp; 수준 ${levelChips}</div>`;
+  }
+  renderEvidenceMatrix();
+  renderExplainCards();
+  updateDoneBadge();
+}
+
+/* ═════════ V4 Phase 3 · 문항별 개발 근거 + Phase 4 · 이력 뷰어/버전 되돌리기 ═════════ */
+const ACTOR_KO = { teacher:'교사', seed:'예시 문구', 'ai-design':'AI 설계 패스', 'ai-item':'AI 문항 패스', 'ai-coach':'AI 코치', v1:'V① 형식검증', v2:'V② 최종게이트', system:'시스템' };
+function renderExplainCards(){
+  const body = $('#explainBody');
+  const sel = selectedItems();
+  if(!sel.length){
+    body.innerHTML = `<p class="field__hint" style="padding:4px 2px;">문항을 선별하면 각 문항의 개발 근거가 여기에 정리됩니다.</p>`;
+    return;
+  }
+  body.innerHTML = sel.map((it, i) => {
+    const key = cellKey(it.phase, it.level);
+    const P = PHASES.find(p=>p.key===it.phase), L = LEVELS.find(l=>l.key===it.level);
+    const ev = (it.evidence?.standards||[]);
+    const v2 = it.validation?.v2;
+    const approved = it.validation?.teacherApproved;
+    const traceRows = (it.trace||[]).map((t, ti) => {
+      const restorable = /question-edited|seed-inserted|grade-fit-applied|suggestion-applied/.test(t.action)
+        && t.before !== undefined && !String(t.before).endsWith('…') && String(t.before).trim();
+      return `<tr><td style="white-space:nowrap;color:var(--muted);">${new Date(t.t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+        <td style="white-space:nowrap;">${ACTOR_KO[t.actor]||t.actor}</td>
+        <td>${esc(t.detail||t.action)}${t.after!==undefined&&t.before!==undefined?`<br><span style="color:var(--muted);font-size:10.5px;">"${esc(String(t.before).slice(0,40))}${String(t.before).length>40?'…':''}" → "${esc(String(t.after).slice(0,40))}${String(t.after).length>40?'…':''}"</span>`:''}
+        ${restorable?`<br><button class="btn-mini trace-restore" data-key="${key}" data-ti="${ti}" style="margin-top:3px;font-size:10px;padding:3px 8px;">↩ 수정 전 문구로 되돌리기</button>`:''}</td></tr>`;
+    }).join('');
+    return `<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:12.5px;">문항 ${i+1} <span style="font-weight:500;color:var(--muted);">· ${P.ko} × ${L.ko} · 문구 v${it.questionVersion||1}</span></div>
+      <div style="font-size:12px;margin:4px 0 8px;">${esc(it.question)}</div>
+      <table class="rubric-table">
+        <tr><td style="width:110px;"><b>근거 성취기준</b></td><td>${ev.length ? ev.map(c=>`<span class="ach-item__code">${c}</span> ${esc(standardDesc(c).slice(0,40))}`).join('<br>') : '<span style="color:#a06e0e;">⚠ 미연결 — 셀 편집에서 연결하세요</span>'}</td></tr>
+        <tr><td><b>SOLO 설계 근거</b></td><td>${it.evidence?.soloRationale ? esc(it.evidence.soloRationale) : '<span style="color:var(--muted);">아직 없음 — 🔬 검증을 실행하면 생성됩니다</span>'}</td></tr>
+        <tr><td><b>V② 검증 의견</b></td><td>${v2 ? `${v2.verdict==='pass'?'🟢 통과':'🟠 반려'} (${v2.model}, ${v2.cycles}차) — ${esc(v2.rationale.slice(0,120))}${v2.rationale.length>120?'…':''}` : '<span style="color:var(--muted);">미검증</span>'}</td></tr>
+        <tr><td><b>최종 확정</b></td><td>${approved ? `✅ 교사 승인 (${new Date(approved.t).toLocaleString('ko-KR')})` : '<span style="color:var(--muted);">승인 전 — AI 의견은 참고용, 확정 권한은 교사에게 있습니다</span>'}</td></tr>
+      </table>
+      <details style="margin-top:8px;"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--ink-soft);">📜 전체 이력 ${it.trace?.length||0}건</summary>
+        <table class="rubric-table" style="margin-top:6px;">${traceRows || '<tr><td style="color:var(--muted);">이력 없음</td></tr>'}</table>
+      </details>
+    </div>`;
+  }).join('');
+  body.querySelectorAll('.trace-restore').forEach(btn => btn.addEventListener('click', () => {
+    const key = btn.dataset.key, ti = +btn.dataset.ti;
+    const item = state.items[key];
+    const entry = item?.trace?.[ti];
+    if(!item || !entry || entry.before === undefined) return;
+    const cur = item.question;
+    item.question = entry.before;
+    item.questionVersion = (item.questionVersion||0) + 1;
+    traceItem(key, 'teacher', 'version-restored', `이력의 수정 전 문구로 되돌림 (v${item.questionVersion})`, cur, item.question);
+    if(item.validation){ item.validation.v2 = null; item.validation.teacherApproved = null; }
+    renderBoard(); renderDone(); save();
+    toast('↩ 되돌렸습니다 — 필요하면 다시 🔬 검증하세요');
+  }));
+}
+
+/* ═════════ V4 Phase 1 · 교육과정 근거 행렬 ═════════ */
+function buildEvidenceMatrixData(){
+  const sel = selectedItems();
+  const stds = availableStandards();
+  const rows = stds.map(s => {
+    const linkedItems = sel.map((it, i) => (it.evidence?.standards||[]).includes(s.code) ? i : -1).filter(i => i >= 0);
+    return { ...s, linkedItems };
+  });
+  const orphanItems = sel.map((it, i) => ({ it, i })).filter(x => !(x.it.evidence?.standards||[]).length);
+  return { sel, rows, orphanItems };
+}
+function renderEvidenceMatrix(){
+  const body = $('#evidenceMatrixBody');
+  const { sel, rows, orphanItems } = buildEvidenceMatrixData();
+  if(!sel.length && !rows.length){
+    body.innerHTML = `<p class="field__hint" style="padding:4px 2px;">성취기준을 선택하고 문항을 선별하면 근거 행렬이 여기에 나타납니다.</p>`;
+    return;
+  }
+  const head = `<tr><th style="text-align:left;">성취기준</th>${sel.map((it,i)=>{
+    const L = LEVELS.find(l=>l.key===it.level);
+    return `<th title="${esc(it.question.slice(0,60))}">문항 ${i+1}<br><span style="font-weight:400;font-size:10px;">${L?L.ko:''}</span></th>`;
+  }).join('')}<th>연결 수</th></tr>`;
+  const trs = rows.map(r => {
+    const cells = sel.map((it,i) => `<td style="text-align:center;">${r.linkedItems.includes(i) ? '●' : ''}</td>`).join('');
+    const gap = r.linkedItems.length === 0;
+    return `<tr${gap?' style="background:#fff8e6;"':''}>
+      <td><span class="ach-item__code">${r.code}</span> <span style="font-size:11px;">${esc(r.desc.slice(0,44))}${r.desc.length>44?'…':''}</span>
+        ${gap?'<span class="ws-warn-badge" title="이 성취기준을 근거로 하는 문항이 없습니다">⚠ 커버 안 됨</span>':''}</td>
+      ${cells}<td style="text-align:center;font-weight:700;">${r.linkedItems.length}</td></tr>`;
+  }).join('');
+  const orphanNote = orphanItems.length
+    ? `<p class="field__hint" style="margin-top:8px;color:#a06e0e;">⚠ 근거 미연결 문항: ${orphanItems.map(x=>`문항 ${x.i+1}`).join(', ')} — 셀 편집의 "📎 근거 성취기준"에서 연결해 주세요.</p>`
+    : '';
+  body.innerHTML = `<table class="rubric-table" style="min-width:${360 + sel.length*70}px;"><thead>${head}</thead><tbody>${trs}</tbody></table>${orphanNote}`;
+}
+$('#exportDdBtn').addEventListener('click', () => $('#exportDdMenu').classList.toggle('is-open'));
+document.addEventListener('click', e => {
+  const menu = $('#exportDdMenu'), btn = $('#exportDdBtn');
+  if(menu.classList.contains('is-open') && !menu.contains(e.target) && e.target!==btn) menu.classList.remove('is-open');
+});
+
+/* ═════════ 평가지 렌더링 (목표 시험지 서식) ═════════ */
+function lineCountFor(level){ return level==='fact' ? 2 : level==='link' ? 3 : 4; }
+function renderWorksheet(){
+  const sel = selectedItems();
+  if(sel.length === 0){ toast('⚠ 평가문항으로 뽑힌 셀이 없습니다 — 매트릭스에서 먼저 선별해 주세요'); return; }
+
+  const subject = esc(state.subject);
+  const grade = esc(state.grade);
+  const unitName = esc(state.title || '(단원명 미입력)');
+  const std = standardText();
+  const scenario = state.scenario.trim();
+
+  const qHtml = sel.map((it, i) => {
+    const img = it.image && it.image.data ? `<img class="ws-img" src="${it.image.data}" alt="${esc(it.image.alt||'')}">` : '';
+    const starter = it.starter ? `<p class="ws-starter" contenteditable="true">${esc(it.starter)}</p>` : '';
+    const draw = it.answerType === 'draw' ? `<div class="ws-drawbox">(그림으로 나타내는 곳)</div>` : '';
+    const lines = Array.from({length:lineCountFor(it.level)}).map(()=>'<i></i>').join('');
+    return `<div class="ws-q" data-idx="${i}">
+      <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
+      ${img}${starter}${draw}
+      <div class="ws-lines">${lines}</div>
+    </div>`;
+  }).join('');
+
+  const selfCheckRows = sel.map(it => {
+    const txt = SELFCHECK_TEMPLATE[it.level];
+    return `<tr><td contenteditable="true">${txt}</td><td class="c">□</td><td class="c"></td></tr>`;
+  }).join('');
+
+  const mapRows = sel.map((it,i) => {
+    const P = PHASES.find(p=>p.key===it.phase), L = LEVELS.find(l=>l.key===it.level);
+    const criterion = it.score && it.score.trim() ? it.score : LEVEL_TEMPLATE[it.level];
+    const isDefault = !(it.score && it.score.trim());
+    const evCodes = (it.evidence?.standards||[]).join(', ') || '—';
+    return `<tr><td style="text-align:center">${i+1}</td><td style="white-space:nowrap">${esc(evCodes)}</td><td>${P.ko}</td><td>${L.ko}</td>
+      <td contenteditable="true" data-idx="${i}" class="crit-cell">${esc(criterion)}${isDefault?'<span class="ws-warn-badge">AI 기본값</span>':''}</td></tr>`;
+  }).join('');
+
+  /* V4 Phase 1 · 교사용 별면 근거 행렬 */
+  const emd = buildEvidenceMatrixData();
+  const wsMatrixSection = emd.rows.length ? `
+      <div class="ws-tsec"><h3>2-1. 교육과정 근거 행렬</h3>
+        <table class="ws-map"><tr><th>성취기준</th>${emd.sel.map((_,i)=>`<th>문항 ${i+1}</th>`).join('')}</tr>
+          ${emd.rows.map(r => `<tr><td>[${r.code}] ${esc(r.desc)}</td>${emd.sel.map((_,i)=>`<td style="text-align:center">${r.linkedItems.includes(i)?'●':''}</td>`).join('')}</tr>`).join('')}
+        </table>
+        ${emd.rows.some(r=>!r.linkedItems.length) ? `<p style="font-size:12.5px;margin-top:4px;">※ 연결 문항이 없는 성취기준: ${emd.rows.filter(r=>!r.linkedItems.length).map(r=>r.code).join(', ')}</p>` : ''}
+      </div>` : '';
+
+  /* V4 Phase 3 · 교사용 별면 문항 개발 근거 */
+  const wsExplainRows = sel.map((it,i) => {
+    const v2v = it.validation?.v2;
+    const ap = it.validation?.teacherApproved;
+    return `<tr><td style="text-align:center">${i+1}</td>
+      <td>${it.evidence?.soloRationale ? esc(it.evidence.soloRationale) : '—'}</td>
+      <td>${v2v ? `${v2v.verdict==='pass'?'통과':'반려'} 의견 (AI ${v2v.cycles}차)` : '미검증'}</td>
+      <td>${ap ? `승인 (${new Date(ap.t).toLocaleDateString('ko-KR')})` : '승인 전'}</td></tr>`;
+  }).join('');
+  const wsExplainSection = `
+      <div class="ws-tsec"><h3>2-2. 문항 개발 근거 (문구 버전·검증·승인)</h3>
+        <div class="ws-warn">※ AI 검증 의견은 참고 자료임. 문항의 공식 확정 근거는 교사 최종 승인 기록임.</div>
+        <table class="ws-map"><tr><th>문항</th><th>SOLO 설계 근거</th><th>AI 검증(V②)</th><th>교사 확정</th></tr>${wsExplainRows}</table>
+      </div>`;
+
+  const presentLevels = LEVELS.filter(l => sel.some(it=>it.level===l.key));
+  const exRows = presentLevels.map(L => {
+    const txt = state.levelExamples[L.key];
+    const dirty = state.levelExampleDirty[L.key];
+    return `<tr><td style="white-space:nowrap">${L.ko}</td>
+      <td contenteditable="true" data-level="${L.key}" class="ex-cell">${esc(txt || '(예시 답안 초안을 적어주세요 — 우측 하단 💬 코치의 "예시 답안 초안"으로 도움받을 수 있어요)')}${!dirty&&txt?'<span class="ws-warn-badge">AI 초안</span>':''}</td></tr>`;
+  }).join('');
+
+  $('#wsBody').innerHTML = `
+    <div class="ws-page">
+      <h1 class="ws-h1">${subject}과 수행평가지</h1>
+      <div class="ws-name">${grade} &nbsp;&nbsp;반 &nbsp;&nbsp;번 &nbsp;이름(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+      <table class="ws-head">
+        <tr><th>단원명</th><td contenteditable="true">${unitName}</td><th>차시</th><td class="date" style="width:70px">&nbsp;/&nbsp;</td><th>평가일</th><td class="date" style="width:130px">년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일</td></tr>
+        <tr><th>과제명</th><td colspan="3" contenteditable="true">${esc(state.unitQuestion || unitName)}</td><th>평가자</th><td class="date">(인)</td></tr>
+      </table>
+      <div class="ws-sec-title">활 동 과 제</div>
+      <div class="ws-body-box">
+        ${scenario ? `<p class="ws-scenario" contenteditable="true">※ ${esc(scenario)}</p>` : ''}
+        ${qHtml}
+        <div class="ws-q">
+          <p class="ws-q-title">${sel.length+1}. 나의 도달 확인</p>
+          <table class="ws-rubric"><tr><th>나는…</th><th>스스로 확인</th><th>선생님 확인</th></tr>${selfCheckRows}</table>
+        </div>
+      </div>
+      <p class="ws-pagenum">- 1 -</p>
+    </div>
+
+    <div class="ws-page ws-teacher">
+      <h1 class="ws-h1">교사용 채점 기준</h1>
+      <div class="ws-tsec"><h3>1. 성취기준</h3><p contenteditable="true">${std ? esc(std).replace(/\n/g,'<br>') : '(미입력)'}</p></div>
+      <div class="ws-tsec"><h3>2. 문항별 평가 요소</h3>
+        <table class="ws-map"><tr><th>문항</th><th>근거 성취기준</th><th>질문 사이클 국면</th><th>수준</th><th>도달 판단 기준</th></tr>${mapRows}</table>
+      </div>${wsMatrixSection}${wsExplainSection}
+      <div class="ws-tsec"><h3>3. 수준별 예시 답안</h3>
+        <div class="ws-warn">※ 아래 예시 답안은 AI 초안임. 교사 수정 전에는 채점에 사용하지 말 것. 수정 후 본 문구를 삭제하고 사용.</div>
+        <table class="ws-map"><tr><th>수준</th><th>예시 응답의 특징</th></tr>${exRows}</table>
+      </div>
+      <div class="ws-tsec"><h3>4. 피드백 기록</h3><div class="ws-fb"><i></i><i></i><i></i><i></i></div></div>
+      <p class="ws-pagenum">- 2 -</p>
+    </div>
+  `;
+
+  $('#wsWrap').classList.remove('hidden');
+  bindWorksheetEdits();
+  setTimeout(()=>$('#wsWrap').scrollIntoView({behavior:'smooth',block:'start'}), 60);
+}
+function bindWorksheetEdits(){
+  $$('.crit-cell').forEach(td => {
+    td.addEventListener('focus', () => { td.dataset.snapshot = td.textContent.replace('AI 기본값','').trim(); });
+    td.addEventListener('input', () => {
+      const idx = +td.dataset.idx;
+      const sel = selectedItems();
+      const it = sel[idx];
+      if(!it) return;
+      const raw = td.textContent.replace('AI 기본값','').trim();
+      state.items[cellKey(it.phase, it.level)].score = raw;
+      td.querySelector('.ws-warn-badge')?.remove();
+      save();
+    });
+    td.addEventListener('blur', () => {
+      const idx = +td.dataset.idx;
+      const sel = selectedItems();
+      const it = sel[idx];
+      if(!it) return;
+      const before = td.dataset.snapshot ?? '';
+      const after = td.textContent.replace('AI 기본값','').trim();
+      if(before !== after) traceItem(cellKey(it.phase, it.level), 'teacher', 'criterion-edited', '평가지에서 도달 판단 기준 직접 수정', before, after);
+      save();
+    });
+  });
+  $$('.ex-cell').forEach(td => {
+    td.addEventListener('focus', () => { td.dataset.snapshot = td.textContent.replace('AI 초안','').trim(); });
+    td.addEventListener('input', () => {
+      const level = td.dataset.level;
+      state.levelExamples[level] = td.textContent.replace('AI 초안','').trim();
+      state.levelExampleDirty[level] = true;
+      td.querySelector('.ws-warn-badge')?.remove();
+      save();
+    });
+    td.addEventListener('blur', () => {
+      const before = td.dataset.snapshot ?? '';
+      const after = td.textContent.replace('AI 초안','').trim();
+      if(before !== after) traceApp('teacher', 'level-example-edited', `수준별 예시 답안(${td.dataset.level}) 수정: "${clip(after)}"`);
+      save();
+    });
+  });
+}
+$('#btnShowWs').addEventListener('click', renderWorksheet);
+
+/* ═════════ 평가지 그림판 도구 (이미지 삽입 · 펜 그리기) ═════════ */
+function insertImageAtSelection(imgEl){
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const range = sel.getRangeAt(0);
+    const node = range.commonAncestorContainer;
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    if(el && el.closest('#wsBody .ws-page')){
+      range.insertNode(imgEl);
+      return true;
+    }
+  }
+  return false;
+}
+$('#wsAddImage').addEventListener('click', () => {
+  if($('#wsWrap').classList.contains('hidden')){ toast('⚠ 먼저 평가지를 보기로 열어주세요'); return; }
+  $('#wsImgInput').click();
+});
+$('#wsImgInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = document.createElement('img');
+    img.src = reader.result;
+    img.className = 'ws-img';
+    img.style.margin = '12px auto';
+    if(!insertImageAtSelection(img)){
+      const box = document.querySelector('#wsBody .ws-page .ws-body-box');
+      if(box) box.appendChild(img);
+    }
+    toast('🖼 이미지를 추가했습니다');
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+
+let wsPenOn = false;
+function ensureWsCanvases(){
+  return $$('#wsBody .ws-page').map(page => {
+    let c = page.querySelector('.ws-draw-canvas');
+    if(!c){
+      c = document.createElement('canvas');
+      c.className = 'ws-draw-canvas';
+      c.width = page.clientWidth; c.height = page.clientHeight;
+      page.appendChild(c);
+      let last = null;
+      const ctx = c.getContext('2d');
+      const pos = e => { const r = c.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; };
+      c.addEventListener('pointerdown', e => { last = pos(e); c.setPointerCapture(e.pointerId); });
+      c.addEventListener('pointermove', e => {
+        if(!last) return;
+        const p = pos(e);
+        ctx.strokeStyle = $('#wsPenColor').value;
+        ctx.lineWidth = Number($('#wsPenSize').value);
+        ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+        last = p;
+      });
+      c.addEventListener('pointerup', () => { last = null; });
+    }
+    return c;
+  });
+}
+$('#wsDrawToggle').addEventListener('click', () => {
+  if($('#wsWrap').classList.contains('hidden')){ toast('⚠ 먼저 평가지를 보기로 열어주세요'); return; }
+  wsPenOn = !wsPenOn;
+  const canvases = ensureWsCanvases();
+  canvases.forEach(c => c.classList.toggle('is-pen', wsPenOn));
+  $('#wsDrawToggle').classList.toggle('is-on', wsPenOn);
+  $('#wsDrawToggle').setAttribute('aria-pressed', wsPenOn?'true':'false');
+  toast(wsPenOn ? '✏️ 펜 모드 · 평가지 위에 자유롭게 그리세요' : '펜 모드 해제 · 텍스트 편집 가능');
+});
+$('#wsDrawClear').addEventListener('click', () => {
+  $$('#wsBody .ws-draw-canvas').forEach(c => c.getContext('2d').clearRect(0,0,c.width,c.height));
+});
+$('#wsCopyBtn').addEventListener('click', () => $('#btnCopy').click());
+$('#wsPrintBtn').addEventListener('click', () => $('#btnPrint').click());
+
+/* 내보내기 */
+$('#btnPrint').addEventListener('click', () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  if($('#wsWrap').classList.contains('hidden')) renderWorksheet();
+  setTimeout(()=>window.print(), 120);
+});
+function buildMd(){
+  const sel = selectedItems();
+  const std = standardText();
+  const lines = [`# ${state.subject}과 수행평가지`, '', `- 학년: ${state.grade}`, `- 단원명: ${state.title||'(미입력)'}`, `- 성취기준:`];
+  (std?std.split('\n'):['(미입력)']).forEach(s=>lines.push(`  - ${s}`));
+  lines.push('', '## 문항');
+  sel.forEach((it,i) => lines.push(`${i+1}. ${it.question}`, ''));
+  lines.push('## 문항별 평가 요소', '', '| 문항 | 근거 성취기준 | 국면 | 수준 | 도달 판단 기준 |', '|---|---|---|---|---|');
+  sel.forEach((it,i) => {
+    const P = PHASES.find(p=>p.key===it.phase), L = LEVELS.find(l=>l.key===it.level);
+    const criterion = it.score && it.score.trim() ? it.score : LEVEL_TEMPLATE[it.level];
+    const ev = (it.evidence?.standards||[]).join(', ') || '—';
+    lines.push(`| ${i+1} | ${ev} | ${P.ko} | ${L.ko} | ${criterion} |`);
+  });
+  return lines.join('\n');
+}
+function download(name, text, type){
+  const blob = new Blob([text], { type: type || 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+$('#btnExportMd').addEventListener('click', () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  download(`평가문항_${state.grade}_${state.subject}.md`, buildMd(), 'text/markdown;charset=utf-8');
+  toast('📄 마크다운으로 저장했습니다');
+});
+/* ═════════ V4 Phase 4 · 감사 패키지 (제3자 재구성용 기록) ═════════ */
+function buildAuditPackage(){
+  const items = {};
+  Object.entries(state.items).forEach(([k, it]) => {
+    const { image, ...rest } = it;
+    items[k] = { ...rest, image: image ? { alt: image.alt||'', bytesApprox: Math.round((image.data||'').length*0.75) } : null };
+  });
+  return {
+    tool: 'KCBC 평가문항 작성기 v4',
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    note: '이 파일은 문항의 생성·수정·검증·승인 전 과정을 제3자가 재구성할 수 있도록 내보낸 기록입니다. AI 판정은 참고 의견이며 공식 확정 근거는 teacherApproved 기록입니다. 자료 이미지는 용량상 요약(alt·크기)만 포함합니다.',
+    meta: {
+      grade: state.grade, subject: state.subject, title: state.title,
+      unitQuestion: state.unitQuestion, scenario: state.scenario,
+      standardsChecked: state.achievements,
+      standardsCustom: state.standardCustom,
+      standardsDb: 'kcbc-standards-db-v2.1 (2022 개정 고시 620개, 통합 「건강한 생활」 9개는 요약 문구)',
+    },
+    items,
+    appTrace: state.appTrace,
+  };
+}
+$('#btnExportAudit').addEventListener('click', () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  download(`감사패키지_${state.grade}_${state.subject}_${new Date().toISOString().slice(0,10)}.json`,
+    JSON.stringify(buildAuditPackage(), null, 2), 'application/json;charset=utf-8');
+  traceApp('teacher', 'audit-exported', '감사 패키지 JSON 내보내기');
+  save();
+  toast('🧾 감사 패키지를 저장했습니다 — 전체 이력·검증·승인 기록 포함');
+});
+$('#btnCopy').addEventListener('click', async () => {
+  $('#exportDdMenu').classList.remove('is-open');
+  try{ await navigator.clipboard.writeText(buildMd()); toast('📋 클립보드에 복사했습니다'); }
+  catch(e){ toast('⚠ 복사 실패 — 브라우저 권한을 확인해 주세요'); }
+});
+
+/* ═════════ AI 코치 ═════════ */
+function aiGetKey(){ try{ return sessionStorage.getItem(AI_KEY_STORAGE)||''; }catch(e){ return ''; } }
+function aiSetKey(k){ try{ sessionStorage.setItem(AI_KEY_STORAGE, k); }catch(e){} }
+function updateKeyRow(){
+  $('#coachKeyRow').classList.toggle('hidden', !!aiGetKey());
+  $('#cellKeyRow').classList.toggle('hidden', !!aiGetKey());
+}
+$('#coachKeySave').addEventListener('click', () => {
+  const v = $('#coachKey').value.trim();
+  if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+  aiSetKey(v); updateKeyRow();
+  toast('✓ API 키 저장 완료 (이 브라우저 세션 동안만 유지)');
+});
+$('#cellKeySave').addEventListener('click', () => {
+  const v = $('#cellKey').value.trim();
+  if(!v){ toast('⚠ API 키를 입력해 주세요'); return; }
+  aiSetKey(v); updateKeyRow(); $('#cellKey').value='';
+  toast('✓ API 키 저장 완료 — 이제 🎯 학년 눈높이·💬 코치·🔬 검증을 바로 쓸 수 있어요');
+});
+/* AI 버튼이 키 없을 때: 코치를 열지 않고 셀 안 키 입력행을 펼쳐 강조 */
+function ensureKeyInCell(){
+  if(aiGetKey()) return true;
+  const row = $('#cellKeyRow');
+  row.classList.remove('hidden');
+  row.classList.remove('is-flash'); void row.offsetWidth; row.classList.add('is-flash');
+  $('#cellKey').focus();
+  return false;
+}
+function openCoach(){ $('#coachPanel').classList.add('is-open'); $('#coachFabBadge').classList.remove('is-on'); }
+function closeCoach(){ $('#coachPanel').classList.remove('is-open'); }
+$('#coachFab').addEventListener('click', () => $('#coachPanel').classList.contains('is-open') ? closeCoach() : openCoach());
+$('#coachClose').addEventListener('click', closeCoach);
+document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#coachPanel').classList.contains('is-open')) closeCoach(); });
+
+function currentDraft(){
+  if(state.activeCell){
+    const it = state.items[state.activeCell];
+    if(it && it.question && it.question.trim()) return it.question.trim();
+  }
+  return '';
+}
+/* 학년 수준 문항 작성 가이드 (5대 원칙) — 모든 코치 응답에 항상 적용 */
+const GRADE_SPEC = {
+  g12: { 지시문:'1문장', 그림자료:'그림 필수', 문항유형:'○표·연결하기', 서술분량:'없음', 문장도움말:'해당 없음(서술형 없음)', 보기문장:'10자 이내' },
+  g34: { 지시문:'1~2문장', 그림자료:'그림 권장', 문항유형:'○표·고르기·짧은 답', 서술분량:'1줄', 문장도움말:'필수', 보기문장:'20자 이내' },
+  g56: { 지시문:'2문장', 그림자료:'자료 제시형', 문항유형:'고르기·서술 1개', 서술분량:'2~3줄', 문장도움말:'권장', 보기문장:'30자 이내' },
+};
+function gradeSpec(){ return GRADE_SPEC[gradeBand(state.grade)]; }
+function difficultyRules(){
+  const s = gradeSpec();
+  return `난이도 규칙 (모든 문항에 반드시 적용 — 학년 수준 문항 작성 가이드):
+1. 어휘는 ${state.grade} 학생의 일상어 수준으로 (전문용어 → 쉬운 말, 한 문장에 새 낱말 1개 이하)
+2. 상황은 글보다 그림·사진·표로 제시하도록 제안 (이 학년군: ${s.그림자료})
+3. 문항 순서는 고르기 → 연결하기 → 서술 순으로, 서술형은 마지막 1개만 두고 문장 시작 도움말을 ${s.문장도움말}로 제공
+4. 한 문항에는 한 가지만 묻기 — 지시문은 ${s.지시문} 이내, ①②③ 같은 복합 조건 금지
+5. 문항 내용이 ${state.grade} 성취기준과 맞는지 반드시 확인하고, 다른 학년 내용이 섞였으면 "이 내용은 다른 학년 성취기준입니다"라고 경고
+이 학년군 참고 사양: 문항 유형 ${s.문항유형} · 서술 분량 ${s.서술분량} · 보기 문장 ${s.보기문장}`;
+}
+function systemPrompt(){
+  return `당신은 대한민국 초등교사의 개념기반 탐구 문항 개발 코치입니다.
+목표: 교사의 문항 초안을 성취기준에 정렬하고, SOLO 3수준(사실 확인/연결·설명/전이·일반화) 도달 판단 기준과 예시 답안 초안을 제안합니다.
+원칙: 교사를 저자로 존중 — 지시가 아닌 제안. 2022 개정 교육과정과 「질문하는 학교」 정책 기반. 한국어 5문장 이내, 간결하게.
+
+${difficultyRules()}
+
+컨텍스트:
+학년·과목: ${state.grade} ${state.subject}
+단원명: ${state.title||'(미입력)'}
+성취기준:\n${standardText()||'(미입력)'}`;
+}
+function quickPrompt(type){
+  const draft = currentDraft();
+  const level = state.activeCell ? state.activeCell.split(':')[1] : null;
+  const levelKo = level ? LEVELS.find(l=>l.key===level).ko : null;
+  if(type==='align') return `교사의 문항 초안:\n${draft||'(초안 없음)'}\n\n이 문항이 성취기준의 어떤 행동 동사를 측정하나요? 부족한 부분과 개선 제안 한 줄을 알려주세요.`;
+  if(type==='criterion') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 문항의 '도달 판단 기준' 한 문장을 SOLO 수준 어법으로 제안해 주세요. (예: "~요소 간 관계를 근거를 들어 설명한다")`;
+  if(type==='sample') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 수준의 학생 예시 답안 특징을 1~2문장으로 제안해 주세요. (실제 정답이 아닌, 답안의 특징 서술)`;
+  if(type==='grade-fit') return `문항: ${draft||'(초안 없음)'}\n수준: ${levelKo||'(셀 미선택)'}\n\n이 문항을 ${state.grade} 학생 눈높이에 맞게 다시 써 주세요. 학년 수준 문항 작성 가이드의 5원칙(쉬운 어휘·그림 우선·고르기→서술 순서·한 가지만 묻기·학년-성취기준 일치)을 그대로 적용하고, 다듬은 문항을 「」 안에 제시해 주세요.`;
+  if(type==='find-standard'){
+    const annex = SUBJECT_NCIC[state.subject]?.annex;
+    return `학년: ${state.grade}\n과목: ${state.subject}\n단원명: ${state.title||'(미입력)'}\n핵심 질문: ${state.unitQuestion||'(미입력)'}\n\n2022 개정 교육과정 기준으로 이 단원과 가장 관련 있어 보이는 성취기준을 최대 3개까지 찾아 주세요. 확신이 없으면 억지로 채우지 말고 있는 만큼만 답하세요.\n\n반드시 이 형식으로만, 한 줄에 하나씩 답해 주세요:\n[코드] 설명 문장\n\n마지막 줄에 "⚠ AI 추정입니다 — 국가교육과정정보센터(NCIC)${annex?` [별책${annex}] ${state.subject}과 교육과정`:''}에서 원문과 반드시 대조하세요."라고 적어 주세요.`;
+  }
+  return '';
+}
+function addMsg(role, text){
+  const cls = role==='user'?'cmsg--user':role==='error'?'cmsg--error':'cmsg--ai';
+  const el = document.createElement('div');
+  el.className = `cmsg ${cls}`;
+  el.textContent = text;
+  if(role==='ai' && state.activeCell){
+    const m = text.match(/「([^」]{4,})」/) || text.match(/"([^"]{4,})"/);
+    if(m){
+      const btn = document.createElement('button');
+      btn.className = 'cmsg__apply'; btn.textContent = '↩ 도달 판단 기준에 반영';
+      btn.addEventListener('click', () => {
+        const it = currentItem();
+        const before = it.score || '';
+        it.score = m[1];
+        state.items[state.activeCell] = ensureItemMeta(it);
+        traceItem(state.activeCell, 'ai-coach', 'criterion-applied', '코치 제안을 도달 판단 기준에 반영 (교사 버튼 클릭)', before, m[1]);
+        if(modalSnapshot && modalSnapshot.key === state.activeCell) modalSnapshot.score = m[1];
+        save();
+        toast('✓ 코치 제안을 반영했습니다');
+      });
+      el.appendChild(document.createElement('br')); el.appendChild(btn);
+    }
+  }
+  if(role==='ai'){
+    const codeLines = [...text.matchAll(/\[([2-6][가-힣]\d{2}-\d{2})\]\s*([^\n]+)/g)];
+    if(codeLines.length){
+      const btn2 = document.createElement('button');
+      btn2.className = 'cmsg__apply';
+      btn2.textContent = `↩ 직접입력에 추가 (${codeLines.length}개)`;
+      btn2.addEventListener('click', () => {
+        const lines = codeLines.map(m => `[${m[1]}] ${m[2].trim()}`);
+        state.standardCustom = (state.standardCustom ? state.standardCustom+'\n' : '') + lines.join('\n');
+        $('#standardCustom').value = state.standardCustom;
+        traceApp('ai-coach', 'standards-added', `AI 추정 성취기준 ${lines.length}개를 직접입력에 추가 (교사 버튼 클릭): ${codeLines.map(m=>m[1]).join(', ')}`);
+        checkVerb(); updatePhaseHint(); save();
+        toast(`✓ 성취기준 ${lines.length}개를 직접입력에 추가했습니다 — NCIC에서 꼭 확인하세요`);
+      });
+      el.appendChild(document.createElement('br')); el.appendChild(btn2);
+    }
+  }
+  const chat = $('#coachChat'); chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
+  if((role==='ai'||role==='error') && !$('#coachPanel').classList.contains('is-open')) $('#coachFabBadge').classList.add('is-on');
+  return el;
+}
+async function callClaudeRaw(userPrompt, sys, model){
+  const key = aiGetKey();
+  if(!key) throw new Error('NO_KEY');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model: model || AI_MODEL, max_tokens:700, system: sys || systemPrompt(), messages:[{ role:'user', content:userPrompt }] }),
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data?.error?.message || ('요청 실패 HTTP ' + res.status));
+  return (data.content || []).map(b => b.text || '').join('').trim();
+}
+/* ═════════ V4 Phase 2 · 검증 파이프라인 (에이전트 정의서 이식) ═════════
+   ① 설계 검토(sonnet) → V① 형식 검증(JS 규칙, 무료) → V② 최종 게이트(Opus, 읽기 전용)
+   반려 시: ② 문항 패스(sonnet)가 수정안 「」 제안 → V② 재판정, 최대 2회 (확정 결정: 자동 재실행)
+   원칙: V② 판정·수정안은 절대 자동 반영하지 않음 — 최종 확정은 항상 교사 승인 버튼 */
+const V2_MAX_CYCLES = 2;
+
+function runV1(it, key){
+  const q = (it.question||'').trim();
+  const checks = [];
+  checks.push({ name:'질문 존재(10자 이상)', ok: q.length >= 10 });
+  checks.push({ name:'물음·수행 지시 형태', ok: /[?？]|보세요|봅시다|쓰세요|하시오|말해|적어|그려|설명|비교|나타내/.test(q) });
+  checks.push({ name:'근거 성취기준 연결', ok: (it.evidence?.standards||[]).length > 0 });
+  checks.push({ name:'SOLO 수준 라벨', ok: true, note: LEVELS.find(l=>l.key===key.split(':')[1])?.ko });
+  const hasOwn = !!(it.score && it.score.trim());
+  checks.push({ name:'도달 판단 기준', ok: true, note: hasOwn ? '교사 작성' : 'SOLO 기본 문구 사용 중 (권장: 직접 작성)' });
+  return { passed: checks.every(c => c.ok), checks, t: new Date().toISOString() };
+}
+
+function v2GatePrompt(it, key){
+  const level = LEVELS.find(l=>l.key===key.split(':')[1]);
+  const phase = PHASES.find(p=>p.key===key.split(':')[0]);
+  const evidence = (it.evidence?.standards||[]).map(c => `[${c}] ${standardDesc(c)}`).join('\n') || '(연결 안 됨)';
+  const criterion = it.score && it.score.trim() ? it.score : LEVEL_TEMPLATE[level.key] + ' (기본 문구)';
+  return `검증 대상 문항:
+"${it.question}"
+
+배치: ${phase.ko} × ${level.ko}(SOLO)
+근거 성취기준:\n${evidence}
+도달 판단 기준: ${criterion}
+설계 근거(참고): ${it.evidence?.soloRationale || '(없음)'}
+학년: ${state.grade}
+
+세 기준으로 판단하세요:
+1. 이 문항·채점 구조가 교사의 최종 판단을 "보조"하는가, "대신"하는가 (대신하면 반려)
+2. 학생 사고를 실제로 끌어내는가 — 상식만으로 성취기준과 무관하게 답할 수 있으면 반려
+3. 도달 판단 기준이 문항과 실질적으로 맞물리는가
+
+반드시 첫 줄은 "판정: 통과" 또는 "판정: 반려"로 시작하고, 다음 줄부터 구체적 근거를 3문장 이내로 쓰세요. 반려라면 무엇이 왜 문제인지 담당(문항 문구/근거 연결/판단 기준)을 지목하세요.`;
+}
+const V2_GATE_SYS = `당신은 KCBC 최종 검증 게이트 V②입니다. 읽기 전용 — 문항을 수정하지 말고 발견·보고만 합니다.
+"자동화가 교사 판단을 대체하지 않는가"와 "학생 사고를 실제로 끌어내는가"를 기계적 체크가 아닌 판단으로 심사합니다.
+초등 ${'${state.grade}'} 수준·2022 개정 교육과정 맥락. 한국어로 간결하게.`;
+
+const ITEM_REVISE_SYS = `당신은 KCBC 문항 담당 분대장 B입니다. 반려 사유를 반영해 문항 문구를 다시 씁니다.
+언어의 미세한 뉘앙스가 변별력과 채점 가능성을 결정하므로 직접, 신중히 작성합니다.
+뻔한 답(상식만으로 답 가능)이 나오지 않는지 스스로 점검한 후 제출하세요. 수정 문항은 반드시 「」 안에 한 개만 제시하세요.`;
+
+async function runValidation(){
+  const key = state.activeCell;
+  if(!key) return;
+  const it = state.items[key];
+  if(!it || !(it.question||'').trim()){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  ensureItemMeta(it);
+  const box = $('#validationResult');
+  const btn = $('#btnValidate');
+  btn.disabled = true;
+  box.classList.remove('hidden');
+  const setStatus = html => { box.innerHTML = html; };
+  try{
+    /* V① — 규칙 기반 (무료, API 키 불필요) */
+    setStatus('⏳ V① 형식 검증 중…');
+    const v1 = runV1(it, key);
+    it.validation.v1 = v1;
+    traceItem(key, 'v1', v1.passed ? 'v1-passed' : 'v1-failed', v1.checks.filter(c=>!c.ok).map(c=>c.name).join(', ') || '전 항목 통과');
+    if(!v1.passed){
+      renderValidationResult(it); renderBoard(); save();
+      toast('V①에서 멈췄습니다 — 지적 항목을 보완한 뒤 다시 검증해 주세요');
+      return;
+    }
+    if(!aiGetKey()){
+      renderValidationResult(it); renderBoard(); save();
+      box.innerHTML += '<div style="margin-top:6px;color:#a06e0e;">V② AI 심사는 Anthropic API 키가 필요합니다 — 아래 🔑 칸에 키를 넣은 뒤 다시 🔬 검증을 눌러주세요.</div>';
+      toast('V① 통과 — V② 심사는 API 키 저장 후 가능합니다');
+      ensureKeyInCell();
+      return;
+    }
+    /* ① 설계 검토 — SOLO 사고 요구량 근거 (sonnet) */
+    setStatus('⏳ V① 통과 · ① 설계 근거 생성 중… (sonnet)');
+    const level = LEVELS.find(l=>l.key===key.split(':')[1]);
+    try{
+      const rationale = await callClaudeRaw(
+        `문항: "${it.question}"\nSOLO 수준: ${level.ko}\n학년: ${state.grade}\n\n이 문항이 ${level.ko} 수준에서 학생에게 요구하는 사고 과정이 무엇인지 1~2문장으로 설명하세요. 문항 문구를 고치거나 새로 쓰지 마세요 — 구조 설명만.`,
+        `당신은 KCBC 설계 담당 분대장 A입니다. SOLO 단계별 사고 요구량을 설명합니다. 문항의 실제 문구는 절대 작성하지 않습니다.`);
+      it.evidence.soloRationale = clip(rationale);
+      traceItem(key, 'ai-design', 'solo-rationale', '설계 패스가 SOLO 사고 요구량 근거 생성');
+    }catch(e){ /* 설계 근거는 보조 — 실패해도 게이트 진행 */ }
+    /* V② — Opus 게이트 + 반려 시 자동 재실행 */
+    let cycles = 0, verdict = null, rationaleText = '', suggestion = null, judgedQuestion = it.question;
+    while(cycles < V2_MAX_CYCLES){
+      cycles++;
+      setStatus(`⏳ V② 최종 게이트 심사 중… (Opus, ${cycles}차)`);
+      const target = suggestion || it.question;
+      const judged = await callClaudeRaw(v2GatePrompt({ ...it, question: target }, key), V2_GATE_SYS.replace('${state.grade}', state.grade), AI_MODEL_V2);
+      const pass = /^판정\s*[:：]\s*통과/m.test(judged);
+      verdict = pass ? 'pass' : 'reject';
+      rationaleText = judged.replace(/^판정\s*[:：].*$/m, '').trim();
+      judgedQuestion = target;
+      traceItem(key, 'v2', pass ? 'v2-passed' : 'v2-rejected', `${cycles}차 심사 (opus)${suggestion?' · 수정안 대상':''}`, undefined, clip(rationaleText));
+      if(pass) break;
+      if(cycles >= V2_MAX_CYCLES) break;
+      /* 반려 → ② 문항 패스가 수정안 제안 (자동 재실행, 반영은 교사) */
+      setStatus(`⏳ V② 반려 · ② 문항 패스가 수정안 작성 중… (sonnet, ${cycles}차 반려 사유 반영)`);
+      const revised = await callClaudeRaw(
+        `원 문항: "${it.question}"\n반려 사유:\n${rationaleText}\n\n학년: ${state.grade} · SOLO 수준: ${level.ko}\n근거 성취기준:\n${(it.evidence?.standards||[]).map(c=>`[${c}] ${standardDesc(c)}`).join('\n')}\n\n반려 사유를 해소한 수정 문항을 「」 안에 1개 제시하세요.`,
+        ITEM_REVISE_SYS);
+      const m = revised.match(/「([^」]{4,})」/);
+      if(!m) break;
+      suggestion = m[1];
+      traceItem(key, 'ai-item', 'revision-suggested', `${cycles}차 반려 사유 반영 수정안 제안 (자동 재실행, 미반영)`, undefined, clip(suggestion));
+    }
+    it.validation.v2 = {
+      verdict, rationale: clip(rationaleText), model: AI_MODEL_V2, cycles,
+      judgedQuestion: clip(judgedQuestion),
+      suggestion: (suggestion && judgedQuestion === suggestion) ? suggestion : (suggestion || null),
+      t: new Date().toISOString(),
+    };
+    it.validation.teacherApproved = null; // 새 심사 → 이전 승인 무효
+    renderValidationResult(it); renderBoard(); save();
+    toast(verdict==='pass' ? '🔬 V② 통과 — 최종 확정은 승인 버튼으로' : '🔬 V② 반려 — 사유와 수정안을 확인해 주세요');
+  }catch(e){
+    setStatus(`⚠ 검증 중 오류: ${esc(e.message||'알 수 없는 오류')}`);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function renderValidationResult(it){
+  const box = $('#validationResult');
+  box.classList.remove('hidden');
+  const v1 = it.validation?.v1, v2 = it.validation?.v2;
+  let out = '';
+  if(v1){
+    out += `<div><b>V① 형식 검증</b> ${v1.passed?'✅ 통과':'❌ 미통과'}</div>`;
+    out += '<ul style="margin:4px 0 8px;padding-left:18px;">' + v1.checks.map(c =>
+      `<li>${c.ok?'✓':'✗'} ${c.name}${c.note?` — <span style="color:var(--muted)">${esc(c.note)}</span>`:''}</li>`).join('') + '</ul>';
+  }
+  if(v2){
+    const passed = v2.verdict === 'pass';
+    out += `<div><b>V② 최종 게이트</b> (${v2.model} · ${v2.cycles}차) ${passed?'🟢 통과 의견':'🟠 반려 의견'}</div>`;
+    out += `<div style="margin:4px 0;white-space:pre-wrap;">${esc(v2.rationale)}</div>`;
+    if(v2.suggestion && v2.suggestion !== it.question){
+      out += `<div style="margin-top:6px;padding:8px;border-radius:7px;background:#fff;border:1px dashed #7048e8;">
+        <b>② 수정안 제안</b> (자동 반영 안 됨)<br>「${esc(v2.suggestion)}」
+        <br><button class="btn-mini" id="btnApplySuggestion" style="margin-top:6px;">↩ 이 수정안으로 교체 (교사 결정)</button></div>`;
+    }
+    out += `<div style="margin-top:8px;">`;
+    if(it.validation.teacherApproved){
+      out += `✅ <b>교사 최종 승인됨</b> (${new Date(it.validation.teacherApproved.t).toLocaleString('ko-KR')})`;
+    } else {
+      out += `<button class="btn-mini" id="btnTeacherApprove" style="border-color:#2ea66c;color:#1f7a4a;font-weight:700;">✔ 교사 최종 승인 — AI 의견을 검토했고 이 문항을 확정합니다</button>`;
+    }
+    out += `</div><p class="field__hint" style="margin-top:6px;">AI 판정은 참고 의견입니다 · 공식 확정 근거는 교사 승인 기록입니다.</p>`;
+  }
+  box.innerHTML = out || '';
+  $('#btnApplySuggestion')?.addEventListener('click', () => {
+    const key = state.activeCell; const item = state.items[key];
+    if(!item || !item.validation?.v2?.suggestion) return;
+    const before = item.question;
+    item.question = item.validation.v2.suggestion;
+    item.questionVersion = (item.questionVersion||0) + 1;
+    item.seedApplied = false;
+    traceItem(key, 'teacher', 'suggestion-applied', `V② 반려 수정안 채택 (v${item.questionVersion}, 교사 버튼 클릭)`, before, item.question);
+    $('#cellQuestion').value = item.question;
+    if(modalSnapshot && modalSnapshot.key === key) modalSnapshot.question = item.question;
+    item.validation.v2 = null; // 문구가 바뀌었으므로 재검증 필요
+    renderValidationResult(item); renderBoard(); save();
+    toast('✓ 수정안으로 교체했습니다 — 다시 🔬 검증을 눌러 재심사하세요');
+  });
+  $('#btnTeacherApprove')?.addEventListener('click', () => {
+    const key = state.activeCell; const item = state.items[key];
+    if(!item) return;
+    ensureItemMeta(item);
+    item.validation.teacherApproved = { t: new Date().toISOString() };
+    traceItem(key, 'teacher', 'teacher-approved', '교사 최종 승인 — 이 기록이 공식 확정 근거');
+    renderValidationResult(item); renderBoard(); save();
+    toast('✅ 최종 승인 기록 완료');
+  });
+}
+$('#btnValidate').addEventListener('click', runValidation);
+
+async function sendToClaude(prompt, displayText){
+  const key = aiGetKey();
+  if(!key){ toast('⚠ Anthropic API 키를 먼저 입력해 주세요'); updateKeyRow(); $('#coachKey').focus(); return; }
+  addMsg('user', displayText||prompt);
+  chatHistory.push({role:'user', content:prompt});
+  const btn = $('#coachSend'); btn.disabled = true;
+  const loading = document.createElement('div');
+  loading.className = 'cmsg cmsg--loading'; loading.textContent = '코치가 생각하는 중…';
+  $('#coachChat').appendChild(loading); $('#coachChat').scrollTop = $('#coachChat').scrollHeight;
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:AI_MODEL, max_tokens:700, system:systemPrompt(), messages:chatHistory.slice(-10) }),
+    });
+    const data = await res.json();
+    loading.remove();
+    if(!res.ok){ addMsg('error', `⚠ ${data?.error?.message||('요청 실패 HTTP '+res.status)}`); chatHistory.pop(); return; }
+    const text = (data.content||[]).map(b=>b.text||'').join('').trim() || '(응답 없음)';
+    chatHistory.push({role:'assistant', content:text});
+    addMsg('ai', text);
+  }catch(e){
+    loading.remove(); addMsg('error','⚠ 네트워크 오류 · API 키와 연결 상태를 확인해 주세요'); chatHistory.pop();
+  }finally{ btn.disabled = false; }
+}
+$$('.coach-quick-btn').forEach(btn => btn.addEventListener('click', () => sendToClaude(quickPrompt(btn.dataset.ask), btn.textContent)));
+$('#btnCellCoach').addEventListener('click', () => {
+  if(!standardText()){ toast('⚠ 먼저 성취기준을 입력해 주세요'); return; }
+  const q = $('#cellQuestion').value.trim();
+  if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  if(!ensureKeyInCell()){ toast('💬 코치 피드백은 AI 키가 필요해요 — 바로 아래에 키를 넣어주세요'); return; }
+  openCoach();
+  sendToClaude(quickPrompt('align'), '📐 셀 문항 피드백 요청');
+});
+$('#btnFindStandard').addEventListener('click', () => {
+  if(!state.title.trim() && !state.unitQuestion.trim()){
+    toast('⚠ 단원명이나 핵심 질문을 먼저 입력하면 더 정확해요');
+  }
+  openCoach();
+  sendToClaude(quickPrompt('find-standard'), '🤖 성취기준 찾기 요청');
+});
+$('#btnGradeFit').addEventListener('click', async () => {
+  const q = $('#cellQuestion').value.trim();
+  if(!q){ toast('⚠ 질문을 먼저 작성해 주세요'); return; }
+  if(!ensureKeyInCell()){ toast('🎯 학년 눈높이 다듬기는 AI 키가 필요해요 — 바로 아래에 키를 넣어주세요'); return; }
+  const btn = $('#btnGradeFit');
+  const origLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = '🎯 다듬는 중…';
+  try{
+    const text = await callClaudeRaw(quickPrompt('grade-fit'));
+    const m = text.match(/「([^」]{4,})」/);
+    if(m){
+      const before = q;
+      $('#cellQuestion').value = m[1];
+      saveCell();
+      const it = state.items[state.activeCell];
+      if(it){
+        ensureItemMeta(it);
+        it.questionVersion = (it.questionVersion||0) + 1;
+        traceItem(state.activeCell, 'ai-item', 'grade-fit-applied', `학년 눈높이 다듬기 적용 (${state.grade}, v${it.questionVersion}, 교사 버튼 클릭)`, before, m[1]);
+        if(modalSnapshot && modalSnapshot.key === state.activeCell) modalSnapshot.question = m[1];
+        save();
+      }
+      toast('✓ 학년 눈높이에 맞게 문항을 바꿨어요 — 마음에 안 들면 다시 눌러보세요');
+    } else {
+      toast('⚠ 적절한 제안을 찾지 못했어요 — 아래 코치 패널에서 다시 물어보세요');
+    }
+  }catch(e){
+    toast('⚠ ' + (e.message || '오류가 발생했습니다'));
+  }finally{
+    btn.disabled = false; btn.textContent = origLabel;
+  }
+});
+function sendFree(){
+  const input = $('#coachInput'); const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  const prompt = `문항 초안: ${currentDraft()||'(없음)'}\n\n교사의 질문: ${text}`;
+  sendToClaude(prompt, text);
+}
+$('#coachSend').addEventListener('click', sendFree);
+$('#coachInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendFree(); } });
+
+/* ═════════ 평가계획 PDF 가져오기 ═════════ */
+const SUBJECT_CHAR = { '국':'국어', '사':'사회', '도':'도덕', '수':'수학', '과':'과학', '체':'체육', '음':'음악', '미':'미술', '영':'영어', '실':'실과', '즐':'통합', '슬':'통합', '바':'통합', '건':'통합' };
+let pdfjsLoadPromise = null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  if(pdfjsLoadPromise) return pdfjsLoadPromise;
+  pdfjsLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve();
+    };
+    s.onerror = () => reject(new Error('pdf.js 로드 실패 — 인터넷 연결을 확인해 주세요'));
+    document.head.appendChild(s);
+  });
+  return pdfjsLoadPromise;
+}
+async function extractPdfText(file){
+  await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for(let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  // pdf.js는 글자 사이에 개별 공백을 끼워 넣는 경우가 많아(예: "[4 영 02-08]") 하나로 정리한다
+  return text.replace(/\s+/g, ' ').trim();
+}
+function parsePlanText(text){
+  const codeRe = /\[?\s*([2-6])\s*([국사도수과체음미영실즐슬바건])\s*(\d{2}\s*-\s*\d{2})\s*\]?/g;
+  const seen = new Map();
+  let m;
+  while((m = codeRe.exec(text))){
+    const digits = m[3].replace(/\s+/g, '');
+    const code = `${m[1]}${m[2]}${digits}`;
+    if(!seen.has(code)) seen.set(code, { code, grade:m[1], subject:SUBJECT_CHAR[m[2]], index:m.index });
+  }
+  const codes = [...seen.values()];
+  const unitRe = /(\d{1,2})\s*[.．]\s*([A-Za-z가-힣][^\n]{1,26}?)(?=\s{2,}|\n|표현|이해|평가|하기|기르기|익히기|$)/g;
+  const unitSeen = new Set(); const units = [];
+  let um;
+  while((um = unitRe.exec(text)) && units.length < 8){
+    const label = `${um[1]}. ${um[2].trim()}`;
+    if(label.length >= 4 && label.length <= 34 && !unitSeen.has(label)){ unitSeen.add(label); units.push({ label, index:um.index }); }
+  }
+  // 평가계획 표에서는 성취기준 코드 바로 뒤에 그 단원명이 옵니다 — 텍스트상 가장 가까운 단원명을 그 코드의 단원으로 짝짓습니다
+  codes.forEach(c => {
+    let best = null, bestDist = Infinity;
+    units.forEach((u, i) => {
+      const dist = Math.abs(u.index - c.index);
+      if(dist < bestDist){ bestDist = dist; best = i; }
+    });
+    c.unitIndex = best;
+  });
+  return { codes, units:units.map(u=>u.label) };
+}
+/* 성취기준 설명 → 핵심(단원) 질문 초안. 무의미한 조각 대신 성취기준 내용을 열린 질문으로 변환 */
+function deriveUnitQuestion(desc, unitName){
+  const d = (desc||'').replace(/\s+/g,' ').trim();
+  const topic = (unitName||'').replace(/^\d+\s*[.．]\s*/,'').trim();
+  if(!d && !topic) return '';
+  if(/영향|미치/.test(d)) return `${topic||'이 단원의 배움'}은 우리 삶에 어떤 영향을 미칠까?`;
+  if(/변화|달라/.test(d)) return `${topic||'이것'}은 무엇이, 왜 변화할까?`;
+  if(/비교|차이|같/.test(d)) return `${topic||'이것들'}은 무엇이 같고 무엇이 다를까?`;
+  if(/관계|관련|연결/.test(d)) return `${topic||'이것들'}은 서로 어떻게 관계 맺고 있을까?`;
+  if(/까닭|이유|원인|왜/.test(d)) return `${topic||'이 현상'}이 나타나는 까닭은 무엇일까?`;
+  if(/방법|어떻게|과정/.test(d)) return `${topic||'이것'}은 어떻게 이루어질까?`;
+  return `${topic||'이 단원'}에서 우리는 무엇을, 왜 배울까?`;
+}
+/* 성취기준·단원명 → 과제 상황(GRASPS) 초안 스텁. 교사가 채울 빈칸 포함 */
+function deriveScenario(desc, unitName){
+  const topic = (unitName||'').replace(/^\d+\s*[.．]\s*/,'').trim() || '이 단원의 내용';
+  return `너는 (　　　　)이다. ${topic}에 대해 궁금해하는 (　　　　)에게, 배운 것을 바탕으로 (　　　　)을(를) 만들어 설명해 보자.`;
+}
+function matchAchievements(codes){
+  const matched = [], unmatched = [];
+  codes.forEach(c => {
+    const band = (c.grade==='1'||c.grade==='2') ? 'g12' : (c.grade==='3'||c.grade==='4') ? 'g34' : 'g56';
+    const a = (ACHIEVEMENTS[band]?.[c.subject]||[]).find(x => x.code===c.code);
+    if(a) matched.push({ ...a, subject:c.subject, band, unitIndex:c.unitIndex });
+    else unmatched.push(c);
+  });
+  return { matched, unmatched };
+}
+let planParsed = null;
+$('#btnPlanPdf').addEventListener('click', () => $('#planPdfInput').click());
+$('#planPdfInput').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  e.target.value = '';
+  $('#planModal').classList.add('is-on');
+  $('#planLoading').classList.remove('hidden');
+  $('#planResult').classList.add('hidden');
+  try{
+    const text = await extractPdfText(f);
+    const { codes, units } = parsePlanText(text);
+    const { matched, unmatched } = matchAchievements(codes);
+    if(codes.length === 0 && units.length === 0){
+      toast('⚠ PDF에서 성취기준·단원명을 찾지 못했습니다 — 표 형식 평가계획 PDF인지 확인해 주세요');
+      $('#planModal').classList.remove('is-on');
+      return;
+    }
+    planParsed = { matched, unmatched, units };
+    renderPlanReview();
+  }catch(err){
+    toast('⚠ ' + (err.message || 'PDF를 읽는 중 오류가 발생했습니다'));
+    $('#planModal').classList.remove('is-on');
+  }finally{
+    $('#planLoading').classList.add('hidden');
+  }
+});
+function renderPlanReview(){
+  const { matched, unmatched, units } = planParsed;
+  $('#planResult').classList.remove('hidden');
+  const bandOf = g => (g==='1'||g==='2') ? 'g12' : (g==='3'||g==='4') ? 'g34' : 'g56';
+  const detectedBand = matched[0]?.band || (unmatched[0] ? bandOf(unmatched[0].grade) : null);
+  const gradeGuess = (detectedBand && gradeBand(state.grade) !== detectedBand)
+    ? (detectedBand==='g12' ? '2학년' : detectedBand==='g34' ? '4학년' : '6학년')
+    : state.grade;
+  const subjectGuess = matched[0]?.subject || unmatched[0]?.subject || state.subject;
+  $('#planGrade').value = gradeGuess;
+  $('#planSubject').value = subjectGuess;
+
+  const unitSel = $('#planUnitSelect');
+  unitSel.innerHTML = units.length
+    ? units.map((u,i) => `<option value="${i}">${esc(u)}</option>`).join('')
+    : `<option value="-1">감지된 단원명 없음</option>`;
+  $('#planUnitText').value = units[0] || '';
+
+  /* 선택된 단원과 짝지어진 성취기준 하나를 근거로 핵심질문·과제상황 초안 생성 */
+  function repDescForUnit(unitIdx){
+    const all = matched.concat(unmatched.map(u => ({ code:u.code, desc:'', unitIndex:u.unitIndex })));
+    const forUnit = all.filter(a => a.unitIndex === unitIdx && a.desc);
+    return (forUnit[0] || matched[0] || {}).desc || '';
+  }
+  function refreshDrafts(){
+    const unitIdx = units.length ? +unitSel.value : null;
+    const unitName = $('#planUnitText').value;
+    const desc = repDescForUnit(unitIdx);
+    $('#planUnitQText').value = deriveUnitQuestion(desc, unitName);
+    $('#planScenarioText').value = deriveScenario(desc, unitName);
+  }
+
+  const unitChip = (idx) => (units.length > 1 && idx != null) ? `<span class="chip-mini" style="margin-left:6px;">🔗 ${esc(units[idx])}</span>` : '';
+  $('#planMatchedList').innerHTML = matched.length
+    ? matched.map((a,i) => `<label class="ach-item" data-unit-idx="${a.unitIndex ?? ''}"><input type="checkbox" data-i="${i}">
+        <span class="ach-item__code">${a.code}</span><span class="ach-item__desc">${esc(a.desc)}${unitChip(a.unitIndex)}</span></label>`).join('')
+    : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">목록과 일치하는 성취기준을 찾지 못했습니다.</div>`;
+
+  $('#planUnmatchedList').innerHTML = unmatched.length
+    ? unmatched.map((c,i) => `<label class="ach-item" data-unit-idx="${c.unitIndex ?? ''}"><input type="checkbox" data-i="${i}">
+        <span class="ach-item__code">${c.code}</span><span class="ach-item__desc">${c.aiDesc ? esc(c.aiDesc)+' <b style="color:var(--coach)">(AI 추정)</b>' : (c.subject+' · 목록에 없는 코드입니다 — 위 "AI로 설명 찾기"를 눌러보세요')}${unitChip(c.unitIndex)}</span></label>`).join('')
+    : `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center;">(없음)</div>`;
+  $('#planUnmatchedWrap').classList.toggle('hidden', unmatched.length===0);
+
+  /* 선택된 단원명과 짝지어진 성취기준만 기본으로 체크 — 나머지는 직접 체크 가능 */
+  function recalcChecksForUnit(){
+    const selIdx = units.length ? +unitSel.value : null;
+    $$('#planMatchedList input, #planUnmatchedList input').forEach(cb => {
+      const raw = cb.closest('.ach-item').dataset.unitIdx;
+      const itemUnitIdx = raw === '' ? null : +raw;
+      cb.checked = (units.length <= 1) || itemUnitIdx == null || itemUnitIdx === selIdx;
+    });
+  }
+  unitSel.onchange = () => { $('#planUnitText').value = units[+unitSel.value] || ''; recalcChecksForUnit(); refreshDrafts(); };
+  $('#planUnitText').oninput = refreshDrafts;
+  recalcChecksForUnit();
+  refreshDrafts();
+}
+$('#btnPlanFindUnmatched').addEventListener('click', async () => {
+  if(!planParsed || !planParsed.unmatched.length) return;
+  if(!aiGetKey()){ toast('⚠ 코치 패널(우하단 💬)에서 Anthropic API 키를 먼저 입력해 주세요'); return; }
+  const btn = $('#btnPlanFindUnmatched');
+  const origLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = '🤖 찾는 중…';
+  try{
+    const codes = planParsed.unmatched.map(c => c.code).join(', ');
+    const prompt = `2022 개정 교육과정 성취기준 코드입니다: ${codes}\n학년: ${$('#planGrade').value} · 과목: ${$('#planSubject').value}\n\n각 코드가 실제로 어떤 성취기준일지 알고 있는 만큼만 아래 형식으로 답해 주세요. 확신이 없는 코드는 건너뛰고 답하지 마세요.\n[코드] 설명 문장`;
+    const text = await callClaudeRaw(prompt);
+    const found = new Map([...text.matchAll(/\[([2-6][가-힣]\d{2}-\d{2})\]\s*([^\n]+)/g)].map(m => [m[1], m[2].trim()]));
+    let n = 0;
+    planParsed.unmatched.forEach(c => { if(found.has(c.code)){ c.aiDesc = found.get(c.code); n++; } });
+    renderPlanReview();
+    toast(n ? `✓ ${n}개 성취기준 설명을 찾았습니다 — AI 추정이니 NCIC에서 확인해 주세요` : '⚠ 찾지 못했습니다 — 직접입력을 이용해 주세요');
+  }catch(e){
+    toast('⚠ ' + (e.message || '오류가 발생했습니다'));
+  }finally{
+    btn.disabled = false; btn.textContent = origLabel;
+  }
+});
+$('#btnPlanApply').addEventListener('click', () => {
+  if(!planParsed) return;
+  const { matched, unmatched } = planParsed;
+  const newGrade = $('#planGrade').value, newSubject = $('#planSubject').value;
+  const gradeChanged = newGrade !== state.grade, subjectChanged = newSubject !== state.subject;
+  state.grade = newGrade; state.subject = newSubject;
+  if(gradeChanged || subjectChanged) state.achievements = [];
+  $('#grade').value = newGrade; $('#subject').value = newSubject;
+
+  const unitText = $('#planUnitText').value.trim();
+  if(unitText){ state.title = unitText; $('#title').value = unitText; }
+
+  if($('#planUnitQUse').checked){
+    const uq = $('#planUnitQText').value.trim();
+    if(uq){ state.unitQuestion = uq; $('#unitQuestion').value = uq; }
+  }
+  if($('#planScenarioUse').checked){
+    const sc = $('#planScenarioText').value.trim();
+    if(sc){ state.scenario = sc; $('#scenario').value = sc; }
+  }
+
+  let addedMatched = 0, addedRaw = 0;
+  $$('#planMatchedList input:checked').forEach(cb => {
+    const a = matched[+cb.dataset.i];
+    if(a && !state.achievements.includes(a.code)){ state.achievements.push(a.code); addedMatched++; }
+  });
+  const rawLines = [];
+  $$('#planUnmatchedList input:checked').forEach(cb => {
+    const c = unmatched[+cb.dataset.i];
+    if(!c) return;
+    rawLines.push(c.aiDesc
+      ? `[${c.code}] ${c.aiDesc} (AI 추정 — NCIC 원문 대조 필요)`
+      : `[${c.code}] (${c.subject} — 평가계획 PDF, 원문 설명 없음)`);
+  });
+  if(rawLines.length){
+    state.standardCustom = (state.standardCustom ? state.standardCustom+'\n' : '') + rawLines.join('\n');
+    $('#standardCustom').value = state.standardCustom;
+    addedRaw = rawLines.length;
+  }
+
+  traceApp('teacher', 'plan-pdf-applied',
+    `평가계획 PDF 적용: ${state.grade} ${state.subject} · 단원 "${unitText||'(미지정)'}" · 목록 체크 ${addedMatched}개 · 직접입력 추가 ${addedRaw}개 (검토 팝업에서 교사 확인 후 적용)`);
+  renderAchievements(); checkVerb(); updateConceptBadge(); renderBoard(); updateUnitHint(); save();
+  $('#planModal').classList.remove('is-on');
+  switchTab('setup');
+  toast(`✓ 성취기준 ${addedMatched}개 자동 체크${addedRaw?`, ${addedRaw}개는 직접입력에 추가`:''}했습니다`);
+});
+
+/* ═════════ 초기화 ═════════ */
+function applyStateToUI(){
+  $('#grade').value = state.grade; $('#subject').value = state.subject;
+  $('#title').value = state.title; $('#unitQuestion').value = state.unitQuestion;
+  $('#scenario').value = state.scenario; $('#standardCustom').value = state.standardCustom;
+  renderAchievements(); checkVerb(); renderBoard(); updateUnitHint();
+  updateConceptBadge();
+  updateKeyRow();
+}
+restore();
+applyStateToUI();
+</script>
+</body>
+</html>
