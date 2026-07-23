@@ -290,46 +290,65 @@ details.adv > .adv-body{ padding:12px; display:flex; flex-direction:column; gap:
 .ws-draw-canvas{ position:absolute; inset:0; pointer-events:none; z-index:5; }
 .ws-draw-canvas.is-pen{ pointer-events:auto; cursor:crosshair; }
 .ws-page{
-  font-family:'Batang','바탕','Nanum Myeongjo',serif; color:#000; background:#fff;
-  line-height:1.7; max-width:760px; margin:0 auto 20px; padding:40px 24px 60px; font-size:15px;
-  position:relative;
-  box-shadow:0 4px 20px rgba(0,0,0,.12);
+  font-family:'Pretendard','Apple SD Gothic Neo','Nanum Gothic','Malgun Gothic',sans-serif; color:#2b2b33; background:#fff;
+  line-height:1.75; max-width:780px; margin:0 auto 24px; padding:44px 40px 52px; font-size:15px;
+  position:relative; border-radius:16px; border:1px solid #e7e3f0;
+  box-shadow:0 8px 30px rgba(60,55,90,.12);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
-.ws-h1{ text-align:center; font-size:22px; font-weight:700; letter-spacing:.35em; text-decoration:underline; text-underline-offset:6px; margin-bottom:18px; }
-.ws-name{ text-align:right; font-size:14px; margin-bottom:6px; }
-table.ws-head{ width:100%; border-collapse:collapse; font-size:14px; }
-.ws-head th,.ws-head td{ border:1.5px solid #000; padding:6px 10px; }
-.ws-head th{ width:74px; font-weight:700; text-align:center; background:#fff; }
-.ws-head td.date{ text-align:center; }
-.ws-sec-title{ border:1.5px solid #000; border-top:none; text-align:center; font-weight:700; padding:6px; font-size:15px; }
-.ws-body-box{ border:1.5px solid #000; border-top:none; padding:20px 22px 28px; }
-.ws-scenario{ margin-bottom:6px; }
-.ws-q{ margin-top:22px; position:relative; }
+.ws-h1{ text-align:center; font-size:23px; font-weight:800; letter-spacing:.04em; color:#3a3f6b; margin:0 0 6px; }
+.ws-h1::before{ content:"📋 "; }
+.ws-teacher .ws-h1::before{ content:"🧑‍🏫 "; }
+.ws-name{ text-align:right; font-size:13.5px; color:#6b6b78; margin:0 0 14px; }
+table.ws-head{ width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; border:1px solid #dcd7ea; border-radius:12px; overflow:hidden; }
+.ws-head th,.ws-head td{ border-bottom:1px solid #ece8f4; border-right:1px solid #ece8f4; padding:9px 12px; }
+.ws-head tr:last-child th,.ws-head tr:last-child td{ border-bottom:none; }
+.ws-head th{ width:78px; font-weight:700; text-align:center; color:#4a4f7a; background:#f0f1fb; }
+.ws-head td.date{ text-align:center; color:#555; }
+.ws-sec-title{ margin-top:16px; text-align:center; font-weight:800; padding:11px; font-size:15.5px; color:#3a3f6b;
+  background:linear-gradient(120deg,#eef1ff,#f3eaff); border:1px solid #dcd7ea; border-radius:12px; letter-spacing:.05em; }
+.ws-sec-title::before{ content:"✏️ "; }
+.ws-body-box{ border:1px solid #ece8f4; border-radius:14px; padding:22px 24px 28px; margin-top:10px; background:#fcfcff; }
+.ws-scenario{ margin:0 0 14px; padding:12px 14px; font-size:14px; color:#4a4a55; background:#fff8e1; border-left:4px solid #f0b429; border-radius:10px; }
+.ws-q{ margin-top:20px; position:relative; padding:14px 16px 16px; border-radius:12px; background:#fff; border:1px solid #eee; border-left:5px solid var(--ph,#c9c9d6); }
 .ws-q:first-child{ margin-top:0; }
-.ws-q-title{ font-weight:700; outline:none; }
-.ws-q-title[contenteditable]:hover{ background:#fffbe6; }
-.ws-starter{ margin-top:8px; font-size:14px; outline:none; }
-.ws-lines{ margin-top:12px; }
-.ws-lines i{ display:block; height:36px; border-bottom:1px solid #000; }
-.ws-drawbox{ margin-top:12px; min-height:150px; border:1px solid #000; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; }
-.ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
-table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
-.ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
-.ws-rubric th{ text-align:center; font-weight:700; }
-.ws-rubric td.c{ text-align:center; width:90px; }
-.ws-pagenum{ text-align:center; margin-top:30px; font-size:13px; }
+.ws-q[data-phase="generate"]{ --ph:#f0b429; background:#fffdf5; }
+.ws-q[data-phase="refine"]{   --ph:#e5799e; background:#fff7fa; }
+.ws-q[data-phase="inquire"]{  --ph:#5b9bd5; background:#f6faff; }
+.ws-q[data-phase="reflect"]{  --ph:#5fb47a; background:#f5fbf7; }
+.ws-q-title{ font-weight:800; font-size:15.5px; color:#2b2b33; outline:none; line-height:1.6; }
+.ws-q-title[contenteditable]:hover{ background:#fffbe6; border-radius:6px; }
+.ws-starter{ margin-top:10px; font-size:14px; color:#555; outline:none; }
+.ws-lines{ margin-top:14px; }
+.ws-lines i{ display:block; height:34px; border-bottom:1.5px dotted #c3c3d0; }
+.ws-drawbox{ margin-top:14px; min-height:150px; border:2px dashed #cdd2e8; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13px; color:#8a90a8; background:#f8f9ff; }
+.ws-drawbox::before{ content:"🎨 "; }
+.ws-img{ display:block; margin:14px auto 0; max-width:80%; border:1px solid #e0e0e8; border-radius:10px; }
+table.ws-rubric{ width:100%; border-collapse:separate; border-spacing:0; margin-top:14px; font-size:14px; border:1px solid #cfe8d8; border-radius:12px; overflow:hidden; }
+.ws-rubric th,.ws-rubric td{ border-bottom:1px solid #e3f0e8; border-right:1px solid #e3f0e8; padding:9px 12px; }
+.ws-rubric tr:last-child td{ border-bottom:none; }
+.ws-rubric th{ text-align:center; font-weight:700; color:#1f7a4a; background:#e7f5ec; }
+.ws-rubric td.c{ text-align:center; width:94px; }
+.ws-rubric tbody tr:nth-child(even) td{ background:#f7fcf9; }
+.ws-pagenum{ text-align:center; margin-top:28px; font-size:12.5px; color:#9a9aa8; }
 .ws-teacher{ margin-top:0; }
-.ws-teacher h1{ letter-spacing:.15em; }
-.ws-tsec{ margin-top:18px; }
-.ws-tsec h3{ font-size:15px; font-weight:700; }
-.ws-tsec p{ margin-top:4px; font-size:14px; outline:none; }
-table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px; }
-.ws-map th,.ws-map td{ border:1px solid #000; padding:6px 9px; }
-.ws-map th{ text-align:center; font-weight:700; }
+.ws-tsec{ margin-top:20px; }
+.ws-tsec h3{ font-size:15px; font-weight:800; color:#3a3f6b; padding-left:10px; border-left:4px solid #7048e8; }
+.ws-teacher .ws-tsec:nth-of-type(1) h3::before{ content:"🎯 "; }
+.ws-teacher .ws-tsec:nth-of-type(2) h3::before{ content:"🧩 "; }
+.ws-teacher .ws-tsec:nth-of-type(3) h3::before{ content:"💡 "; }
+.ws-teacher .ws-tsec:nth-of-type(4) h3::before{ content:"📝 "; }
+.ws-tsec p{ margin-top:6px; font-size:14px; outline:none; color:#3a3a44; }
+table.ws-map{ width:100%; border-collapse:separate; border-spacing:0; margin-top:10px; font-size:13.5px; border:1px solid #dcd7ea; border-radius:12px; overflow:hidden; }
+.ws-map th,.ws-map td{ border-bottom:1px solid #ece8f4; border-right:1px solid #ece8f4; padding:8px 11px; }
+.ws-map tr:last-child td{ border-bottom:none; }
+.ws-map th{ text-align:center; font-weight:700; color:#4a4f7a; background:#f0f1fb; }
 .ws-map td[contenteditable]{ outline:none; }
 .ws-map td[contenteditable]:hover{ background:#fffbe6; }
-.ws-warn{ border:1px solid #000; padding:8px 12px; margin-top:8px; font-size:13.5px; }
-.ws-fb i{ display:block; height:32px; border-bottom:1px solid #000; }
+.ws-map tbody tr:nth-child(even) td{ background:#faf9ff; }
+.ws-warn{ border:1px solid #f0d9a0; background:#fff8e1; border-radius:10px; padding:10px 14px; margin-top:10px; font-size:13.5px; color:#7a5a10; }
+.ws-warn::before{ content:"⚠️ "; }
+.ws-fb i{ display:block; height:32px; border-bottom:1.5px dotted #c3c3d0; }
 
 /* ═════ 우하단 AI 코치 팝업 (v2 계승) ═════ */
 .coach-fab{
@@ -390,10 +409,11 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
 
 @media print{
   body *{ visibility:hidden; }
-  #printArea, #printArea *{ visibility:visible; }
+  #printArea, #printArea *{ visibility:visible; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   #printArea{ position:absolute; left:0; top:0; width:100%; }
   .ws-wrap{ background:#fff; padding:0; }
-  .ws-page{ box-shadow:none; margin:0 auto; }
+  .ws-page{ box-shadow:none; margin:0 auto; border:none; border-radius:0; page-break-after:always; }
+  .ws-page:last-child{ page-break-after:auto; }
   .ws-warn-badge{ display:none !important; }
 }
 </style>
@@ -1324,7 +1344,7 @@ function renderWorksheet(){
     const starter = it.starter ? `<p class="ws-starter" contenteditable="true">${esc(it.starter)}</p>` : '';
     const draw = it.answerType === 'draw' ? `<div class="ws-drawbox">(그림으로 나타내는 곳)</div>` : '';
     const lines = Array.from({length:lineCountFor(it.level)}).map(()=>'<i></i>').join('');
-    return `<div class="ws-q" data-idx="${i}">
+    return `<div class="ws-q" data-idx="${i}" data-phase="${it.phase}">
       <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
       ${img}${starter}${draw}
       <div class="ws-lines">${lines}</div>
