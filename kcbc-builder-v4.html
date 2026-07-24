@@ -375,6 +375,35 @@ table.ws-compare{ width:100%; border-collapse:collapse; margin-top:12px; }
 /* 서식 추천 문구 */
 .ws-format-tip{ font-size:11.5px; color:var(--ink-soft); margin:0 0 10px; }
 .ws-rec-dot{ color:#f0b429; }
+
+/* ═══ CBLAA 의사결정 층 ═══ */
+.decision-owner{ margin-left:auto; font-size:11px; font-weight:700; color:#7048e8; background:#f0ebff; border:1px solid #d6c9ff; border-radius:999px; padding:2px 10px; }
+.dec-grp{ margin:0 0 12px; }
+.dec-grp:last-child{ margin-bottom:0; }
+.dec-grp__h{ font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+.dec-sub{ font-weight:500; color:var(--muted); font-size:11px; }
+.dec-multi{ font-weight:500; color:#7048e8; font-size:10.5px; background:#f3efff; border-radius:6px; padding:1px 6px; margin-left:2px; }
+.dec-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.dec-chip{ border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:5px 13px; font-size:12.5px; cursor:pointer; color:var(--ink); transition:all .12s; }
+.dec-chip:hover{ border-color:#7048e8; color:#7048e8; }
+.dec-chip.is-on{ border-color:#7048e8; background:#7048e8; color:#fff; font-weight:600; }
+/* STEP3 AI 제안 */
+.ai-why{ background:#f7f9ff; border:1px solid #dbe6ff; border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; color:#33507a; display:flex; flex-direction:column; gap:4px; }
+.ai-tag{ font-size:10px; font-weight:700; color:#1c7ed6; background:#e7f2ff; border-radius:6px; padding:1px 6px; margin-left:4px; }
+.ai-chip{ border:1.5px dashed #74b3f6; background:#fff; border-radius:999px; padding:5px 13px; font-size:12.5px; cursor:pointer; color:#1c7ed6; transition:all .12s; }
+.ai-chip:hover{ background:#e7f2ff; }
+.ai-chip.is-chosen{ border-style:solid; border-color:#1c7ed6; background:#1c7ed6; color:#fff; font-weight:600; }
+/* 책임 매트릭스 */
+.resp-summary{ background:#f0ebff; border:1px solid #d6c9ff; border-radius:10px; padding:10px 13px; margin-bottom:12px; }
+.resp-summary--empty{ background:var(--bg-soft,#f7f7fa); border-color:var(--line); color:var(--muted); font-size:12.5px; }
+.resp-summary__h{ font-size:12.5px; font-weight:700; color:#5f3dc4; margin-bottom:6px; }
+.resp-summary__row{ font-size:12.5px; color:#4a3a7a; padding:1px 0; }
+.resp-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.resp-table th,.resp-table td{ border:1px solid var(--line); padding:7px 10px; text-align:left; }
+.resp-table th{ background:#faf8ff; font-weight:700; font-size:12px; }
+.resp-table .resp-final{ font-weight:700; color:#5f3dc4; text-align:center; white-space:nowrap; }
+.resp-principle{ margin:12px 0 0; font-size:12.5px; line-height:1.6; color:var(--ink); background:#fbfaff; border-left:3px solid #7048e8; border-radius:0 8px 8px 0; padding:9px 13px; }
+@media print{ #decisionCard,#aiDesignCard{ display:none; } }
 .ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
 table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
 .ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
@@ -525,6 +554,19 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         <p class="field__hint">AI가 학년·과목·단원명을 바탕으로 관련 성취기준을 찾아 드려요.</p>
       </div>
     </div>
+
+    <!-- CBLAA STEP2 · 교사 결정 매트릭스 -->
+    <div class="card" id="decisionCard">
+      <h2 class="card__title">🧭 평가 설계 결정 <span class="decision-owner">교사 결정 영역 · AI 개입 없음</span></h2>
+      <p class="field__hint" style="margin:-2px 0 10px;">무엇을·왜·누구에게·어느 사고수준으로 평가할지 <b>선생님이 먼저 정합니다.</b> 이 결정이 아래 AI 제안과 문항 생성의 틀이 됩니다.</p>
+      <div id="decisionBody"></div>
+    </div>
+
+    <!-- CBLAA STEP3 · AI 설계 제안 -->
+    <div class="card" id="aiDesignCard">
+      <h2 class="card__title">🤖 AI 설계 제안 <span class="card__hint">교사 결정을 바탕으로 — 채택 여부는 교사가 결정</span></h2>
+      <div id="aiDesignBody"></div>
+    </div>
   </section>
 
   <!-- ═════ 탭 2: 매트릭스 (질문 보드) ═════ -->
@@ -553,6 +595,12 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     <div class="card" id="explainCard">
       <h2 class="card__title">🔍 문항별 개발 근거 <span class="card__hint">"왜 이 문항인가"에 대한 답 — 생성·검증·승인 전 과정 기록</span></h2>
       <div id="explainBody"></div>
+    </div>
+
+    <!-- CBLAA · 교사–AI 책임 매트릭스 -->
+    <div class="card" id="respMatrixCard">
+      <h2 class="card__title">⚖️ 교사–AI 책임 매트릭스 <span class="card__hint">AI는 설계 공간을 넓히고, 교사가 교육적 판단을 최종 결정합니다</span></h2>
+      <div id="respMatrixBody"></div>
     </div>
 
     <div class="ws-format-row" id="wsFormatRow">
@@ -1002,6 +1050,10 @@ const state = {
   levelExamples:{ fact:'', link:'', transfer:'' },
   levelExampleDirty:{ fact:false, link:false, transfer:false },
   activeCell:null,
+  /* CBLAA STEP2 · 교사 결정 매트릭스 — 이 값은 AI가 절대 결정하지 않는다(교사 전용 입력) */
+  decision:{ assess:[], purpose:'', studentLevel:'', cognition:[] },
+  /* CBLAA STEP3 · AI 설계 제안 — AI는 제안만, chosen은 교사가 채택한 것만 담긴다 */
+  aiDesign:{ chosen:{ context:[], qtypes:[], difficulty:'' } },
 };
 let chatHistory = [];
 let techFilter = 'all';
@@ -1085,6 +1137,10 @@ function restore(){
       Object.assign(state, s, { activeCell:null, schemaVersion: SCHEMA_VERSION });
       Object.values(state.items).forEach(ensureItemMeta);
       state.appTrace = state.appTrace || [];
+      /* CBLAA 결정층 — 구버전 저장본엔 없으므로 형태 보장 */
+      state.decision = Object.assign({ assess:[], purpose:'', studentLevel:'', cognition:[] }, state.decision||{});
+      state.aiDesign = state.aiDesign || {};
+      state.aiDesign.chosen = Object.assign({ context:[], qtypes:[], difficulty:'' }, state.aiDesign.chosen||{});
       return;
     }
     const rawV3 = localStorage.getItem(STORAGE_KEY_V3);
@@ -1600,6 +1656,7 @@ function renderDone(){
   }
   renderEvidenceMatrix();
   renderExplainCards();
+  renderResponsibilityMatrix();
   renderFormatChips();   // 선별 상태가 바뀌면 추천 서식도 다시 계산
   updateDoneBadge();
 }
@@ -2202,7 +2259,7 @@ ${difficultyRules()}
 단원명: ${state.title||'(미입력)'}
 핵심 질문: ${state.unitQuestion||'(미입력)'}
 핵심 개념어: ${currentConcept()||'(추출 안 됨)'}
-성취기준:\n${standardText()||'(미입력)'}`;
+${(function(){ const l = decisionSummaryLines(); return l.length ? '\n평가 설계 결정(교사가 확정 — 이 틀 안에서 제안하세요):\n- ' + l.join('\n- ') + '\n' : ''; })()}성취기준:\n${standardText()||'(미입력)'}`;
 }
 function quickPrompt(type){
   const draft = currentDraft();
@@ -2779,6 +2836,180 @@ $('#btnPlanApply').addEventListener('click', () => {
 });
 
 /* ═════════ 초기화 ═════════ */
+/* ═════════ CBLAA · 의사결정 층 (STEP2 교사 결정 → STEP3 AI 제안 → 책임 매트릭스) ═════════
+   설계 원리: AI는 평가의 설계 공간을 확장하고, 교사는 교육적 판단을 최종 결정한다.
+   - STEP2는 교사 전용 입력(AI 개입 0). STEP3는 규칙기반 제안(무료·오프라인), 채택은 교사 클릭 시에만. */
+const CBLAA_DECISION = {
+  assess:[   // Matrix 1 — 무엇을 평가할 것인가 (복수)
+    { key:'understand', ko:'개념 이해' }, { key:'connect', ko:'개념 연결' },
+    { key:'transfer', ko:'개념 전이' },   { key:'create', ko:'개념 생성' },
+  ],
+  purpose:[  // Matrix 2 — 평가 목적 (단일)
+    { key:'diagnostic', ko:'진단평가' }, { key:'formative', ko:'형성평가' },
+    { key:'performance', ko:'수행평가' }, { key:'summative', ko:'총괄평가' },
+  ],
+  studentLevel:[ // Matrix 3 — 학생 수준 (단일)
+    { key:'basic', ko:'기초' }, { key:'general', ko:'일반' }, { key:'advanced', ko:'심화' },
+  ],
+  cognition:[ // Matrix 4 — 인지 수준 Bloom + Concept Literacy (복수)
+    { key:'remember', ko:'기억' }, { key:'understand', ko:'이해' }, { key:'apply', ko:'적용' },
+    { key:'analyze', ko:'분석' }, { key:'evaluate', ko:'평가' }, { key:'create', ko:'창안' },
+    { key:'transfer', ko:'전이' },
+  ],
+};
+const DESIGN_CONTEXTS = [ // STEP3 맥락 후보
+  { key:'science', ko:'과학' }, { key:'social', ko:'사회' }, { key:'math', ko:'수학' },
+  { key:'env', ko:'환경' }, { key:'life', ko:'일상생활' }, { key:'history', ko:'역사' },
+];
+const DESIGN_QTYPES = [ // STEP3 문항유형 후보
+  { key:'explain', ko:'설명형' }, { key:'compare', ko:'비교형' }, { key:'case', ko:'사례형' },
+  { key:'project', ko:'프로젝트형' }, { key:'transfer', ko:'전이형' }, { key:'discuss', ko:'토의형' },
+];
+const DESIGN_DIFF = [ { key:'low', ko:'하' }, { key:'mid', ko:'중' }, { key:'high', ko:'상' } ];
+
+/* STEP2 렌더 — 4개 매트릭스. 체크는 순수 교사 입력. */
+function renderDecisionPanel(){
+  const body = $('#decisionBody'); if(!body) return;
+  const d = state.decision;
+  const grp = (title, opts, sel, multi, name) => {
+    const chips = opts.map(o => {
+      const on = multi ? sel.includes(o.key) : sel === o.key;
+      return `<button type="button" class="dec-chip${on?' is-on':''}" data-dec="${name}" data-key="${o.key}" role="${multi?'checkbox':'radio'}" aria-checked="${on}">${o.ko}</button>`;
+    }).join('');
+    return `<div class="dec-grp"><div class="dec-grp__h">${title}</div><div class="dec-chips">${chips}</div></div>`;
+  };
+  body.innerHTML =
+    grp('① 무엇을 평가할 것인가 <span class="dec-multi">복수 선택</span>', CBLAA_DECISION.assess, d.assess, true, 'assess') +
+    grp('② 평가 목적', CBLAA_DECISION.purpose, d.purpose, false, 'purpose') +
+    grp('③ 학생 수준', CBLAA_DECISION.studentLevel, d.studentLevel, false, 'studentLevel') +
+    grp('④ 인지 수준 <span class="dec-sub">Bloom + 개념 문해력</span> <span class="dec-multi">복수 선택</span>', CBLAA_DECISION.cognition, d.cognition, true, 'cognition');
+  body.querySelectorAll('.dec-chip').forEach(btn => btn.addEventListener('click', () => {
+    const name = btn.dataset.dec, key = btn.dataset.key;
+    const multi = (name === 'assess' || name === 'cognition');
+    if(multi){
+      const arr = d[name];
+      const i = arr.indexOf(key);
+      if(i >= 0) arr.splice(i,1); else arr.push(key);
+    } else {
+      d[name] = (d[name] === key) ? '' : key;   // 다시 누르면 해제
+    }
+    traceApp('teacher', 'decision', `${name}=${multi ? d[name].join('|') : d[name]}`);
+    save();
+    renderDecisionPanel(); renderAiDesign();
+  }));
+}
+const koOf = (list, key) => (list.find(o => o.key === key)||{}).ko || key;
+
+/* STEP3 규칙기반 제안 — 교사 결정 + 개념어 + 학년을 읽어 맥락·문항유형·난도를 제안한다. */
+function proposeDesign(){
+  const d = state.decision, why = [];
+  // 난도 ← 학생 수준
+  let diff = 'mid';
+  if(d.studentLevel === 'basic'){ diff='low'; why.push('기초 수준을 고르셔서 난도 \'하\'를 제안합니다.'); }
+  else if(d.studentLevel === 'advanced'){ diff='high'; why.push('심화 수준을 고르셔서 난도 \'상\'을 제안합니다.'); }
+  else if(d.studentLevel === 'general'){ why.push('일반 수준이라 난도 \'중\'을 기본으로 둡니다.'); }
+  // 문항유형 ← 평가 대상 + 인지 수준
+  const qs = new Set();
+  if(d.assess.includes('understand')) qs.add('explain');
+  if(d.assess.includes('connect')) qs.add('compare');
+  if(d.assess.includes('transfer')){ qs.add('case'); qs.add('transfer'); }
+  if(d.assess.includes('create')){ qs.add('project'); qs.add('discuss'); }
+  if(d.cognition.includes('analyze')) qs.add('compare');
+  if(d.cognition.includes('evaluate')) qs.add('discuss');
+  if(d.cognition.includes('create')) qs.add('project');
+  if(d.cognition.includes('transfer')){ qs.add('case'); qs.add('transfer'); }
+  if(qs.size === 0){ qs.add('explain'); }
+  const qtypes = DESIGN_QTYPES.filter(t => qs.has(t.key)).map(t => t.key);
+  if(d.assess.length) why.push(`평가 대상(${d.assess.map(k=>koOf(CBLAA_DECISION.assess,k)).join('·')})에 맞춰 ${qtypes.map(k=>koOf(DESIGN_QTYPES,k)).join('·')}을 제안합니다.`);
+  // 맥락 ← 과목 + 개념 전이 여부
+  const ctx = new Set();
+  const subjCtx = { '과학':'science','사회':'social','수학':'math','도덕':'social','통합':'life' }[state.subject];
+  if(subjCtx) ctx.add(subjCtx);
+  if(d.assess.includes('transfer') || d.cognition.includes('transfer')){ ctx.add('env'); ctx.add('life'); why.push('개념 전이를 평가하시므로 교과를 넘어선 맥락(환경·일상생활)을 함께 제안합니다.'); }
+  if(ctx.size === 0){ ctx.add('life'); }
+  const context = DESIGN_CONTEXTS.filter(c => ctx.has(c.key)).map(c => c.key);
+  const concept = currentConcept();
+  if(concept) why.unshift(`핵심 개념어 '${concept}'를 여러 맥락으로 전이시키는 설계를 권합니다.`);
+  return { context, qtypes, difficulty:diff, rationale: why };
+}
+
+/* STEP3 렌더 — 제안을 칩으로 보여주고, 교사가 누르면 chosen에 채택된다. */
+function renderAiDesign(){
+  const body = $('#aiDesignBody'); if(!body) return;
+  const d = state.decision;
+  const ready = d.assess.length || d.purpose || d.studentLevel || d.cognition.length;
+  if(!ready){
+    body.innerHTML = `<p class="field__hint">위 <b>평가 설계 결정</b>을 한 가지라도 선택하면, AI가 맥락·문항유형·난도를 제안합니다.</p>`;
+    return;
+  }
+  const p = proposeDesign();
+  const ch = state.aiDesign.chosen;
+  const row = (title, opts, keys, chosenArr, name, multi) => {
+    const chips = opts.filter(o => keys.includes(o.key)).map(o => {
+      const on = multi ? chosenArr.includes(o.key) : chosenArr === o.key;
+      return `<button type="button" class="ai-chip${on?' is-chosen':''}" data-ai="${name}" data-key="${o.key}">${on?'✓ ':''}${o.ko}</button>`;
+    }).join('');
+    return `<div class="dec-grp"><div class="dec-grp__h">${title} <span class="ai-tag">AI 제안</span></div><div class="dec-chips">${chips||'<span class="field__hint">해당 제안 없음</span>'}</div></div>`;
+  };
+  body.innerHTML =
+    `<div class="ai-why">${p.rationale.map(r=>`<div>💡 ${esc(r)}</div>`).join('') || '결정을 더 고르면 근거가 구체화됩니다.'}</div>` +
+    row('맥락(Context)', DESIGN_CONTEXTS, p.context, ch.context, 'context', true) +
+    row('문항 유형', DESIGN_QTYPES, p.qtypes, ch.qtypes, 'qtypes', true) +
+    row('난도', DESIGN_DIFF, [p.difficulty], ch.difficulty, 'difficulty', false) +
+    `<p class="field__hint" style="margin-top:8px;">칩을 누르면 <b>교사가 채택</b>한 것으로 기록되어, 매트릭스 문항 생성 코치에 반영됩니다. (누르지 않으면 반영되지 않습니다)</p>`;
+  body.querySelectorAll('.ai-chip').forEach(btn => btn.addEventListener('click', () => {
+    const name = btn.dataset.ai, key = btn.dataset.key;
+    if(name === 'difficulty'){ ch.difficulty = (ch.difficulty === key) ? '' : key; }
+    else { const i = ch[name].indexOf(key); if(i>=0) ch[name].splice(i,1); else ch[name].push(key); }
+    traceApp('teacher', 'design-adopt', `${name}=${name==='difficulty'?ch.difficulty:ch[name].join('|')}`);
+    save(); renderAiDesign();
+  }));
+}
+
+/* 교사가 내린 결정을 사람이 읽는 문장으로 (프롬프트·책임매트릭스 공용) */
+function decisionSummaryLines(){
+  const d = state.decision, ch = state.aiDesign.chosen, out = [];
+  if(d.assess.length) out.push(`평가 대상: ${d.assess.map(k=>koOf(CBLAA_DECISION.assess,k)).join(', ')}`);
+  if(d.purpose) out.push(`평가 목적: ${koOf(CBLAA_DECISION.purpose,d.purpose)}`);
+  if(d.studentLevel) out.push(`학생 수준: ${koOf(CBLAA_DECISION.studentLevel,d.studentLevel)}`);
+  if(d.cognition.length) out.push(`인지 수준: ${d.cognition.map(k=>koOf(CBLAA_DECISION.cognition,k)).join(', ')}`);
+  const adopt = [];
+  if(ch.context.length) adopt.push(`맥락 ${ch.context.map(k=>koOf(DESIGN_CONTEXTS,k)).join('·')}`);
+  if(ch.qtypes.length) adopt.push(`문항유형 ${ch.qtypes.map(k=>koOf(DESIGN_QTYPES,k)).join('·')}`);
+  if(ch.difficulty) adopt.push(`난도 ${koOf(DESIGN_DIFF,ch.difficulty)}`);
+  if(adopt.length) out.push(`교사 채택 설계: ${adopt.join(' / ')}`);
+  return out;
+}
+
+/* 책임 매트릭스 — 고정 원리표 + 이 평가지의 실제 교사 결정 요약 */
+const RESP_MATRIX = [
+  ['성취기준 분석','분석','검토','교사'],
+  ['핵심 개념 추출','제안','승인','교사'],
+  ['개념망 구성','자동 생성','수정','교사'],
+  ['사고도구어 분석','제안','수정','교사'],
+  ['평가 목적 설정','선택지 제시','결정','교사'],
+  ['문항 초안 작성','생성','선택·수정','교사'],
+  ['수행평가 설계','초안','설계','교사'],
+  ['루브릭 생성','초안','수정·확정','교사'],
+  ['채점 지원','분석','검증','교사'],
+  ['피드백 초안','생성','승인·보완','교사'],
+  ['학습 분석','시각화','해석·활용','교사'],
+];
+function renderResponsibilityMatrix(){
+  const body = $('#respMatrixBody'); if(!body) return;
+  const lines = decisionSummaryLines();
+  const summary = lines.length
+    ? `<div class="resp-summary"><div class="resp-summary__h">🧭 이 평가지에서 교사가 내린 결정</div>${lines.map(l=>`<div class="resp-summary__row">✓ ${esc(l)}</div>`).join('')}</div>`
+    : `<div class="resp-summary resp-summary--empty">아직 설계 결정이 없습니다 — 단원 정보 탭의 <b>🧭 평가 설계 결정</b>에서 정해 주세요.</div>`;
+  const rows = RESP_MATRIX.map(r =>
+    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="resp-final">${r[3]}</td></tr>`).join('');
+  body.innerHTML = summary +
+    `<div style="overflow-x:auto;"><table class="resp-table">
+      <thead><tr><th>단계</th><th>AI 역할</th><th>교사 역할</th><th>최종 권한</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <p class="resp-principle">“AI는 평가의 <b>설계 공간(design space)</b>을 확장하고, 교사는 <b>교육적 판단(educational judgment)</b>을 최종 결정한다.” — Human–AI Co-Assessment Principle</p>`;
+}
+
 function applyStateToUI(){
   $('#grade').value = state.grade; $('#subject').value = state.subject;
   $('#title').value = state.title; $('#unitQuestion').value = state.unitQuestion;
@@ -2786,6 +3017,7 @@ function applyStateToUI(){
   renderAchievements(); checkVerb(); renderBoard(); updateUnitHint();
   updateConceptBadge();
   renderFormatChips();
+  renderDecisionPanel(); renderAiDesign();
   updateKeyRow();
 }
 restore();
