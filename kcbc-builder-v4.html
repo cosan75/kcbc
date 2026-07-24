@@ -332,10 +332,49 @@ table.ws-head{ width:100%; border-collapse:collapse; font-size:14px; }
 .ws-lines{ margin-top:12px; }
 .ws-lines i{ display:block; height:36px; border-bottom:1px solid #000; }
 .ws-drawbox{ margin-top:12px; min-height:150px; border:1px solid #000; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; }
-/* 서식 전용 블록 — 탐구 활동지형 / 개념지도형 */
+/* 서식 전용 블록 */
 .ws-panel{ margin-top:12px; border:1px solid #000; padding:8px 12px 12px; }
 .ws-panel__h{ font-size:13px; font-weight:700; margin-bottom:4px; }
+.ws-panel__sub{ font-weight:400; font-size:12px; color:#555; }
+.ws-panel--big .ws-panel__h{ font-size:16px; }
 .ws-mapbox{ margin-top:12px; min-height:230px; border:1.5px dashed #000; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; text-align:center; padding:12px; }
+/* 저학년 그림형 */
+.ws-scene{ display:block; width:100%; height:88px; margin:0 0 10px; border:1px solid #000; }
+.ws-body-box--big{ font-size:16px; }
+.ws-body-box--big .ws-q-title{ font-size:17px; line-height:1.8; }
+.ws-drawbox--big{ min-height:210px; font-size:14px; }
+.ws-lines--big i{ height:44px; }
+/* 탐구 활동지형 — 번호 카드 4단계 (국면별 색) */
+.ws-steps{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:640px){ .ws-steps{ grid-template-columns:1fr; } }
+.ws-step{ border:1.5px solid #000; border-radius:10px; overflow:hidden; }
+.ws-step__h{ font-weight:800; font-size:13.5px; padding:7px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #000; }
+.ws-step__no{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#fff; border:1.5px solid #000; font-size:12px; }
+.ws-step__b{ padding:10px 12px 14px; }
+.ws-step__empty{ font-size:12.5px; color:#666; margin:0 0 6px; }
+.ws-step[data-phase="generate"] .ws-step__h{ background:#fff3d6; }
+.ws-step[data-phase="refine"]   .ws-step__h{ background:#ffe2ec; }
+.ws-step[data-phase="inquire"]  .ws-step__h{ background:#dceafc; }
+.ws-step[data-phase="reflect"]  .ws-step__h{ background:#dcf2e3; }
+.ws-oneline{ margin-top:14px; border:1.5px solid #000; border-radius:10px; padding:10px 12px 12px; background:#fffdf2; font-size:13.5px; }
+/* 개념지도형 */
+.ws-map-center{ margin:6px auto 4px; width:fit-content; min-width:180px; text-align:center; padding:14px 26px; border:2px solid #000; border-radius:999px; background:#efeaff; }
+.ws-map-center__label{ display:block; font-size:11px; color:#555; }
+.ws-map-center b{ font-size:19px; }
+.ws-map-guide{ text-align:center; font-size:12.5px; color:#555; margin:4px 0 12px; }
+.ws-branches{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media (max-width:640px){ .ws-branches{ grid-template-columns:1fr; } }
+.ws-branch{ border:1.5px solid #000; border-radius:10px; padding:9px 11px 12px; }
+.ws-branch__h{ font-size:13px; font-weight:700; margin-bottom:8px; }
+.ws-branch__slots{ display:flex; flex-direction:column; gap:7px; }
+.ws-branch__slots span{ display:block; height:26px; border:1px dashed #000; border-radius:8px; }
+/* 비교표형 */
+table.ws-compare{ width:100%; border-collapse:collapse; margin-top:12px; }
+.ws-compare th,.ws-compare td{ border:1px solid #000; padding:8px 10px; vertical-align:top; }
+.ws-compare th{ font-size:13px; font-weight:700; width:50%; }
+/* 서식 추천 문구 */
+.ws-format-tip{ font-size:11.5px; color:var(--ink-soft); margin:0 0 10px; }
+.ws-rec-dot{ color:#f0b429; }
 .ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
 table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
 .ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
@@ -516,12 +555,11 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
       <div id="explainBody"></div>
     </div>
 
-    <div class="ws-format-row">
+    <div class="ws-format-row" id="wsFormatRow">
       <span class="ws-format-label">평가지 서식</span>
-      <button class="ws-format-chip is-on" data-wsfmt="basic" title="시험지형 — 문항과 답란 중심의 기본 서식">📋 기본형</button>
-      <button class="ws-format-chip" data-wsfmt="inquiry" title="탐구 활동지형 — 넓은 활동 공간과 관찰·근거 칸 강조">🔍 탐구 활동지형</button>
-      <button class="ws-format-chip" data-wsfmt="conceptmap" title="개념지도형 — 개념을 넓은 여백에 그려 정리하도록 구성">🗺 개념지도형</button>
+      <!-- 칩은 WS_FORMATS로 렌더됩니다 -->
     </div>
+    <p class="ws-format-tip" id="wsFormatTip"></p>
 
     <div class="export-toolbar">
       <button class="btn-primary-lg" id="btnShowWs">📄 평가지 보기</button>
@@ -925,13 +963,18 @@ function extractConcept(text){
   });
   return best;
 }
+/* 현재 단원의 개념어 — 핵심 질문에서 추출, 없으면 단원명에서 보조 추출.
+   배지·문항 근거(conceptWord)·AI 프롬프트·개념지도 중심·감사 패키지가 모두 이 헬퍼를 씁니다. */
+function currentConcept(){
+  return extractConcept((state.unitQuestion||'').trim()) || extractConcept((state.title||'').trim()) || null;
+}
 function updateConceptBadge(){
   const badge = $('#conceptBadge');
-  const text = state.unitQuestion.trim();
+  const text = (state.unitQuestion||'').trim();
   if(!text){
     badge.textContent = '개념어: —'; badge.className = 'concept-badge is-empty'; return;
   }
-  const c = extractConcept(text);
+  const c = currentConcept();
   if(c){ badge.textContent = `개념어: ${c}`; badge.className = 'concept-badge'; }
   else { badge.textContent = '개념어: 인식 안 됨'; badge.className = 'concept-badge is-none'; }
 }
@@ -1326,7 +1369,9 @@ function saveCell(){
   if(!q.trim() && !inc && !sc.trim() && !st.trim() && kr.length===0 && !comp && !prevImage && !prevEvidence){
     delete state.items[state.activeCell];
   } else {
-    state.items[state.activeCell] = ensureItemMeta({ ...currentItem(), question:q, included:inc, score:sc, starter:st, answerType:at, kr, competency:comp, image:prevImage });
+    const saved = ensureItemMeta({ ...currentItem(), question:q, included:inc, score:sc, starter:st, answerType:at, kr, competency:comp, image:prevImage });
+    saved.evidence.conceptWord = currentConcept(); // 단원 개념어를 문항 근거에 기록
+    state.items[state.activeCell] = saved;
   }
   renderBoard();
   save();
@@ -1555,6 +1600,7 @@ function renderDone(){
   }
   renderEvidenceMatrix();
   renderExplainCards();
+  renderFormatChips();   // 선별 상태가 바뀌면 추천 서식도 다시 계산
   updateDoneBadge();
 }
 
@@ -1645,14 +1691,46 @@ function renderEvidenceMatrix(){
     : '';
   body.innerHTML = `<table class="rubric-table" style="min-width:${360 + sel.length*70}px;"><thead>${head}</thead><tbody>${trs}</tbody></table>${orphanNote}`;
 }
-/* 평가지 서식 선택 — 이미 평가지를 열어둔 상태면 즉시 다시 그림 */
-$$('.ws-format-chip').forEach(btn => btn.addEventListener('click', () => {
-  state.wsFormat = btn.dataset.wsfmt;
-  $$('.ws-format-chip').forEach(b => b.classList.toggle('is-on', b === btn));
-  save();
-  if(!$('#wsWrap').classList.contains('hidden')) renderWorksheet();
-  toast(`📄 ${btn.textContent.trim()} 서식으로 바꿨습니다`);
-}));
+/* ── 서식 칩 렌더 + 단계별 추천 ── */
+function recommendFormat(){
+  const sel = selectedItems();
+  const band = gradeBand(state.grade);
+  if(band === 'g12') return { key:'primary', why:`${state.grade}이라 글보다 그림으로 표현하는 서식이 맞아요.` };
+  if(!sel.length) return { key:'basic', why:'아직 선별한 문항이 없어요 — 문항을 뽑으면 서식을 추천해 드릴게요.' };
+  const phases = new Set(sel.map(it => it.phase));
+  const text = sel.map(it => it.question).join(' ');
+  if(phases.size >= 3) return { key:'inquiry', why:`선별한 문항이 ${phases.size}개 국면에 걸쳐 있어 4단계 흐름으로 풀어내기 좋아요.` };
+  if(currentConcept() && sel.length >= 3) return { key:'conceptmap', why:`핵심 개념어 「${currentConcept()}」를 중심으로 문항을 가지로 펼치기 좋아요.` };
+  if(/비교|차이|같|다른|분류/.test(text)) return { key:'compare', why:'문항에 비교·분류를 묻는 표현이 있어 표로 정리하면 또렷해져요.' };
+  if(/관찰|실험|변화|측정|살펴/.test(text)) return { key:'observe', why:'관찰·실험 문항이라 예상→관찰→알게 된 점 흐름이 잘 맞아요.' };
+  if(/친구|의견|토의|생각을 나|설득/.test(text)) return { key:'discuss', why:'서로 생각을 나누는 문항이라 토의 서식이 어울려요.' };
+  if(band === 'g34') return { key:'inquiry', why:'중학년은 관찰과 까닭을 나누어 쓰는 활동지형이 쓰기 부담을 줄여 줘요.' };
+  return { key:'basic', why:'문항 수가 적어 기본형으로도 충분해요.' };
+}
+function renderFormatChips(){
+  const row = $('#wsFormatRow');
+  if(!row) return;
+  const cur = state.wsFormat || 'basic';
+  const rec = recommendFormat();
+  row.innerHTML = `<span class="ws-format-label">평가지 서식</span>` + WS_FORMATS.map(f =>
+    `<button class="ws-format-chip ${f.key===cur?'is-on':''}" data-wsfmt="${f.key}" title="${esc(f.desc)}">${f.chip}${f.key===rec.key?' <span class="ws-rec-dot" title="추천">✦</span>':''}</button>`
+  ).join('');
+  row.querySelectorAll('.ws-format-chip').forEach(btn => btn.addEventListener('click', () => {
+    state.wsFormat = btn.dataset.wsfmt;
+    save(); renderFormatChips();
+    if(!$('#wsWrap').classList.contains('hidden')) renderWorksheet();
+    const f = WS_FORMATS.find(x=>x.key===btn.dataset.wsfmt);
+    toast(`📄 ${f.chip} 서식으로 바꿨습니다`);
+  }));
+  const recF = WS_FORMATS.find(f => f.key === rec.key);
+  $('#wsFormatTip').innerHTML = `✦ 추천: <b>${recF.chip}</b> — ${esc(rec.why)}` +
+    (cur !== rec.key ? ` <button class="bc-edit" id="btnUseRec">이 서식으로</button>` : '');
+  $('#btnUseRec')?.addEventListener('click', () => {
+    state.wsFormat = rec.key; save(); renderFormatChips();
+    if(!$('#wsWrap').classList.contains('hidden')) renderWorksheet();
+    toast(`📄 ${recF.chip} 서식으로 바꿨습니다`);
+  });
+}
 $('#exportDdBtn').addEventListener('click', () => $('#exportDdMenu').classList.toggle('is-open'));
 document.addEventListener('click', e => {
   const menu = $('#exportDdMenu'), btn = $('#exportDdBtn');
@@ -1661,19 +1739,102 @@ document.addEventListener('click', e => {
 
 /* ═════════ 평가지 렌더링 (서식 3종) ═════════ */
 function lineCountFor(level){ return level==='fact' ? 2 : level==='link' ? 3 : 4; }
+/* ── 서식 정의 (많을수록 좋다 — 답안 구성만 다르고 문항 문구는 전부 동일) ── */
+const WS_FORMATS = [
+  { key:'basic',      chip:'📋 기본형',        desc:'시험지형 — 문항과 답란 중심' },
+  { key:'inquiry',    chip:'🔍 탐구 활동지형',  desc:'4단계 번호 카드(생각→관찰→설명→친구)로 재구성' },
+  { key:'conceptmap', chip:'🗺 개념지도형',     desc:'중심 개념어에서 문항이 가지로 뻗는 마인드맵' },
+  { key:'primary',    chip:'🎨 저학년 그림형',  desc:'그림 배경·큰 글씨·넓은 그림칸 (1~2학년 권장)' },
+  { key:'observe',    chip:'🔬 관찰 기록형',    desc:'예상 → 관찰한 것 → 알게 된 점' },
+  { key:'compare',    chip:'🧩 비교표형',       desc:'같은 점·다른 점을 표로 정리' },
+  { key:'discuss',    chip:'🗣 토의·발표형',    desc:'내 생각 → 친구 생각 → 우리의 결론' },
+];
+/* 저학년 그림형 배경 삽화 — 외부 이미지 없이 인라인 SVG */
+function wsSceneSvg(){
+  return `<svg class="ws-scene" viewBox="0 0 600 110" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="wsSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dff0ff"/><stop offset="1" stop-color="#f3fbff"/></linearGradient></defs>
+    <rect width="600" height="110" fill="url(#wsSky)"/>
+    <circle cx="520" cy="30" r="17" fill="#ffe08a"/>
+    <path d="M0 84 Q70 50 140 84 T280 84 T420 84 T600 80 L600 110 L0 110 Z" fill="#bfe3c0"/>
+    <path d="M0 96 Q120 74 250 96 T600 92 L600 110 L0 110 Z" fill="#9fd6a6"/>
+    <g fill="#7bbf88"><circle cx="80" cy="80" r="13"/><circle cx="96" cy="86" r="10"/><circle cx="64" cy="87" r="9"/></g>
+    <rect x="76" y="88" width="6" height="14" fill="#a97c50"/>
+    <g fill="#fff" opacity=".85"><ellipse cx="180" cy="30" rx="26" ry="12"/><ellipse cx="205" cy="32" rx="18" ry="9"/></g>
+  </svg>`;
+}
+/* 서식별 학생면 본문 — 문항 문구(esc(it.question))는 모든 분기에서 그대로 출력 */
+function wsBodyFor(sel, fmt){
+  const qImg = it => it.image && it.image.data ? `<img class="ws-img" src="${it.image.data}" alt="${esc(it.image.alt||'')}">` : '';
+  const qStarter = it => it.starter ? `<p class="ws-starter" contenteditable="true">${esc(it.starter)}</p>` : '';
+
+  if(fmt === 'inquiry'){
+    /* 4국면 → 번호 카드 4단계. 해당 국면 문항이 없으면 그 단계는 빈 활동칸으로 남습니다. */
+    const STEPS = [
+      { phase:'generate', no:1, ko:'먼저 생각해요',   emoji:'💭' },
+      { phase:'refine',   no:2, ko:'자세히 살펴보기', emoji:'🔎' },
+      { phase:'inquire',  no:3, ko:'내가 설명해 보기', emoji:'✏️' },
+      { phase:'reflect',  no:4, ko:'친구 생각 듣기',   emoji:'🗣' },
+    ];
+    const cards = STEPS.map(S => {
+      const mine = sel.filter(it => it.phase === S.phase);
+      const inner = mine.length
+        ? mine.map(it => `<p class="ws-q-title" contenteditable="true">${esc(it.question)}</p>
+            ${qImg(it)}${qStarter(it)}<div class="ws-lines">${Array.from({length:lineCountFor(it.level)}).map(()=>'<i></i>').join('')}</div>`).join('')
+        : `<p class="ws-step__empty">이 단계는 수업 중 이야기 나누며 채워 봅시다.</p><div class="ws-lines"><i></i><i></i></div>`;
+      return `<div class="ws-step" data-phase="${S.phase}">
+        <div class="ws-step__h"><span class="ws-step__no">${S.no}</span> ${S.emoji} ${S.ko}</div>
+        <div class="ws-step__b">${inner}</div></div>`;
+    }).join('');
+    return `<div class="ws-steps">${cards}</div>
+      <div class="ws-oneline"><b>⭐ 오늘의 한 줄</b><div class="ws-lines"><i></i></div></div>`;
+  }
+
+  if(fmt === 'conceptmap'){
+    const concept = currentConcept() || (state.title || '중심 개념').replace(/^\d+\s*[.．]\s*/,'');
+    const branches = sel.map((it,i) => `<div class="ws-branch">
+        <div class="ws-branch__h">${i+1}. ${esc(it.question)}</div>
+        <div class="ws-branch__slots"><span></span><span></span><span></span></div>
+      </div>`).join('');
+    return `<div class="ws-map-center"><span class="ws-map-center__label">중심 개념</span><b>${esc(concept)}</b></div>
+      <p class="ws-map-guide">✏️ 가지의 빈칸에 떠오르는 낱말을 쓰고, 서로 이어 보세요.</p>
+      <div class="ws-branches">${branches}</div>
+      <div class="ws-oneline"><b>💡 생각 정리하기</b> — 오늘 정리한 것을 한두 문장으로 써 보세요.
+        <div class="ws-lines"><i></i><i></i></div></div>`;
+  }
+
+  /* 나머지 서식: 문항별 카드 + 서식별 답안 영역 */
+  return sel.map((it, i) => `<div class="ws-q" data-idx="${i}" data-phase="${it.phase}">
+      <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
+      ${qImg(it)}${qStarter(it)}${wsAnswerArea(it, fmt)}
+    </div>`).join('');
+}
 /* 서식은 답안 영역의 구성만 바꿉니다 — 문항 문구는 어떤 서식에서도 그대로 */
 function wsAnswerArea(it, fmt){
   const lines = n => Array.from({length:n}).map(()=>'<i></i>').join('');
   const draw = it.answerType === 'draw' ? `<div class="ws-drawbox">(그림으로 나타내는 곳)</div>` : '';
-  if(fmt === 'inquiry'){
-    return `${draw}
-      <div class="ws-panel"><div class="ws-panel__h">🔎 내가 관찰하거나 찾은 것</div><div class="ws-lines">${lines(2)}</div></div>
-      <div class="ws-panel"><div class="ws-panel__h">💬 그렇게 생각한 까닭</div><div class="ws-lines">${lines(lineCountFor(it.level))}</div></div>`;
+  if(fmt === 'primary'){
+    /* 저학년: 넓은 그림칸 + 큰 글씨 + 짧은 쓰기 한 줄 */
+    return `<div class="ws-drawbox ws-drawbox--big">✏️ 여기에 그림으로 나타내 보세요</div>
+      <div class="ws-panel ws-panel--big"><div class="ws-panel__h">🗣 한 마디로 말해 볼까요?</div><div class="ws-lines ws-lines--big">${lines(1)}</div></div>`;
   }
-  if(fmt === 'conceptmap'){
+  if(fmt === 'observe'){
     return `${draw}
-      <div class="ws-mapbox"><span>🗺 배운 낱말을 쓰고 화살표로 이어 정리해 보세요</span></div>
-      <div class="ws-panel"><div class="ws-panel__h">✍ 정리한 것을 한 문장으로 쓰면?</div><div class="ws-lines">${lines(2)}</div></div>`;
+      <div class="ws-panel"><div class="ws-panel__h">🤔 내 예상</div><div class="ws-lines">${lines(1)}</div></div>
+      <div class="ws-panel"><div class="ws-panel__h">👀 관찰한 것</div><div class="ws-lines">${lines(2)}</div></div>
+      <div class="ws-panel"><div class="ws-panel__h">💡 알게 된 점</div><div class="ws-lines">${lines(lineCountFor(it.level))}</div></div>`;
+  }
+  if(fmt === 'compare'){
+    return `${draw}
+      <table class="ws-compare"><tr><th>🟰 같은 점</th><th>↔️ 다른 점</th></tr>
+        <tr><td><div class="ws-lines">${lines(3)}</div></td><td><div class="ws-lines">${lines(3)}</div></td></tr></table>
+      <div class="ws-panel"><div class="ws-panel__h">✍ 그래서 알게 된 것은?</div><div class="ws-lines">${lines(1)}</div></div>`;
+  }
+  if(fmt === 'discuss'){
+    return `${draw}
+      <div class="ws-panel"><div class="ws-panel__h">🙋 내 생각</div><div class="ws-lines">${lines(2)}</div></div>
+      <div class="ws-panel"><div class="ws-panel__h">👂 친구 생각 <span class="ws-panel__sub">(친구 이름: ______)</span></div><div class="ws-lines">${lines(2)}</div></div>
+      <div class="ws-panel"><div class="ws-panel__h">🤝 우리의 결론</div><div class="ws-lines">${lines(lineCountFor(it.level))}</div></div>`;
   }
   return `${draw}<div class="ws-lines">${lines(lineCountFor(it.level))}</div>`;
 }
@@ -1687,14 +1848,8 @@ function renderWorksheet(){
   const std = standardText();
   const scenario = state.scenario.trim();
 
-  const qHtml = sel.map((it, i) => {
-    const img = it.image && it.image.data ? `<img class="ws-img" src="${it.image.data}" alt="${esc(it.image.alt||'')}">` : '';
-    const starter = it.starter ? `<p class="ws-starter" contenteditable="true">${esc(it.starter)}</p>` : '';
-    return `<div class="ws-q" data-idx="${i}">
-      <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
-      ${img}${starter}${wsAnswerArea(it, state.wsFormat || 'basic')}
-    </div>`;
-  }).join('');
+  const wsFmt = state.wsFormat || 'basic';
+  const qHtml = wsBodyFor(sel, wsFmt);
 
   const selfCheckRows = sel.map(it => {
     const txt = SELFCHECK_TEMPLATE[it.level];
@@ -1751,8 +1906,9 @@ function renderWorksheet(){
         <tr><th>단원명</th><td contenteditable="true">${unitName}</td><th>차시</th><td class="date" style="width:70px">&nbsp;/&nbsp;</td><th>평가일</th><td class="date" style="width:130px">년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일</td></tr>
         <tr><th>과제명</th><td colspan="3" contenteditable="true">${esc(state.unitQuestion || unitName)}</td><th>평가자</th><td class="date">(인)</td></tr>
       </table>
+      ${wsFmt === 'primary' ? wsSceneSvg() : ''}
       <div class="ws-sec-title">활 동 과 제</div>
-      <div class="ws-body-box">
+      <div class="ws-body-box${wsFmt === 'primary' ? ' ws-body-box--big' : ''}">
         ${scenario ? `<p class="ws-scenario" contenteditable="true">※ ${esc(scenario)}</p>` : ''}
         ${qHtml}
         <div class="ws-q">
@@ -1952,6 +2108,8 @@ function buildAuditPackage(){
     meta: {
       grade: state.grade, subject: state.subject, title: state.title,
       unitQuestion: state.unitQuestion, scenario: state.scenario,
+      conceptWord: currentConcept(),
+      worksheetFormat: state.wsFormat || 'basic',
       standardsChecked: state.achievements,
       standardsCustom: state.standardCustom,
       standardsDb: 'kcbc-standards-db v2 (2022 개정 고시 611개, 고유 코드 기준·중복 0)',
@@ -2042,6 +2200,8 @@ ${difficultyRules()}
 컨텍스트:
 학년·과목: ${state.grade} ${state.subject}
 단원명: ${state.title||'(미입력)'}
+핵심 질문: ${state.unitQuestion||'(미입력)'}
+핵심 개념어: ${currentConcept()||'(추출 안 됨)'}
 성취기준:\n${standardText()||'(미입력)'}`;
 }
 function quickPrompt(type){
@@ -2625,7 +2785,7 @@ function applyStateToUI(){
   $('#scenario').value = state.scenario; $('#standardCustom').value = state.standardCustom;
   renderAchievements(); checkVerb(); renderBoard(); updateUnitHint();
   updateConceptBadge();
-  $$('.ws-format-chip').forEach(b => b.classList.toggle('is-on', b.dataset.wsfmt === (state.wsFormat||'basic')));
+  renderFormatChips();
   updateKeyRow();
 }
 restore();
