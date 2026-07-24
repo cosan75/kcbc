@@ -375,6 +375,22 @@ table.ws-compare{ width:100%; border-collapse:collapse; margin-top:12px; }
 /* 서식 추천 문구 */
 .ws-format-tip{ font-size:11.5px; color:var(--ink-soft); margin:0 0 10px; }
 .ws-rec-dot{ color:#f0b429; }
+/* STEP5 전이 평가형 — 전이 사다리 + 전이 도달 눈금 */
+.ws-ladder{ margin-top:14px; border:1.5px solid #000; border-radius:10px; padding:10px 12px 12px; }
+.ws-ladder__h{ font-size:13.5px; font-weight:800; margin-bottom:10px; }
+.ws-rung{ border:1px solid #000; border-radius:9px; padding:8px 11px; margin-bottom:9px; background:linear-gradient(90deg,#fbfbff,#fff); }
+.ws-rung:last-child{ margin-bottom:0; }
+.ws-rung__h{ display:flex; align-items:center; gap:7px; font-size:13px; margin-bottom:5px; }
+.ws-rung__no{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; border:1.5px solid #000; font-size:12px; font-weight:700; }
+.ws-rung__badge{ margin-left:auto; font-size:10.5px; font-weight:700; color:#5f3dc4; background:#efeaff; border-radius:999px; padding:1px 9px; }
+.ws-rung__q{ font-size:12.5px; margin:0 0 6px; }
+.ws-transfer-score{ margin-top:12px; border:1.5px dashed #000; border-radius:10px; padding:10px 12px; background:#fffdf5; }
+.ws-transfer-score__q{ font-size:13px; }
+.ws-transfer-score__sub{ font-size:11px; color:#555; font-weight:400; }
+.ws-meter{ display:flex; align-items:center; gap:8px; margin:9px 0; }
+.ws-meter__dot{ display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; border:2px solid #000; font-size:13px; font-weight:700; }
+.ws-meter__unit{ font-size:12.5px; }
+.ws-transfer-score__map{ font-size:11px; color:#555; line-height:1.5; }
 
 /* ═══ CBLAA 의사결정 층 ═══ */
 .decision-owner{ margin-left:auto; font-size:11px; font-weight:700; color:#7048e8; background:#f0ebff; border:1px solid #d6c9ff; border-radius:999px; padding:2px 10px; }
@@ -1851,6 +1867,9 @@ function recommendFormat(){
   const band = gradeBand(state.grade);
   if(band === 'g12') return { key:'primary', why:`${state.grade}이라 글보다 그림으로 표현하는 서식이 맞아요.` };
   if(!sel.length) return { key:'basic', why:'아직 선별한 문항이 없어요 — 문항을 뽑으면 서식을 추천해 드릴게요.' };
+  const d = state.decision || {};
+  if(((d.assess||[]).includes('transfer') || (d.cognition||[]).includes('transfer')) && currentConcept())
+    return { key:'transfer', why:`평가 대상으로 ‘개념 전이’를 고르셨어요 — 개념 「${currentConcept()}」을 여러 맥락으로 옮기는 전이 평가형이 맞아요.` };
   const phases = new Set(sel.map(it => it.phase));
   const text = sel.map(it => it.question).join(' ');
   if(phases.size >= 3) return { key:'inquiry', why:`선별한 문항이 ${phases.size}개 국면에 걸쳐 있어 4단계 흐름으로 풀어내기 좋아요.` };
@@ -1902,6 +1921,7 @@ const WS_FORMATS = [
   { key:'observe',    chip:'🔬 관찰 기록형',    desc:'예상 → 관찰한 것 → 알게 된 점' },
   { key:'compare',    chip:'🧩 비교표형',       desc:'같은 점·다른 점을 표로 정리' },
   { key:'discuss',    chip:'🗣 토의·발표형',    desc:'내 생각 → 친구 생각 → 우리의 결론' },
+  { key:'transfer',   chip:'🪜 전이 평가형',    desc:'개념을 여러 맥락으로 옮겨 보고, 몇 곳까지 전이했는지 평가' },
 ];
 /* 저학년 그림형 배경 삽화 — 외부 이미지 없이 인라인 SVG */
 function wsSceneSvg(){
@@ -1955,6 +1975,39 @@ function wsBodyFor(sel, fmt){
       <div class="ws-branches">${branches}</div>
       <div class="ws-oneline"><b>💡 생각 정리하기</b> — 오늘 정리한 것을 한두 문장으로 써 보세요.
         <div class="ws-lines"><i></i><i></i></div></div>`;
+  }
+
+  if(fmt === 'transfer'){
+    /* STEP5 수행평가 전이 축: 선택 문항(핵심 과제)은 그대로 두고,
+       개념을 여러 맥락으로 옮기는 '전이 사다리' + 교사용 전이 도달 눈금을 얹는다. */
+    const concept = currentConcept() || (state.title || '핵심 개념').replace(/^\d+\s*[.．]\s*/,'');
+    const net = conceptNetwork(concept);
+    const rungs = (net.transfer && net.transfer.length)
+      ? net.transfer.slice(0,4)
+      : ['익숙한 맥락','조금 다른 맥락','새로운 맥락','아주 다른 맥락'];
+    const items = sel.map((it, i) => `<div class="ws-q" data-idx="${i}" data-phase="${it.phase}">
+        <p class="ws-q-title" contenteditable="true">${i+1}. ${esc(it.question)}</p>
+        ${qImg(it)}${qStarter(it)}<div class="ws-lines">${Array.from({length:lineCountFor(it.level)}).map(()=>'<i></i>').join('')}</div>
+      </div>`).join('');
+    const ladder = rungs.map((r, i) => {
+      const badge = i===0 ? '배운 곳' : (i===rungs.length-1 ? '새로운 곳' : '옮겨 보기');
+      return `<div class="ws-rung" data-step="${i+1}">
+        <div class="ws-rung__h"><span class="ws-rung__no">${i+1}</span> <b>${esc(r)}</b> <span class="ws-rung__badge">${badge}</span></div>
+        <p class="ws-rung__q">여기에서도 ‘${esc(concept)}’${jo(concept,'을','를')} 찾을 수 있나요? 어떻게 나타나는지 써 봅시다.</p>
+        <div class="ws-lines"><i></i><i></i></div>
+      </div>`;
+    }).join('');
+    const dots = rungs.map((r, i) => `<span class="ws-meter__dot">${i+1}</span>`).join('');
+    return `${items}
+      <div class="ws-ladder">
+        <div class="ws-ladder__h">🪜 전이 사다리 — 배운 개념 ‘${esc(concept)}’${jo(concept,'을','를')} 여러 곳으로 옮겨 봅시다</div>
+        ${ladder}
+      </div>
+      <div class="ws-transfer-score">
+        <div class="ws-transfer-score__q"><b>전이 도달</b> — 이 학생은 몇 개 맥락까지 ‘${esc(concept)}’${jo(concept,'을','를')} 전이했나요? <span class="ws-transfer-score__sub">(교사 표시)</span></div>
+        <div class="ws-meter">${dots}<span class="ws-meter__unit">곳</span></div>
+        <div class="ws-transfer-score__map">0~1곳: 부분 이해 · 익숙한 맥락 1곳: 개념 이해 · 새로운 맥락 포함 2곳 이상: 전이 성공 (루브릭 수준과 연결)</div>
+      </div>`;
   }
 
   /* 나머지 서식: 문항별 카드 + 서식별 답안 영역 */
