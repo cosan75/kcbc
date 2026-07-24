@@ -434,6 +434,28 @@ table.ws-compare{ width:100%; border-collapse:collapse; margin-top:12px; }
 .fb-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:4px; }
 .fb-note{ font-size:11px; color:var(--muted); }
 @media print{ #feedbackCard .fb-actions, #feedbackCard .fb-levels{ display:none; } }
+/* STEP8 개념별 학습 분석 */
+.an-add{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.an-list{ display:flex; flex-direction:column; gap:7px; margin-bottom:10px; }
+.an-row{ display:grid; grid-template-columns:minmax(70px,1.1fr) auto minmax(80px,1.6fr) 46px 24px; align-items:center; gap:10px; border:1px solid var(--line); border-radius:9px; padding:7px 10px; }
+.an-name{ font-size:13px; font-weight:700; color:var(--ink); word-break:keep-all; }
+.an-stars{ display:flex; gap:1px; }
+.an-star{ font-size:17px; color:#d9dde3; cursor:pointer; line-height:1; user-select:none; }
+.an-star.is-on{ color:#f6b21b; }
+.an-star:hover{ transform:scale(1.15); }
+.an-bar{ height:9px; background:#eef0f3; border-radius:999px; overflow:hidden; }
+.an-bar span{ display:block; height:100%; border-radius:999px; background:#adb5bd; }
+.an-band{ font-size:11px; font-weight:700; text-align:center; }
+.an-del{ border:none; background:none; cursor:pointer; color:var(--muted); font-size:13px; }
+.an-del:hover{ color:#e03131; }
+.an-row.is-strong .an-bar span{ background:#37b24d; } .an-row.is-strong .an-band{ color:#2f9e44; }
+.an-row.is-mid .an-bar span{ background:#f59f00; }    .an-row.is-mid .an-band{ color:#e8590c; }
+.an-row.is-weak{ background:#fff5f5; border-color:#ffc9c9; } .an-row.is-weak .an-bar span{ background:#f03e3e; } .an-row.is-weak .an-band{ color:#e03131; }
+.an-row.is-none .an-band{ color:var(--muted); }
+.an-callout{ font-size:12.5px; line-height:1.55; border-radius:9px; padding:8px 12px; margin-bottom:10px; }
+.an-callout.is-weak{ background:#fff5f5; border:1px solid #ffc9c9; color:#c92a2a; }
+.an-callout.is-ok{ background:#ebfbee; border:1px solid #b2f2bb; color:#2b8a3e; }
+@media print{ #analyticsCard .an-add, #analyticsCard .an-del{ display:none; } }
 /* STEP1 개념 마이닝 */
 .cm-setrow{ display:flex; gap:6px; flex-wrap:wrap; }
 .cm-core{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; background:#f4f8ff; border:1px solid #d7e6ff; border-radius:10px; margin-bottom:12px; }
@@ -706,6 +728,13 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
         </div>
         <span style="font-size:10px;color:var(--muted);">🔒 이 브라우저에만 저장 · 서버 전송 없음 · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent);">키 발급 ↗</a></span>
       </div>
+    </div>
+
+    <!-- CBLAA STEP8 · 개념별 학습 분석 -->
+    <div class="card" id="analyticsCard">
+      <h2 class="card__title">📈 개념별 학습 분석 <span class="card__hint">개념축으로 학급 도달도를 기록 · 약한 개념을 바로 확인</span></h2>
+      <p class="field__hint" style="margin:-2px 0 10px;">평가 후 개념별 학급 도달도를 별점으로 남기면, <b>어떤 개념이 약한지</b> 한눈에 보입니다. 이 기록은 연도 내내 누적됩니다. <span style="color:var(--muted);">(개인→학급→학교→국가 집계는 서버가 필요해 v5에서 지원)</span></p>
+      <div id="analyticsBody"></div>
     </div>
 
     <div class="ws-format-row" id="wsFormatRow">
@@ -1165,6 +1194,8 @@ const state = {
   rubric:null,
   /* CBLAA STEP1 · 개념 마이닝 — 교사가 확정한 핵심 개념어(비면 자동 추출 사용) */
   conceptOverride:'',
+  /* CBLAA STEP8 · 개념별 학습 분석 — 교사가 기록한 학급 개념 숙련도(연도 누적) */
+  analytics:{ concepts:[] },   // [{ name, stars(0~5) }]
 };
 let chatHistory = [];
 let techFilter = 'all';
@@ -1252,6 +1283,7 @@ function restore(){
       state.decision = Object.assign({ assess:[], purpose:'', studentLevel:'', cognition:[] }, state.decision||{});
       state.aiDesign = state.aiDesign || {};
       state.aiDesign.chosen = Object.assign({ context:[], qtypes:[], difficulty:'' }, state.aiDesign.chosen||{});
+      state.analytics = (state.analytics && Array.isArray(state.analytics.concepts)) ? state.analytics : { concepts:[] };
       return;
     }
     const rawV3 = localStorage.getItem(STORAGE_KEY_V3);
@@ -1770,6 +1802,7 @@ function renderDone(){
   renderResponsibilityMatrix();
   renderRubricEngine();
   renderFeedbackEngine();
+  renderAnalytics();
   renderFormatChips();   // 선별 상태가 바뀌면 추천 서식도 다시 계산
   updateDoneBadge();
 }
@@ -3472,6 +3505,72 @@ $('#fbKeySave').addEventListener('click', () => {
   aiSetKey(v); updateKeyRow(); $('#fbKey').value='';
   toast('✓ API 키 저장 완료 — 이제 🤖 AI 다듬기를 쓸 수 있어요');
 });
+
+/* ═════════ CBLAA STEP8 · 개념별 학습 분석 ═════════
+   개념축으로 학급 도달도(★0~5)를 교사가 기록 → 약한 개념 자동 식별.
+   개인→학급→학교→국가 집계는 서버가 필요(v5). 여기서는 학급 단위 연도 누적 기록. */
+const STAR_BANDS = [
+  { min:4, ko:'강함', cls:'is-strong' }, { min:3, ko:'보통', cls:'is-mid' },
+  { min:1, ko:'약함', cls:'is-weak' },   { min:0, ko:'미평가', cls:'is-none' },
+];
+const starBand = s => STAR_BANDS.find(b => s >= b.min);
+function renderAnalytics(){
+  const card = $('#analyticsCard'); if(!card) return;
+  const A = state.analytics.concepts;
+  const cur = currentConcept();
+  const hasCur = cur && A.some(c => c.name === cur);
+  const suggestBtn = (cur && !hasCur) ? `<button class="btn-mini" id="anAddCur">＋ 현재 단원 개념 ‘${esc(cur)}’ 추가</button>` : '';
+  const addRow = `<div class="an-add">
+      <input class="input" id="anInput" list="anList" placeholder="개념어 입력 또는 선택" style="max-width:200px;">
+      <datalist id="anList">${CONCEPT_DICTIONARY.map(w=>`<option value="${esc(w)}">`).join('')}</datalist>
+      <button class="btn-mini" id="anAdd">추가</button>${suggestBtn}
+    </div>`;
+  if(!A.length){
+    $('#analyticsBody').innerHTML = `<p class="field__hint" style="margin:0 0 8px;">아직 기록한 개념이 없어요. 평가한 개념을 추가해 학급 도달도를 별점으로 남겨 보세요.</p>${addRow}`;
+    bindAnalytics(); return;
+  }
+  const rows = A.map((c,i) => {
+    const band = starBand(c.stars);
+    const stars = [1,2,3,4,5].map(n => `<span class="an-star ${n<=c.stars?'is-on':''}" data-i="${i}" data-n="${n}" role="button" tabindex="0" aria-label="${n}점">★</span>`).join('');
+    return `<div class="an-row ${band.cls}">
+      <div class="an-name">${esc(c.name)}</div>
+      <div class="an-stars">${stars}</div>
+      <div class="an-bar"><span style="width:${c.stars/5*100}%"></span></div>
+      <div class="an-band">${band.ko}</div>
+      <button class="an-del" data-del="${i}" title="삭제">✕</button>
+    </div>`;
+  }).join('');
+  const rated = A.filter(c => c.stars >= 1);
+  const weak = rated.filter(c => c.stars <= 2).map(c => c.name);
+  const avg = rated.length ? rated.reduce((s,c)=>s+c.stars,0)/rated.length : 0;
+  const callout = weak.length
+    ? `<div class="an-callout is-weak">⚠ 약한 개념: <b>${weak.map(esc).join(', ')}</b> — STEP7 개념기반 피드백·🪜 전이 평가형으로 다음 수업에서 보완해 보세요.</div>`
+    : (rated.length ? `<div class="an-callout is-ok">✓ 기록한 개념이 모두 보통 이상이에요 (평균 ★${avg.toFixed(1)}).</div>` : '');
+  $('#analyticsBody').innerHTML = `<div class="an-list">${rows}</div>${callout}${addRow}`;
+  bindAnalytics();
+}
+function bindAnalytics(){
+  const body = $('#analyticsBody');
+  body.querySelectorAll('.an-star').forEach(s => s.addEventListener('click', () => {
+    const i = +s.dataset.i, n = +s.dataset.n, c = state.analytics.concepts[i];
+    c.stars = (c.stars === n) ? 0 : n;   // 같은 별 다시 누르면 미평가로
+    traceApp('teacher', 'analytics-rate', `${c.name}=★${c.stars}`);
+    save(); renderAnalytics();
+  }));
+  body.querySelectorAll('.an-del').forEach(b => b.addEventListener('click', () => {
+    state.analytics.concepts.splice(+b.dataset.del, 1); save(); renderAnalytics();
+  }));
+  $('#anAdd')?.addEventListener('click', () => { const v = $('#anInput').value.trim(); if(v) addAnalyticsConcept(v); });
+  $('#anInput')?.addEventListener('keydown', e => { if(e.key === 'Enter'){ const v = e.target.value.trim(); if(v) addAnalyticsConcept(v); } });
+  $('#anAddCur')?.addEventListener('click', () => { const c = currentConcept(); if(c) addAnalyticsConcept(c); });
+}
+function addAnalyticsConcept(name){
+  name = (name||'').trim(); if(!name) return;
+  if(state.analytics.concepts.some(c => c.name === name)){ toast('이미 기록한 개념이에요'); return; }
+  state.analytics.concepts.push({ name, stars:0 });
+  traceApp('teacher', 'analytics-add', name);
+  save(); renderAnalytics();
+}
 
 function applyStateToUI(){
   $('#grade').value = state.grade; $('#subject').value = state.subject;
