@@ -418,6 +418,18 @@ table.ws-compare{ width:100%; border-collapse:collapse; margin-top:12px; }
 .fb-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:4px; }
 .fb-note{ font-size:11px; color:var(--muted); }
 @media print{ #feedbackCard .fb-actions, #feedbackCard .fb-levels{ display:none; } }
+/* STEP6 개념기반 루브릭 */
+.rubric-table{ width:100%; border-collapse:collapse; font-size:12.5px; table-layout:fixed; }
+.rubric-table th,.rubric-table td{ border:1px solid var(--line); padding:8px 9px; vertical-align:top; line-height:1.5; word-break:keep-all; }
+.rubric-table th{ background:#eef7f3; font-weight:700; font-size:12px; text-align:center; }
+.rubric-table th:first-child{ width:64px; }
+.rubric-table td[contenteditable]:focus{ outline:none; background:#f2fbf8; }
+.rubric-lv{ text-align:center; background:#fafcfb; }
+.rubric-lv b{ display:block; font-size:16px; color:#0ca678; }
+.rubric-lv span{ display:block; font-size:10.5px; color:var(--muted); margin-top:2px; }
+.rubric-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
+.rubric-edited{ font-size:11.5px; color:#0b7285; background:#effaf6; border-radius:8px; padding:7px 11px; margin:9px 0 0; }
+@media print{ #rubricCard .rubric-actions, #rubricCard .rubric-edited{ display:none; } }
 .ws-img{ display:block; margin:12px auto 0; max-width:80%; border:1px solid #000; }
 table.ws-rubric{ width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
 .ws-rubric th,.ws-rubric td{ border:1px solid #000; padding:7px 10px; }
@@ -615,6 +627,18 @@ table.ws-map{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13
     <div class="card" id="respMatrixCard">
       <h2 class="card__title">⚖️ 교사–AI 책임 매트릭스 <span class="card__hint">AI는 설계 공간을 넓히고, 교사가 교육적 판단을 최종 결정합니다</span></h2>
       <div id="respMatrixBody"></div>
+    </div>
+
+    <!-- CBLAA STEP6 · 개념기반 루브릭 -->
+    <div class="card" id="rubricCard">
+      <h2 class="card__title">📊 개념기반 루브릭 <span class="concept-badge" id="rubricConceptBadge">개념어: —</span></h2>
+      <p class="field__hint" style="margin:-2px 0 10px;">4수준 × 4기준(개념·전이·설명·근거) 채점 기준을 자동 생성합니다. AI 초안 → <b>교사가 수정·확정</b>. 이 4수준은 아래 개념기반 피드백과 같은 전이 척도입니다.</p>
+      <div id="rubricBody"></div>
+      <div class="rubric-actions">
+        <button class="btn-mini" id="rubricRegen">↻ 다시 생성</button>
+        <button class="btn-mini" id="rubricCopy">📋 표 복사</button>
+        <span class="fb-note">교사 수정·확정 전 초안 — 셀을 눌러 바로 고칠 수 있어요</span>
+      </div>
     </div>
 
     <!-- CBLAA STEP7 · 개념기반 피드백 -->
@@ -1084,6 +1108,8 @@ const state = {
   decision:{ assess:[], purpose:'', studentLevel:'', cognition:[] },
   /* CBLAA STEP3 · AI 설계 제안 — AI는 제안만, chosen은 교사가 채택한 것만 담긴다 */
   aiDesign:{ chosen:{ context:[], qtypes:[], difficulty:'' } },
+  /* CBLAA STEP6 · 루브릭 — null이면 자동 생성본 사용, 교사가 고치면 4행 배열이 담긴다 */
+  rubric:null,
 };
 let chatHistory = [];
 let techFilter = 'all';
@@ -1687,6 +1713,7 @@ function renderDone(){
   renderEvidenceMatrix();
   renderExplainCards();
   renderResponsibilityMatrix();
+  renderRubricEngine();
   renderFeedbackEngine();
   renderFormatChips();   // 선별 상태가 바뀌면 추천 서식도 다시 계산
   updateDoneBadge();
@@ -3040,6 +3067,52 @@ function renderResponsibilityMatrix(){
       <thead><tr><th>단계</th><th>AI 역할</th><th>교사 역할</th><th>최종 권한</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
     <p class="resp-principle">“AI는 평가의 <b>설계 공간(design space)</b>을 확장하고, 교사는 <b>교육적 판단(educational judgment)</b>을 최종 결정한다.” — Human–AI Co-Assessment Principle</p>`;
+}
+
+/* ═════════ CBLAA STEP6 · 개념기반 루브릭 엔진 ═════════
+   4수준(전이 척도, STEP7 피드백과 동일) × 4기준(개념·전이·설명·근거) 자동 생성.
+   AI 초안 → 교사 수정·확정(최종 권한 교사). 교사 편집은 state.rubric에 저장. */
+const RUBRIC_LEVELS = [
+  { n:4, ko:'새 맥락 전이' }, { n:3, ko:'익숙한 맥락' },
+  { n:2, ko:'부분 이해' },   { n:1, ko:'오개념' },
+];
+function generateRubric(){
+  const c = currentConcept() || '핵심 개념';
+  const co = c + jo(c,'을','를');
+  return [
+    { c:`${co} 정확히 이해함`,      t:'배운 맥락을 넘어 새로운 상황에 스스로 적용', e:'근거를 들어 논리적으로 설명',  g:'근거가 충분하고 적절' },
+    { c:`${co} 정확히 이해함`,      t:'익숙한 맥락 안에서 적용',                 e:'대체로 논리적으로 설명',     g:'근거가 적절' },
+    { c:`${co} 부분적으로 이해함`,  t:'전이가 제한적',                          e:'부분적으로 설명',           g:'근거가 부족' },
+    { c:`${c}에 오개념이 있음`,     t:'전이하지 못함',                          e:'단편적으로 설명',           g:'근거가 없음' },
+  ];
+}
+function rubricRows(){ return (state.rubric && state.rubric.length === 4) ? state.rubric : generateRubric(); }
+function renderRubricEngine(){
+  const card = $('#rubricCard'); if(!card) return;
+  $('#rubricConceptBadge').textContent = '개념어: ' + (currentConcept() || '—');
+  const rows = rubricRows();
+  const edited = !!(state.rubric && state.rubric.length === 4);
+  $('#rubricBody').innerHTML = `<div style="overflow-x:auto;"><table class="rubric-table">
+    <thead><tr><th>수준</th><th>개념</th><th>전이</th><th>설명</th><th>근거</th></tr></thead>
+    <tbody>${rows.map((r,i)=>{ const lv = RUBRIC_LEVELS[i]; return `<tr>
+      <td class="rubric-lv"><b>${lv.n}</b><span>${lv.ko}</span></td>
+      <td contenteditable="true" data-r="${i}" data-k="c">${esc(r.c)}</td>
+      <td contenteditable="true" data-r="${i}" data-k="t">${esc(r.t)}</td>
+      <td contenteditable="true" data-r="${i}" data-k="e">${esc(r.e)}</td>
+      <td contenteditable="true" data-r="${i}" data-k="g">${esc(r.g)}</td></tr>`; }).join('')}</tbody></table></div>
+    ${edited ? '<p class="rubric-edited">✎ 교사 수정본이 저장되어 있습니다. 개념어를 바꾼 뒤 새 초안이 필요하면 <b>↻ 다시 생성</b>을 누르세요.</p>' : ''}`;
+  $('#rubricBody').querySelectorAll('td[contenteditable]').forEach(td => td.addEventListener('input', () => {
+    const next = rubricRows().map(x => ({...x}));
+    next[+td.dataset.r][td.dataset.k] = td.textContent;
+    state.rubric = next; save();
+  }));
+  $('#rubricRegen').onclick = () => { state.rubric = null; save(); renderRubricEngine(); toast('↻ 루브릭을 다시 생성했어요 (교사 수정 내용은 초기화)'); };
+  $('#rubricCopy').onclick = () => {
+    const rows = rubricRows();
+    const text = '수준\t개념\t전이\t설명\t근거\n' +
+      rows.map((r,i)=>`${RUBRIC_LEVELS[i].n}\t${r.c}\t${r.t}\t${r.e}\t${r.g}`).join('\n');
+    navigator.clipboard?.writeText(text).then(()=>toast('📋 루브릭 표를 복사했어요 (엑셀·한글에 붙여넣기 가능)'), ()=>toast('복사 실패 — 직접 선택해 주세요'));
+  };
 }
 
 /* ═════════ CBLAA STEP7 · 개념기반 피드백 엔진 ═════════
